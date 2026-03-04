@@ -1,1 +1,5 @@
 logs/marionette-mcp.log
+test-results/*/screenshots/
+test-results/*/*.xml
+test-results/*/*.log
+state/implement-checkpoint.json
