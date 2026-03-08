@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 515 (2026-03-07)
+**Work**: DPI fix implemented + device-tested (not root cause — grid pages skip recognizeImage). Root-caused to renderer divergence (pdfx AOSP PdfRenderer vs upstream PDFium). Researched pdfrx (4 agents), mapped blast radius (2 agents), wrote 7-phase migration plan, adversarial review (17 findings addressed), brainstormed all decisions (BGRA passthrough, format enum, alias import, Phase 0 verification).
+**Decisions**: pdfrx replaces pdfx. Raw BGRA passthrough (no PNG encode/decode). RenderedPage format enum. Image.fromBytes(order: ChannelOrder.bgra). Phase 0 API verification mandatory. pdfrx alias import for PdfDocument collision.
+**Next**: Implement pdfrx migration Phase 0, then full migration, device validation.
+
 ### Session 514 (2026-03-07)
 **Work**: Full overhaul of systematic-debugging skill (7 phases, 6 files updated, 3 deleted). Brainstormed specs, compared vs upstream superpowers, indexed codebase via CodeMunch. Added sync engine traces, 5-layer defense model, ADB/UIAutomator patterns, 3 new defect categories. Dual Opus review caught 4 issues, all fixed.
 **Decisions**: Remove pressure tests. Rewrite condition-based-waiting for ADB. 5-layer defense. Add SYNC/MIGRATION/SCHEMA defect categories. Keep codex wrapper.

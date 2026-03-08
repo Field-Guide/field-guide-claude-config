@@ -1,24 +1,24 @@
 # Session State
 
-**Last Updated**: 2026-03-08 | **Session**: 519
+**Last Updated**: 2026-03-08 | **Session**: 520
 
 ## Current Phase
-- **Phase**: .claude/ directory baseline audit planned — ready to execute
-- **Status**: Full brainstorming → spec → adversarial review → writing-plans pipeline completed for .claude/ directory cleanup. Plan ready at `.claude/plans/2026-03-08-claude-directory-audit.md`. New `/audit-config` skill designed.
+- **Phase**: .claude/ directory audit COMPLETE — pdfrx migration next
+- **Status**: Audit plan executed via `/implement`. 15 files modified, 4 new files created, 24+ broken references fixed, 0 remaining. Security invariants all PASS (9/9). New `/audit-config` skill created. Changes uncommitted in .claude/ config repo.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (519)
+### What Was Done This Session (520)
 
-1. **Brainstormed .claude/ directory audit** — 7 structured questions with user. Defined: as-built docs (not aspirational), update PRDs in-place, report-first-then-clean, standalone /audit-config skill, feature branch as truth, max 15 files per agent.
-2. **Wrote spec** — `.claude/specs/2026-03-08-claude-directory-audit-spec.md`. 12 agents (1 mapper + 11 workers), security invariants, rollback plan, CLAUDE.md single-owner pattern.
-3. **Adversarial review (spec)** — 2 Opus agents (code-review + security). 10 MUST-FIX, 12 SHOULD-CONSIDER. All addressed: branch policy, corrected file counts, missing directories added, security invariants section, Phase 4 security check.
-4. **Indexed codebase** — CodeMunch: 646 files, 5237 symbols. Built blast-radius analysis.
-5. **Wrote implementation plan** — `.claude/plans/2026-03-08-claude-directory-audit.md`. 5 phases, 16 sub-phases, ~40 steps. Agent #10 runs after other 10 (CLAUDE.md handoff protocol).
-6. **Adversarial review (plan)** — 2 Opus agents. 1 CRITICAL + 4 HIGH (code review) + 3 HIGH (security). All fixed: file counts corrected, handoff protocol added, Phase 4.2 expanded with rule file sentinel checks + Iron Law prose check + string-match for HARD CONSTRAINT.
+1. **Executed .claude/ directory audit plan** — `/implement .claude/plans/2026-03-08-claude-directory-audit.md`
+2. **Phase 0**: Committed + tagged pre-audit snapshot in .claude/ config repo (`pre-audit-2026-03-08`)
+3. **Phase 1**: Mapper scan produced audit report (24 broken paths, 3 stale areas, 1 orphan). Report at `.claude/outputs/audit-report-2026-03-08.md`
+4. **Phase 3**: 10 parallel fix agents + 1 sequential (Agent #10 for CLAUDE.md). Fixed: toolbox sub-feature paths (15+), sync_service.dart→engine refs, entry_personnel→EntryPersonnelCounts, spacing.dart→design_constants.dart, deleted orphaned test-orchestrator-agent/ dir
+5. **Phase 4**: Verification — 0 broken refs remaining, 9/9 security invariants PASS
+6. **CLAUDE.md updated**: Added test-wave-agent (agents table), test + audit-config (skills table)
 
 ### What Needs to Happen Next
-1. **Execute the audit plan** — `/implement .claude/plans/2026-03-08-claude-directory-audit.md`
+1. **Review + commit .claude/ audit changes** — uncommitted, pre-audit tag available for rollback
 2. **Push .claude config repo** — multiple commits ahead of origin
 3. **Implement pdfrx migration** — start with Phase 0
 4. **Device validation** — Android extraction matches Windows fixtures after pdfrx
@@ -51,6 +51,11 @@
 
 ## Recent Sessions
 
+### Session 520 (2026-03-08)
+**Work**: Executed .claude/ directory audit plan via /implement. Phase 0: pre-audit tag. Phase 1: mapper scan (24 broken paths, 3 stale areas, 1 orphan). Phase 3: 10 parallel + 1 sequential fix agents. 15 files modified, 4 new created, 24+ broken refs fixed, 0 remaining. Security invariants 9/9 PASS. New /audit-config skill created. CLAUDE.md updated (test-wave-agent + 2 skills added).
+**Decisions**: Single orchestrator cycle (no handoffs needed). Skip Flutter build/analyze/test gates (config-only changes). User deferred commit for manual review.
+**Next**: Review + commit audit changes. Push .claude repo. pdfrx migration Phase 0. Device validation. PR.
+
 ### Session 519 (2026-03-08)
 **Work**: Full brainstorming → spec → adversarial review → writing-plans pipeline for .claude/ directory baseline audit. 7 structured questions. Spec with 12 agents + security invariants. Dual Opus adversarial review (10 MUST-FIX, 12 SHOULD-CONSIDER resolved). CodeMunch index (646 files, 5237 symbols). Implementation plan with 5 phases, 16 sub-phases. Dual Opus plan review (1 CRITICAL + 7 HIGH resolved). New /audit-config skill designed.
 **Decisions**: As-built docs. Update PRDs in-place. Report-first-then-clean. Feature branch is truth. CLAUDE.md single-owner (Agent #10, runs after others). Security invariants use string match not line numbers. Defect files: path fixes only.
@@ -71,17 +76,12 @@
 **Decisions**: BGRA→PNG for diagnostics. Encode in fallback paths. No feature flag. Separate perf plan. Verify `?.call()` null short-circuit first.
 **Next**: Implement pdfrx migration Phase 0. Then P0 pipeline perf fixes.
 
-### Session 515 (2026-03-07)
-**Work**: DPI fix implemented + device-tested (not root cause — grid pages skip recognizeImage). Root-caused to renderer divergence (pdfx AOSP PdfRenderer vs upstream PDFium). Researched pdfrx (4 agents), mapped blast radius (2 agents), wrote 7-phase migration plan, adversarial review (17 findings addressed), brainstormed all decisions (BGRA passthrough, format enum, alias import, Phase 0 verification).
-**Decisions**: pdfrx replaces pdfx. Raw BGRA passthrough (no PNG encode/decode). RenderedPage format enum. Image.fromBytes(order: ChannelOrder.bgra). Phase 0 API verification mandatory. pdfrx alias import for PdfDocument collision.
-**Next**: Implement pdfrx migration Phase 0, then full migration, device validation.
-
 ## Active Plans
 
-### .claude/ Directory Baseline Audit — PLAN READY (Session 519)
+### .claude/ Directory Baseline Audit — IMPLEMENTED (Session 519-520)
 - **Plan**: `.claude/plans/2026-03-08-claude-directory-audit.md`
 - **Spec**: `.claude/specs/2026-03-08-claude-directory-audit-spec.md`
-- **Status**: 5 phases, 16 sub-phases, ~40 steps. 12 agents (1 mapper + 11 workers). Dual adversarial review passed. Ready for `/implement`.
+- **Status**: 100% implemented. 15 files modified, 4 new created. 24+ broken refs fixed, 0 remaining. 9/9 security invariants PASS. Uncommitted — awaiting user review.
 
 ### Planning Pipeline Restructure — IMPLEMENTED (Session 518)
 - **Plan**: `.claude/plans/2026-03-08-planning-pipeline-restructure.md`
