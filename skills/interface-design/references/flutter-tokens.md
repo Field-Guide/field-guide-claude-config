@@ -116,7 +116,7 @@ Text(
 ### Spacing Constants
 
 ```dart
-// Define in lib/core/theme/spacing.dart
+// Define in lib/core/theme/design_constants.dart
 class Spacing {
   static const double xs = 4.0;
   static const double sm = 8.0;

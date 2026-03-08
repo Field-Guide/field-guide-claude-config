@@ -94,12 +94,12 @@ Header keywords in `shared/header_keywords.dart`, regex patterns in `shared/extr
 | `lib/features/pdf/services/extraction/stages/quality_validator.dart` | 2 reviews | Wrong strategy escalation, buggy median |
 | `lib/features/pdf/services/extraction/models/quality_report.dart` | 2 reviews | isValid contradicts validator, magic thresholds |
 | `lib/features/pdf/services/extraction/stages/row_classifier_v2.dart` | 2 reviews | Entire file dead (V3 active) |
-| `lib/features/entries/presentation/screens/entry_wizard_screen.dart` | 1 review | God class (2610 lines), bypasses DI |
-| `lib/features/entries/presentation/screens/report_screen.dart` | 1 review | God class (2761 lines), bypasses DI |
+| `lib/features/entries/presentation/screens/entry_wizard_screen.dart` [FILE REMOVED] | 1 review | God class (2610 lines), bypasses DI |
+| `lib/features/entries/presentation/screens/report_screen.dart` [FILE REMOVED] | 1 review | God class (2761 lines), bypasses DI |
 | `lib/features/pdf/services/extraction/shared/post_process_utils.dart` | 2 reviews | Dead methods, overlapping artifact cleaning |
 | `test/features/pdf/extraction/helpers/test_fixtures.dart` | 2 reviews | Under-adopted; should be single source for test helpers |
 | `test/features/pdf/extraction/golden/stage_trace_diagnostic_test.dart` | 3 reviews | God test (1000+ lines), scorecard driver |
 | `test/features/pdf/extraction/fixtures/springfield_parsed_items.json` | 2 reviews | Key fixture for pipe artifact tracking |
-| `lib/services/sync_service.dart` | 2 reviews | Legacy, 18+14 duplicate methods, dead SyncResult fields |
+| `lib/services/sync_service.dart` [FILE REMOVED on feat/sync-engine-rewrite] | 2 reviews | Legacy, 18+14 duplicate methods, dead SyncResult fields |
 | `lib/main.dart` | 1 review | 622 lines, 28-param constructor, service locator anti-pattern |
 | `lib/features/pdf/services/extraction/shared/` | 3 reviews | Central shared utils; check here before defining local helpers |

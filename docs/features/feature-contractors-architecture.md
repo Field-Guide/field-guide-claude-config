@@ -18,7 +18,7 @@ updated: 2026-02-13
 | **PersonnelType** | id, projectId, name, description, createdAt, updatedAt | Model | Personnel category |
 | **EntryContractor** | id, entryId, contractorId, role | Junction | Links contractor to entry |
 | **EntryEquipment** | id, entryId, equipmentId, hoursUsed | Junction | Links equipment to entry with usage |
-| **EntryPersonnel** | id, entryId, personnelTypeId, count | Junction | Links personnel type to entry with count |
+| **EntryPersonnelCounts** | id, entryId, contractorId, personnelTypeId, count | Junction | Personnel headcounts per contractor per entry (replaced legacy EntryPersonnel) |
 
 ### Key Models
 
@@ -338,10 +338,15 @@ lib/features/contractors/
 │   │   │   ├── contractor_local_datasource.dart
 │   │   │   ├── equipment_local_datasource.dart
 │   │   │   ├── personnel_type_local_datasource.dart
-│   │   │   └── entry_*_local_datasource.dart
+│   │   │   ├── entry_contractors_local_datasource.dart
+│   │   │   ├── entry_equipment_local_datasource.dart
+│   │   │   └── entry_personnel_counts_local_datasource.dart
 │   │   └── remote/
 │   │       ├── remote_datasources.dart
-│   │       └── [remote datasources]
+│   │       ├── contractor_remote_datasource.dart
+│   │       ├── equipment_remote_datasource.dart
+│   │       ├── entry_equipment_remote_datasource.dart
+│   │       └── personnel_type_remote_datasource.dart
 │   │
 │   └── repositories/
 │       ├── repositories.dart

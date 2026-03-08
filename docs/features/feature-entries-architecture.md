@@ -15,7 +15,7 @@ updated: 2026-02-13
 |--------|--------|------|-------|
 | **DailyEntry** | id, projectId, locationId, date, weather, tempLow, tempHigh, activities, siteSafety, sescMeasures, trafficControl, visitors, extrasOverruns, signature, signedAt, status, createdAt, updatedAt, syncStatus | Model | Main entry record |
 | **EntryContractor** | id, entryId, contractorId, role | Junction | Links contractors to entries |
-| **EntryPersonnel** | id, entryId, personnelTypeId, count | Model | Personnel counts for entry |
+| **EntryPersonnelCounts** | id, entryId, contractorId, personnelTypeId, count | Model | Personnel headcounts per contractor per entry (replaced legacy EntryPersonnel) |
 | **EntryEquipment** | id, entryId, equipmentId, hours | Model | Equipment usage for entry |
 | **EntryQuantity** | id, entryId, bidItemId, quantityCompleted | Model | Quantities tracked for entry |
 
@@ -29,7 +29,7 @@ updated: 2026-02-13
 - `syncStatus`: Tracks pending/synced state for cloud sync
 - All fields except signature are required for completion
 
-**EntryContractor**, **EntryPersonnel**, **EntryEquipment**:
+**EntryContractor**, **EntryPersonnelCounts**, **EntryEquipment**:
 - Bridge tables for many-to-many relationships
 - Store entry-specific metadata (role, count, hours)
 
@@ -47,7 +47,7 @@ DailyEntry[] (many per project, one per date/location)
     ├─→ Location (1)
     ├─→ Photos[] (via photo.entryId)
     ├─→ Contractors[] (via EntryContractor junction)
-    ├─→ Personnel[] (via EntryPersonnel)
+    ├─→ Personnel[] (via EntryPersonnelCounts)
     ├─→ Equipment[] (via EntryEquipment)
     └─→ Quantities[] (via EntryQuantity)
 ```
@@ -99,7 +99,7 @@ class DailyEntryRepository {
 
 ### Supporting Repositories
 
-**EntryContractorRepository**, **EntryPersonnelRepository**, **EntryEquipmentRepository**:
+**EntryContractorRepository**, **EntryEquipmentRepository**:
 - Manage junction table relationships
 - Methods: `addToEntry()`, `removeFromEntry()`, `updateHours()/count()`
 
@@ -272,11 +272,7 @@ lib/features/entries/
 ├── data/
 │   ├── models/
 │   │   ├── models.dart
-│   │   ├── daily_entry.dart
-│   │   ├── entry_contractor.dart
-│   │   ├── entry_personnel.dart
-│   │   ├── entry_equipment.dart
-│   │   └── entry_quantity.dart
+│   │   └── daily_entry.dart
 │   │
 │   ├── datasources/
 │   │   ├── local/
@@ -295,16 +291,43 @@ lib/features/entries/
 │   │   ├── screens.dart
 │   │   ├── home_screen.dart
 │   │   ├── entries_list_screen.dart
-│   │   └── entry_editor_screen.dart          # Unified create + edit screen
+│   │   ├── drafts_list_screen.dart
+│   │   ├── entry_editor_screen.dart          # Unified create + edit screen
+│   │   ├── entry_review_screen.dart
+│   │   ├── review_summary_screen.dart
+│   │   └── report_widgets/                   # Report screen specific dialogs
 │   │
 │   ├── widgets/
 │   │   ├── widgets.dart
 │   │   ├── entry_basics_section.dart
+│   │   ├── entry_activities_section.dart
 │   │   ├── entry_safety_section.dart
+│   │   ├── entry_contractors_section.dart
+│   │   ├── entry_photos_section.dart
+│   │   ├── entry_forms_section.dart
+│   │   ├── entry_quantities_section.dart
+│   │   ├── entry_form_card.dart
+│   │   ├── entry_action_bar.dart
 │   │   ├── contractor_editor_widget.dart
 │   │   ├── bid_item_picker_sheet.dart
 │   │   ├── quantity_dialog.dart
-│   │   └── [report_widgets/] - Report screen specific dialogs
+│   │   ├── add_equipment_dialog.dart
+│   │   ├── add_personnel_type_dialog.dart
+│   │   ├── draft_entry_tile.dart
+│   │   ├── form_selection_dialog.dart
+│   │   ├── photo_detail_dialog.dart
+│   │   ├── review_field_row.dart
+│   │   ├── review_missing_warning.dart
+│   │   ├── simple_info_row.dart
+│   │   ├── status_badge.dart
+│   │   └── submitted_banner.dart
+│   │
+│   ├── controllers/
+│   │   ├── entry_editing_controller.dart
+│   │   ├── contractor_editing_controller.dart
+│   │   ├── photo_attachment_manager.dart
+│   │   ├── form_attachment_manager.dart
+│   │   └── pdf_data_builder.dart
 │   │
 │   ├── providers/
 │   │   ├── providers.dart

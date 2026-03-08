@@ -238,16 +238,18 @@ lib/features/settings/
 │   ├── screens/
 │   │   ├── screens.dart
 │   │   ├── settings_screen.dart
-│   │   └── personnel_types_screen.dart
+│   │   ├── personnel_types_screen.dart
+│   │   ├── edit_profile_screen.dart
+│   │   ├── admin_dashboard_screen.dart
+│   │   └── trash_screen.dart
 │   │
 │   ├── widgets/
 │   │   ├── widgets.dart
 │   │   ├── theme_section.dart
 │   │   ├── sync_section.dart
-│   │   ├── inspector_profile_section.dart
+│   │   ├── member_detail_sheet.dart
 │   │   ├── section_header.dart
 │   │   ├── clear_cache_dialog.dart
-│   │   ├── edit_inspector_dialog.dart
 │   │   └── sign_out_dialog.dart
 │   │
 │   ├── providers/
@@ -260,10 +262,10 @@ lib/features/settings/
 
 lib/core/theme/
 ├── app_theme.dart                    # Theme constants and ThemeData
-└── app_colors.dart                   # Color palette
+└── colors.dart                       # Color palette
 
 lib/core/config/
-└── shared_preferences_config.dart    # Shared Preferences setup
+└── supabase_config.dart              # Supabase configuration
 ```
 
 ### Import Pattern

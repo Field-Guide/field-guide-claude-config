@@ -1119,7 +1119,7 @@ Status legend: COMPLETE, MOSTLY COMPLETE, NOT STARTED
 - **Tests**: Dedicated test file for structural metrics
 
 #### R7.2 — Confidence Calibration Pipeline (Enhancement #6)
-- **New file**: `lib/features/pdf/services/extraction/pipeline/confidence_calibrator.dart`
+- **New file**: `lib/features/pdf/services/extraction/pipeline/confidence_calibrator.dart` [NOT IMPLEMENTED: file does not exist on disk]
 - **What**: Implement Platt scaling (logistic regression) or table-based calibration. Compare predicted confidence to actual correctness against Springfield ground truth. Apply monotonic correction curve
 - **Research needed**: Platt scaling implementation in Dart, calibration corpus requirements, isotonic regression as alternative
 - **Tests**: Calibration test with Springfield fixture, verify monotonicity
