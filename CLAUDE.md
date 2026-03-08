@@ -56,6 +56,7 @@ lib/
 | `code-review-agent` | Architecture, code quality | REVIEW |
 | `security-agent` | Security audits, vulnerability scanning, OWASP compliance | REVIEW |
 | `qa-testing-agent` | Testing, debugging | TEST/VERIFY |
+| `test-wave-agent` | ADB-based automated user flow testing on Android | TEST |
 
 **Note**: All agents must be at root `.claude/agents/` level (no subdirectories).
 
@@ -70,6 +71,8 @@ lib/
 | `implement` | Autonomous plan execution with quality gates | User-invoked |
 | `resume-session` | Load HOT context on session start | User-invoked |
 | `end-session` | Session handoff with auto-archiving | User-invoked |
+| `test` | ADB-based automated user flow testing on Android devices | test-wave-agent |
+| `audit-config` | Audit .claude/ directory against current codebase | User-invoked |
 
 Skills are loaded via `skills:` frontmatter in agent files or invoked directly by the user. The planning pipeline flows: brainstorming (spec) → writing-plans (plan) → implement (execute).
 
