@@ -6,6 +6,16 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 514 (2026-03-07)
+**Work**: Full overhaul of systematic-debugging skill (7 phases, 6 files updated, 3 deleted). Brainstormed specs, compared vs upstream superpowers, indexed codebase via CodeMunch. Added sync engine traces, 5-layer defense model, ADB/UIAutomator patterns, 3 new defect categories. Dual Opus review caught 4 issues, all fixed.
+**Decisions**: Remove pressure tests. Rewrite condition-based-waiting for ADB. 5-layer defense. Add SYNC/MIGRATION/SCHEMA defect categories. Keep codex wrapper.
+**Next**: Implement OCR DPI fix, device test, commit, PR.
+
+### Session 513 (2026-03-07)
+**Work**: Device-tested sync engine. Diagnosed PDF OCR regression: V2 engine not threading DPI to Tesseract. Added temp stage dumps, pulled 28 stage JSONs, pinpointed divergence at items 94-96 on page 4. Wrote fix plan.
+**Decisions**: Fix is 2 setVariable calls. No pdfx changes needed. Temp stage dump code to be removed after verification.
+**Next**: Implement OCR DPI fix, re-test on device, remove temp code, commit, PR.
+
 ### Session 511 (2026-03-06)
 **Work**: Implemented sync auth fix (4 bugs in sync_orchestrator.dart). Fixed hanging test. Full suite passes.
 **Decisions**: Adversarial plan superseded original. Guard before _updateStatus to avoid UI flicker.
