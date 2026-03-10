@@ -173,7 +173,7 @@ Reference: `lib/features/contractors/data/models/contractor.dart:47-53`
 | `supabase_flutter` | Backend / Auth |
 | `sqflite` | Local SQLite storage |
 | `syncfusion_flutter_pdf` | PDF generation (template filling) |
-| `pdfx` | PDF rendering to images |
+| `pdfrx` | PDF rendering to images (bundled PDFium, cross-platform consistent) |
 | `printing` | PDF preview / rasterization (Windows primary path) |
 | `flusseract` | Tesseract OCR via native binding (`packages/flusseract/`) |
 | `syncfusion_flutter_pdfviewer` | PDF viewing / rendering |

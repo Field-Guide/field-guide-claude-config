@@ -1,22 +1,28 @@
 ---
 name: systematic-debugging
 description: Root cause analysis framework that prevents guess-and-check debugging
-context: fork
-agent: qa-testing-agent
 user-invocable: true
 ---
 
 # Systematic Debugging Skill
 
-**Purpose**: Root cause analysis framework that prevents guess-and-check debugging.
+**Purpose**: Interactive root cause analysis framework. Investigates bugs WITH the user, never autonomously.
+
+## CRITICAL: This Skill Is Interactive
+
+**This skill runs in the main conversation.** It does NOT delegate to subagents or run autonomously.
+
+- **Show progress** at every step — the user must see what you're doing
+- **Present findings** after each phase before moving on
+- **NEVER write code** without explicit user approval
+- **NEVER skip to implementation** — investigation comes first, always
+- **Use subagents only for parallel research** (read-only exploration), not for code changes
 
 ## Iron Law
 
 > **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST**
 
 Every fix must be preceded by understanding WHY the bug exists. Guessing wastes time and creates new bugs.
-
-> **Real-World Impact**: Systematic debugging takes 15–30 minutes. Thrashing without process takes 2–3 hours and often leaves the root cause unfound.
 
 ## Before Starting: Use Existing Results
 
@@ -31,7 +37,7 @@ Before debugging ANY issue:
 
 @.claude/skills/systematic-debugging/references/defects-integration.md
 
-## Four-Phase Framework
+## Three-Phase Framework (Investigation Only)
 
 ### Phase 1: Root Cause Investigation
 
@@ -49,6 +55,8 @@ Before debugging ANY issue:
 - What are the EXACT steps to reproduce?
 - When did this start happening?
 - What changed recently (commits, dependencies, config)?
+
+**USER GATE**: After Phase 1, present findings to the user. Ask if the investigation direction is correct before continuing.
 
 @.claude/skills/systematic-debugging/references/root-cause-tracing.md
 
@@ -69,31 +77,34 @@ Before debugging ANY issue:
 
 @.claude/skills/systematic-debugging/references/defense-in-depth.md
 
-### Phase 3: Hypothesis Testing
+### Phase 3: Hypothesis & Root Cause Report
 
-**Goal**: Test ONE hypothesis at a time.
+**Goal**: Form hypothesis, present root cause analysis to user.
 
 1. **Form hypothesis** - "The bug occurs because X"
-2. **Design test** - How to confirm/deny this hypothesis
-3. **Test minimally** - Smallest change to test hypothesis
-4. **Evaluate** - Did it confirm or deny?
-5. **When You Don't Know** — If you cannot explain why the bug occurs, say "I don't understand X yet." Do NOT pretend to understand. Do NOT propose a fix for something you cannot explain. Return to Phase 1 and gather more evidence.
+2. **Support with evidence** - Cite specific files, lines, fixture data
+3. **When You Don't Know** — Say "I don't understand X yet." Do NOT pretend. Return to Phase 1.
 
 **Rules**:
-- ONE hypothesis per test
-- Revert failed changes before trying next hypothesis
+- ONE hypothesis at a time
 - Log your hypotheses and results
 
-### Phase 4: Implementation
+**OUTPUT**: Present a root cause report to the user with:
+- Root cause (with evidence)
+- Upstream origin (most upstream stage/file where the problem starts)
+- Proposed fix approach (DO NOT implement — describe only)
+- Files that would need to change
+- Risk assessment
 
-**Goal**: Fix with confidence.
+### STOP HERE — User Decides Next Steps
 
-1. **Write failing test** - Captures the bug
-2. **Apply targeted fix** - Minimal change to fix root cause
-3. **Verify test passes** - Bug is actually fixed
-4. **Check regressions** - Run related tests
-5. **If fix doesn't work (< 3 tries)** — Revert, return to Phase 1. Your hypothesis was wrong. Form a new one.
-6. **If fix doesn't work (≥ 3 tries)** — **STOP**. Do not try another fix. The architecture or your understanding of the system is the problem. State explicitly: "I have tried 3 hypotheses and none resolved the root cause. I need to re-examine the system." Then go back to Phase 1 with fresh eyes.
+**After Phase 3, STOP.** Present your findings and let the user decide:
+- Approve the proposed fix → user tells you to implement
+- Modify the approach → user redirects
+- Investigate further → return to Phase 1
+- Defer → user handles it later
+
+**NEVER auto-proceed to implementation. The user must explicitly ask for code changes.**
 
 @.claude/skills/systematic-debugging/references/condition-based-waiting.md
 
