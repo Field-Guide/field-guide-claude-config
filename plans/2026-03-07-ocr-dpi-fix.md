@@ -93,7 +93,7 @@ tess.setVariable('user_defined_dpi', sourceDpi.toString());
 ## Files NOT Modified
 
 - `packages/flusseract/` — C++ already handles `user_defined_dpi` correctly (lines 95-108)
-- `pdfx` — no changes needed; the fix is to tell Tesseract the DPI rather than relying on image metadata
+- `pdfx` — replaced by `pdfrx` in renderer migration (2026-03-08). DPI fix remains as defensive code; the renderer divergence (pdfx AOSP fork vs upstream PDFium) was the actual root cause of the $457K OCR discrepancy, not the DPI threading bug
 - Pipeline stages — all deterministic given OCR input; fixing the input fixes everything downstream
 - Test fixtures — should still pass; may want to regenerate after verifying improvement
 

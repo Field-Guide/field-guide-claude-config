@@ -6,6 +6,30 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 524 (2026-03-08)
+**Work**: Implemented grid line threshold fix via /implement. `_adaptiveC` -2.0→10.0. Mask coverage 77%→5.3%. Item 96 bid_amount recovered.
+**Next**: Commit changes. Create PR.
+
+### Session 523 (2026-03-08)
+**Work**: Systematic debugging traced all 3 item failures to grid line removal adaptive threshold bug.
+**Next**: Implement fix. Regenerate fixtures. Verify scorecard.
+
+### Session 522 (2026-03-08)
+**Work**: Deep root cause investigation via 4 parallel agents. Traced item 96 OCR fragmentation.
+**Next**: Decide fix approach. Implement.
+
+### Session 519 (2026-03-08)
+**Work**: Full brainstorming → spec → adversarial review → writing-plans pipeline for .claude/ directory baseline audit.
+**Next**: Execute audit plan via /implement.
+
+### Session 518 (2026-03-08)
+**Work**: Restructured planning pipeline. Implemented via /implement (0 findings). 3-agent post-verification (44/44 PASS).
+**Next**: Push .claude repo. pdfrx migration. PR.
+
+### Session 517 (2026-03-08)
+**Work**: Rewrote `/implement` skill with per-phase reviews. Implemented via /implement (0 findings). Code review verified (1 LOW fixed).
+**Next**: pdfrx migration Phase 0.
+
 ### Session 515 (2026-03-07)
 **Work**: DPI fix implemented + device-tested (not root cause — grid pages skip recognizeImage). Root-caused to renderer divergence (pdfx AOSP PdfRenderer vs upstream PDFium). Researched pdfrx (4 agents), mapped blast radius (2 agents), wrote 7-phase migration plan, adversarial review (17 findings addressed), brainstormed all decisions (BGRA passthrough, format enum, alias import, Phase 0 verification).
 **Decisions**: pdfrx replaces pdfx. Raw BGRA passthrough (no PNG encode/decode). RenderedPage format enum. Image.fromBytes(order: ChannelOrder.bgra). Phase 0 API verification mandatory. pdfrx alias import for PdfDocument collision.

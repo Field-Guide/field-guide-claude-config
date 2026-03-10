@@ -4,6 +4,22 @@ Historical defects moved from per-feature defect files. Reference only.
 
 ---
 
+## PDF (archived 2026-03-08, session 523)
+
+### [DATA] 2026-03-02: Geometry-Aware Upscaler Causes Comma/Period OCR Confusion — $357B Budget (BLOCKER-19)
+**Pattern**: Geometry-aware DPI boost (600→900) caused Tesseract comma/period confusion. Reverted to uniform 600 DPI.
+**Ref**: @lib/features/pdf/services/extraction/shared/crop_upscaler.dart
+
+## PDF (archived 2026-03-08, session 522)
+
+### [CONFIG] 2026-03-07: V2 OCR Engine Does Not Thread DPI to Tesseract — 70 DPI Fallback on Android
+**Pattern**: `TesseractEngineV2` computes source DPI but never calls `tess.setVariable("user_defined_dpi", dpi)`. Tesseract falls back to 70 DPI on Android. Fixed by pdfrx migration (consistent renderer).
+**Ref**: @lib/features/pdf/services/extraction/ocr/tesseract_engine_v2.dart:70-76
+
+### [BLOCKER] 2026-02-20: M&P Parser Regex Finds Only 4 of 131 Items — Anchor-Based Rewrite Needed
+**Pattern**: Parser regex `^\s*Item\s+` requires line-start anchor but Syncfusion text doesn't preserve line breaks. Only 4/131 items matched. Fix: unanchored `Item\s+(\d+)` finds all 131.
+**Ref**: @lib/features/pdf/services/mp/mp_extraction_service.dart:229-233
+
 ## PDF (archived 2026-03-08)
 
 ### [QUALITY] 2026-02-18: RowParserV3 Stage Confidence Can Mask High Skip Rates

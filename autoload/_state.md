@@ -1,35 +1,42 @@
 # Session State
 
-**Last Updated**: 2026-03-08 | **Session**: 520
+**Last Updated**: 2026-03-09 | **Session**: 529
 
 ## Current Phase
-- **Phase**: .claude/ directory audit COMPLETE — pdfrx migration next
-- **Status**: Audit plan executed via `/implement`. 15 files modified, 4 new files created, 24+ broken references fixed, 0 remaining. Security invariants all PASS (9/9). New `/audit-config` skill created. Changes uncommitted in .claude/ config repo.
+- **Phase**: Cross-Device Parity — PLAN COMPLETE, READY FOR IMPLEMENT
+- **Status**: Full implementation plan written via `/writing-plans`. CodeMunch index (681 files, 5341 symbols). Dual adversarial review (code-review + security, Opus). All CRITICAL/HIGH findings addressed in plan. Next: `/implement .claude/plans/2026-03-09-pdfrx-parity.md`.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (520)
+### What Was Done This Session (529)
 
-1. **Executed .claude/ directory audit plan** — `/implement .claude/plans/2026-03-08-claude-directory-audit.md`
-2. **Phase 0**: Committed + tagged pre-audit snapshot in .claude/ config repo (`pre-audit-2026-03-08`)
-3. **Phase 1**: Mapper scan produced audit report (24 broken paths, 3 stale areas, 1 orphan). Report at `.claude/outputs/audit-report-2026-03-08.md`
-4. **Phase 3**: 10 parallel fix agents + 1 sequential (Agent #10 for CLAUDE.md). Fixed: toolbox sub-feature paths (15+), sync_service.dart→engine refs, entry_personnel→EntryPersonnelCounts, spacing.dart→design_constants.dart, deleted orphaned test-orchestrator-agent/ dir
-5. **Phase 4**: Verification — 0 broken refs remaining, 9/9 security invariants PASS
-6. **CLAUDE.md updated**: Added test-wave-agent (agents table), test + audit-config (skills table)
+1. **Ran `/writing-plans`** on pdfrx parity spec — full CodeMunch index, dependency graph, blast radius
+2. **Wrote 7-phase plan** (0-6): pre-flight → contract update → pdfrx swap → grid threshold → fixture regen → 3-device validation → cleanup
+3. **Key design: `toPngBytes()` on RenderedPage** — centralizes BGRA→PNG conversion (DRY), avoids leaking `image` package into pipeline orchestrator
+4. **Adversarial review by code-review + security agents** (Opus, parallel):
+   - Code review: 2 CRITICAL (Size import, pdfrx API unverifiable), 3 HIGH (missing benchmark cleanup, DRY violation, pipeline SoC) — all addressed
+   - Security review: 0 CRITICAL, 2 HIGH (assert stripped in release, silent catch blocks) — all addressed
+5. **Plan saved**: `.claude/plans/2026-03-09-pdfrx-parity.md`
+6. **Dependency graph updated**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
 
 ### What Needs to Happen Next
-1. **Review + commit .claude/ audit changes** — uncommitted, pre-audit tag available for rollback
-2. **Push .claude config repo** — multiple commits ahead of origin
-3. **Implement pdfrx migration** — start with Phase 0
-4. **Device validation** — Android extraction matches Windows fixtures after pdfrx
-5. **Create PR** for `feat/sync-engine-rewrite` → main
+1. **Run `/implement .claude/plans/2026-03-09-pdfrx-parity.md`** — Phase 0-6
+2. **IMPORTANT**: Step 2.1.3 requires verifying pdfrx API signatures after `pub get` (pdfrx not yet installed)
+3. **Three-device validation** (Phase 5): S21+, S25 Ultra, Windows — all must produce 131 items, $0 delta
+4. **GATE**: All 3 must match before R1-R5 accuracy work
 
 ## Blockers
 
-### BLOCKER-31: Android OCR regression — renderer divergence
-**Status**: PLAN READY — `.claude/plans/2026-03-07-pdfrx-renderer-migration.md`
-**Root Cause**: pdfx uses AOSP PdfRenderer on Android (old PDFium fork) vs upstream PDFium on Windows. Different font rendering → different OCR → $457K discrepancy on Springfield.
-**Fix**: Replace pdfx with pdfrx (bundles upstream PDFium on all platforms).
+### BLOCKER-34: Cross-Device Parity — pdfrx migration needed
+**Status**: PLAN COMPLETE, READY FOR IMPLEMENT (Session 529)
+**Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
+**Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
+**Evidence**: S25 Ultra (Android 16) produces 130 items vs 131 on S21+/Windows. $457K checksum gap.
+
+### BLOCKER-33: 100% Accuracy — 34 GT failures
+**Status**: DEFERRED — waiting on parity (Session 528)
+**Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
+**Decision**: Re-evaluate R1-R5 after pdfrx parity established on all devices.
 
 ### BLOCKER-29: Cannot delete synced data from device — sync re-pushes
 **Status**: OPEN — HIGH PRIORITY
@@ -51,68 +58,58 @@
 
 ## Recent Sessions
 
-### Session 520 (2026-03-08)
-**Work**: Executed .claude/ directory audit plan via /implement. Phase 0: pre-audit tag. Phase 1: mapper scan (24 broken paths, 3 stale areas, 1 orphan). Phase 3: 10 parallel + 1 sequential fix agents. 15 files modified, 4 new created, 24+ broken refs fixed, 0 remaining. Security invariants 9/9 PASS. New /audit-config skill created. CLAUDE.md updated (test-wave-agent + 2 skills added).
-**Decisions**: Single orchestrator cycle (no handoffs needed). Skip Flutter build/analyze/test gates (config-only changes). User deferred commit for manual review.
-**Next**: Review + commit audit changes. Push .claude repo. pdfrx migration Phase 0. Device validation. PR.
+### Session 529 (2026-03-09)
+**Work**: Ran `/writing-plans` on pdfrx parity spec. CodeMunch index (681 files). Wrote 7-phase plan with full code. Dual adversarial review (code-review + security). All CRITICAL/HIGH addressed: `toPngBytes()` DRY helper, runtime buffer validation, pdfrx API verify step, benchmark cleanup.
+**Decisions**: Centralize BGRA→PNG in `RenderedPage.toPngBytes()`. Runtime `if` not `assert` for buffer validation. Verify pdfrx API post-install before coding.
+**Next**: `/implement .claude/plans/2026-03-09-pdfrx-parity.md` → three-device validation.
 
-### Session 519 (2026-03-08)
-**Work**: Full brainstorming → spec → adversarial review → writing-plans pipeline for .claude/ directory baseline audit. 7 structured questions. Spec with 12 agents + security invariants. Dual Opus adversarial review (10 MUST-FIX, 12 SHOULD-CONSIDER resolved). CodeMunch index (646 files, 5237 symbols). Implementation plan with 5 phases, 16 sub-phases. Dual Opus plan review (1 CRITICAL + 7 HIGH resolved). New /audit-config skill designed.
-**Decisions**: As-built docs. Update PRDs in-place. Report-first-then-clean. Feature branch is truth. CLAUDE.md single-owner (Agent #10, runs after others). Security invariants use string match not line numbers. Defect files: path fixes only.
-**Next**: Execute audit plan via /implement. Push .claude repo. pdfrx migration. PR.
+### Session 528 (2026-03-09)
+**Work**: Two-phone extraction test (S21+ vs S25 Ultra) confirmed cross-device divergence. Full test suite 906/906 pass. Audited all 3 plans. Brainstormed unified pdfrx parity spec. Adversarial review + CodeMunch blast radius.
+**Decisions**: Parity first (pdfrx + threshold), accuracy fixes deferred. Raw BGRA through pipeline. Pin pdfrx to exact 2.2.24. Mask coverage gate 3%-10%.
+**Next**: `/writing-plans` → `/implement` → three-device validation.
 
-### Session 518 (2026-03-08)
-**Work**: Restructured planning pipeline. Reviewed upstream superpowers skills. Brainstormed 10 questions with user. 2 analysis agents (CodeMunch + path verification). Wrote 4-phase plan. Implemented via /implement (0 findings). 3-agent post-verification (44/44 PASS, 168 valid paths, CLEAN stale scan). 5 logical commits.
-**Decisions**: Rewrite from scratch (not merge). Full CodeMunch index before planning. Phase > Sub-phase > Step hierarchy. Code + annotations. No commits in plans. Adversarial review on both specs and plans. User checkpoint before writing-plans. Single structured review report. Delete planning-agent and dispatching-parallel-agents.
-**Next**: Push .claude repo. pdfrx migration Phase 0. Device validation. PR.
+### Session 527 (2026-03-09)
+**Work**: Tested `/implement` skill on 100% accuracy plan. Orchestrator violated protocol. Full pipeline regression 130→43 items. Reverted all changes. Recovered files. Recreated 6 sync test files.
+**Decisions**: `/implement` needs major fixes. Plan must be reworked. Fixes one-at-a-time with GT trace.
+**Next**: Fix plan. Implement one fix at a time.
 
-### Session 517 (2026-03-08)
-**Work**: Rewrote `/implement` skill with per-phase reviews. 3 research agents mapped ecosystem + gaps. Brainstormed 6 questions with user. Wrote 7-phase plan. Implemented via /implement (0 findings). Code review verified (1 LOW fixed).
-**Decisions**: Hard gate all findings (no deferrals). Completeness first → code+security parallel. CRITICAL/HIGH/MEDIUM/LOW severity. Mandatory testing. Sonnet implementers/fixers, Opus reviewers, Opus final pass. 3 integration gates (down from 6).
-**Next**: pdfrx migration Phase 0, device validation, commit, PR.
+### Session 526 (2026-03-09)
+**Work**: 6 Opus research agents deep-traced all 34 GT failures. Wrote spec, dependency graph, implementation plan (7 phases). Adversarial review found 3 CRITICAL + 3 HIGH issues.
+**Decisions**: Position-based grid line removal replaces morphological approach. `_rescueBoilerplateRows` must be guarded.
+**Next**: Implement via `/implement`.
 
-### Session 516 (2026-03-08)
-**Work**: Second adversarial review of pdfrx plan (3 critical, 4 high, 7 medium fixes). 3-agent pipeline performance audit (14 bottlenecks, 30-80s savings). Brainstormed all with user. Rewrote plan. Created pipeline perf audit doc. Found `_measureContrast` correctness bug.
-**Decisions**: BGRA→PNG for diagnostics. Encode in fallback paths. No feature flag. Separate perf plan. Verify `?.call()` null short-circuit first.
-**Next**: Implement pdfrx migration Phase 0. Then P0 pipeline perf fixes.
+### Session 525 (2026-03-09)
+**Work**: Full GT trace (34 failures). 7 research agents + 2 Opus verification. Found 3/5 original fixes had wrong root causes. Revised to R1-R5 plan.
+**Decisions**: Opus verification before implementation. GT unit abbreviations are correct — pipeline normalization is wrong.
+**Next**: Write formal plan.
 
 ## Active Plans
 
-### .claude/ Directory Baseline Audit — IMPLEMENTED (Session 519-520)
-- **Plan**: `.claude/plans/2026-03-08-claude-directory-audit.md`
-- **Spec**: `.claude/specs/2026-03-08-claude-directory-audit-spec.md`
-- **Status**: 100% implemented. 15 files modified, 4 new created. 24+ broken refs fixed, 0 remaining. 9/9 security invariants PASS. Uncommitted — awaiting user review.
+### pdfrx Parity + Grid Line Threshold — PLAN COMPLETE (Session 529)
+- **Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
+- **Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
+- **Review**: `.claude/adversarial_reviews/2026-03-09-pdfrx-parity/review.md`
+- **Dependency Graph**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
+- **Blast Radius**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/blast-radius.md`
+- **Status**: Plan finalized + adversarial review addressed. Ready for `/implement`.
 
-### Planning Pipeline Restructure — IMPLEMENTED (Session 518)
-- **Plan**: `.claude/plans/2026-03-08-planning-pipeline-restructure.md`
-- **Status**: 100% implemented. 4 phases, all reviews passed, 0 fix cycles. 3-agent post-verification clean.
-
-### pdfrx Renderer Migration — PLAN FINALIZED (Session 515-516)
-- **Plan**: `.claude/plans/2026-03-07-pdfrx-renderer-migration.md`
-- **Status**: 7 phases, two-round adversarial review, 3-agent perf audit. All findings incorporated. Ready to implement Phase 0.
-- **Perf audit**: `.claude/docs/pdf-pipeline-performance-audit.md` (14 bottlenecks, separate from migration)
-
-### Implement Skill Per-Phase Reviews — IMPLEMENTED (Session 517)
-- **Plan**: `.claude/plans/completed/2026-03-08-implement-skill-per-phase-reviews.md`
-- **Status**: 100% implemented. 7 phases, all reviews passed, 1 LOW fixed.
-
-### OCR DPI Fix — IMPLEMENTED but NOT ROOT CAUSE (Session 515)
-- **Plan**: `.claude/plans/2026-03-07-ocr-dpi-fix.md`
-- **Status**: DPI fix code is correct (defensive). But DPI was not the root cause — renderer divergence is. Keep the DPI fix as defensive code.
+### 100% Accuracy R1-R5 — DEFERRED (Session 528)
+- **Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
+- **Status**: Deferred until pdfrx parity established. Will re-evaluate after three-device validation.
 
 ### UI Refactor — PLAN REVIEWED + HARDENED (Session 512)
 - **Plan**: `.claude/plans/2026-03-06-ui-refactor-comprehensive.md`
-- **Status**: 12 phases + Phase 3.5. Reviewed by 3 agents, 23 issues fixed.
+- **Status**: 12 phases + Phase 3.5. Reviewed by 3 agents.
 
 ## Reference
-- **Directory Audit Plan**: `.claude/plans/2026-03-08-claude-directory-audit.md`
-- **Directory Audit Spec**: `.claude/specs/2026-03-08-claude-directory-audit-spec.md`
-- **Audit Adversarial Review**: `.claude/adversarial_reviews/2026-03-08-claude-directory-audit/review.md`
-- **Blast Radius Analysis**: `.claude/dependency_graphs/2026-03-08-claude-directory-audit/blast-radius.md`
-- **Pipeline Restructure Plan**: `.claude/plans/2026-03-08-planning-pipeline-restructure.md`
-- **Implement Skill Plan**: `.claude/plans/completed/2026-03-08-implement-skill-per-phase-reviews.md`
-- **pdfrx Migration Plan**: `.claude/plans/2026-03-07-pdfrx-renderer-migration.md`
-- **OCR DPI Fix Plan**: `.claude/plans/2026-03-07-ocr-dpi-fix.md`
-- **UI Refactor Plan**: `.claude/plans/2026-03-06-ui-refactor-comprehensive.md`
+- **pdfrx Parity Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
+- **pdfrx Parity Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
+- **Adversarial Review (spec)**: `.claude/adversarial_reviews/2026-03-09-pdfrx-parity/review.md`
+- **Dependency Graph**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
+- **Blast Radius**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/blast-radius.md`
+- **Device Baselines**: `test/features/pdf/extraction/device-baselines/`
+- **100% Accuracy Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
+- **Grid Line Fix Plan**: `.claude/plans/2026-03-08-grid-line-threshold-fix.md`
+- **pdfrx Migration Plan (old)**: `.claude/plans/2026-03-07-pdfrx-renderer-migration.md`
 - **Defects**: `.claude/defects/_defects-pdf.md`, `_defects-sync.md`, `_defects-projects.md`
 - **Archive**: `.claude/logs/state-archive.md`
