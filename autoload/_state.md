@@ -1,42 +1,64 @@
 # Session State
 
-**Last Updated**: 2026-03-09 | **Session**: 529
+**Last Updated**: 2026-03-11 | **Session**: 535
 
 ## Current Phase
-- **Phase**: Cross-Device Parity — PLAN COMPLETE, READY FOR IMPLEMENT
-- **Status**: Full implementation plan written via `/writing-plans`. CodeMunch index (681 files, 5341 symbols). Dual adversarial review (code-review + security, Opus). All CRITICAL/HIGH findings addressed in plan. Next: `/implement .claude/plans/2026-03-09-pdfrx-parity.md`.
+- **Phase**: Pipeline Test Suite Restructure — IMPLEMENT SKILL FIXED, READY TO RUN
+- **Status**: `/implement` skill rewritten to use `claude --agent` architecture. Orchestrator verified working (reads plan, dispatches agents via Task, checkpoint updates work). Needs full Phase 1 end-to-end validation.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (529)
+### What Was Done This Session (535)
 
-1. **Ran `/writing-plans`** on pdfrx parity spec — full CodeMunch index, dependency graph, blast radius
-2. **Wrote 7-phase plan** (0-6): pre-flight → contract update → pdfrx swap → grid threshold → fixture regen → 3-device validation → cleanup
-3. **Key design: `toPngBytes()` on RenderedPage** — centralizes BGRA→PNG conversion (DRY), avoids leaking `image` package into pipeline orchestrator
-4. **Adversarial review by code-review + security agents** (Opus, parallel):
-   - Code review: 2 CRITICAL (Size import, pdfrx API unverifiable), 3 HIGH (missing benchmark cleanup, DRY violation, pipeline SoC) — all addressed
-   - Security review: 0 CRITICAL, 2 HIGH (assert stripped in release, silent catch blocks) — all addressed
-5. **Plan saved**: `.claude/plans/2026-03-09-pdfrx-parity.md`
-6. **Dependency graph updated**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
+1. **6-agent deep research** on orchestrator-dispatch patterns:
+   - 3 web research agents (orchestrator patterns, tool restriction techniques, Claude Code Task tool)
+   - 2 Reddit scraping agents (community solutions, real-world implementations)
+   - 1 Explore agent (mapped current implement skill + writing-plans comparison)
+2. **Root cause confirmed**: Subagents cannot spawn subagents (Task tool not available). Skill frontmatter `allowed-tools` is BROKEN (GitHub #18837). `tools`/`disallowedTools` only enforced for subagents, not main-thread.
+3. **Solution found**: `claude --agent implement-orchestrator` runs orchestrator as separate main-thread process — gets Task access + behavioral self-restriction from system prompt.
+4. **Custom agent created**: `.claude/agents/implement-orchestrator.md` with `permissionMode: bypassPermissions`. Orchestrator reads plan, dispatches agents, updates checkpoint.
+5. **E2E verified**:
+   - Orchestrator reads plan + checkpoint ✓
+   - Dispatches subagents via Task (summarizer + checkpoint-writer) ✓
+   - Checkpoint updates correctly ✓
+   - Works without `--dangerously-skip-permissions` ✓
+   - Behavioral self-restriction holds (refused Edit even when told to override) ✓
+6. **Skill rewritten**: `/implement` now launches `claude --agent` via Bash with `run_in_background: true`
 
-### What Needs to Happen Next
-1. **Run `/implement .claude/plans/2026-03-09-pdfrx-parity.md`** — Phase 0-6
-2. **IMPORTANT**: Step 2.1.3 requires verifying pdfrx API signatures after `pub get` (pdfrx not yet installed)
-3. **Three-device validation** (Phase 5): S21+, S25 Ultra, Windows — all must produce 131 items, $0 delta
-4. **GATE**: All 3 must match before R1-R5 accuracy work
+### What Needs to Happen Next Session (536)
+
+1. **Full Phase 1 validation** — run `/implement` on the pipeline test restructure plan, let orchestrator complete Phase 1 (implement + build + reviews + fix cycles)
+2. If Phase 1 passes, run remaining phases
+3. **Fix Item 95 descContinuation** misclassification (still pending from Session 532)
+
+### Key Decisions Made
+- `claude --agent` architecture for orchestrator (not subagent, not main-thread inline)
+- `permissionMode: bypassPermissions` in agent frontmatter (no `--dangerously-skip-permissions` needed)
+- `run_in_background: true` for orchestrator launches (no timeout limit)
+- Behavioral self-restriction over hard tool enforcement (hooks untested, prompt works well in `--agent` mode)
 
 ## Blockers
 
-### BLOCKER-34: Cross-Device Parity — pdfrx migration needed
-**Status**: PLAN COMPLETE, READY FOR IMPLEMENT (Session 529)
-**Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
-**Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
-**Evidence**: S25 Ultra (Android 16) produces 130 items vs 131 on S21+/Windows. $457K checksum gap.
+### BLOCKER-37: /implement Skill — Orchestrator Won't Dispatch
+**Status**: RESOLVED (Session 535)
+**Root cause**: Subagents can't spawn subagents (Task not available). Skill frontmatter `allowed-tools` broken (GitHub #18837).
+**Solution**: `claude --agent implement-orchestrator` runs as separate main-thread process with Task access. Behavioral self-restriction from system prompt. E2E verified.
 
-### BLOCKER-33: 100% Accuracy — 34 GT failures
-**Status**: DEFERRED — waiting on parity (Session 528)
+### BLOCKER-36: Tesseract 5.5.2 Incompatible with flusseract
+**Status**: RESOLVED (Session 532)
+
+### BLOCKER-35: Cross-Device Checksum Divergence — $500K delta
+**Status**: RESOLVED (Session 532)
+
+### BLOCKER-34: Cross-Device Parity — pdfrx migration
+**Status**: RESOLVED (Session 532)
+
+### BLOCKER-33: 100% Accuracy — remaining gaps
+**Status**: READY TO WORK (Session 532)
+- Real pipeline bug: Item 95 descContinuation misclassification → "94 Boy" bogus + $280K delta
+- Unit accuracy: 79.8% (26 LSUM/LS mismatches — matcher needs unit normalization)
+- Description accuracy: 94.6%
 **Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
-**Decision**: Re-evaluate R1-R5 after pdfrx parity established on all devices.
 
 ### BLOCKER-29: Cannot delete synced data from device — sync re-pushes
 **Status**: OPEN — HIGH PRIORITY
@@ -58,58 +80,56 @@
 
 ## Recent Sessions
 
-### Session 529 (2026-03-09)
-**Work**: Ran `/writing-plans` on pdfrx parity spec. CodeMunch index (681 files). Wrote 7-phase plan with full code. Dual adversarial review (code-review + security). All CRITICAL/HIGH addressed: `toPngBytes()` DRY helper, runtime buffer validation, pdfrx API verify step, benchmark cleanup.
-**Decisions**: Centralize BGRA→PNG in `RenderedPage.toPngBytes()`. Runtime `if` not `assert` for buffer validation. Verify pdfrx API post-install before coding.
-**Next**: `/implement .claude/plans/2026-03-09-pdfrx-parity.md` → three-device validation.
+### Session 535 (2026-03-11)
+**Work**: 6-agent research into orchestrator-dispatch patterns (3 web, 2 Reddit, 1 Explore). Root cause: subagents can't spawn subagents + skill frontmatter `allowed-tools` broken. Solution: `claude --agent implement-orchestrator` as separate main-thread process. Created custom agent, rewrote skill, verified E2E (read plan, dispatch agents, checkpoint updates).
+**Decisions**: `claude --agent` architecture. `permissionMode: bypassPermissions`. `run_in_background: true` for launches. Behavioral self-restriction over hard enforcement.
+**Next**: Full Phase 1 validation via `/implement`. Then remaining phases. Fix item 95.
 
-### Session 528 (2026-03-09)
-**Work**: Two-phone extraction test (S21+ vs S25 Ultra) confirmed cross-device divergence. Full test suite 906/906 pass. Audited all 3 plans. Brainstormed unified pdfrx parity spec. Adversarial review + CodeMunch blast radius.
-**Decisions**: Parity first (pdfrx + threshold), accuracy fixes deferred. Raw BGRA through pipeline. Pin pdfrx to exact 2.2.24. Mask coverage gate 3%-10%.
-**Next**: `/writing-plans` → `/implement` → three-device validation.
+### Session 534 (2026-03-11)
+**Work**: Updated writing-plans skill with orchestrator dispatch model. Ran /writing-plans — plan written successfully (7 phases, 17 files). Attempted /implement 4 times — orchestrator writes code directly instead of dispatching agents. Investigated tool restrictions — subagent_type determines tools, only general-purpose has Task access but it also has all other tools.
+**Decisions**: All haiku→sonnet. Writing-plans dispatch model works. Implement skill broken.
+**Next**: Fix /implement skill (compare with Session 530 version). Then implement the plan.
 
-### Session 527 (2026-03-09)
-**Work**: Tested `/implement` skill on 100% accuracy plan. Orchestrator violated protocol. Full pipeline regression 130→43 items. Reverted all changes. Recovered files. Recreated 6 sync test files.
-**Decisions**: `/implement` needs major fixes. Plan must be reworked. Fixes one-at-a-time with GT trace.
-**Next**: Fix plan. Implement one fix at a time.
+### Session 533 (2026-03-10)
+**Work**: 8-agent deep audit of test system. Brainstorming spec for pipeline test restructure (report-first, regression gate, no normalization, single comparison tool). Adversarial review (16 items). Spec finalized.
+**Decisions**: Report-first architecture. Regression ratchet. No normalization in tests. Consolidate to 1 Dart comparator. Platform-scoped baselines. Delete 10 files after verification.
+**Next**: `/writing-plans` → `/implement` on the spec. Fix item 95 descContinuation bug.
 
-### Session 526 (2026-03-09)
-**Work**: 6 Opus research agents deep-traced all 34 GT failures. Wrote spec, dependency graph, implementation plan (7 phases). Adversarial review found 3 CRITICAL + 3 HIGH issues.
-**Decisions**: Position-based grid line removal replaces morphological approach. `_rescueBoilerplateRows` must be guarded.
-**Next**: Implement via `/implement`.
+### Session 532 (2026-03-10)
+**Work**: Confirmed Tesseract 5.5.2 works on Android (previous "0 items" was build caching). Full cross-platform convergence achieved. Cleaned working tree into 6 commits. Saved S25 device outputs. 9-agent test suite audit of all pipeline tests. Audit plan written.
+**Decisions**: 5.5.2 is target for all platforms. 2 BUG failures are real pipeline bugs. GT trace needs expansion to all 131 items. Integrated test runner to be created.
+**Next**: Fix broken/outdated tests. Expand GT trace. Create integrated runner. 3-way comparison.
 
-### Session 525 (2026-03-09)
-**Work**: Full GT trace (34 failures). 7 research agents + 2 Opus verification. Found 3/5 original fixes had wrong root causes. Revised to R1-R5 plan.
-**Decisions**: Opus verification before implementation. GT unit abbreviations are correct — pipeline normalization is wrong.
-**Next**: Write formal plan.
+### Session 531 (2026-03-10)
+**Work**: Systematic debugging of $500K checksum divergence. Root cause: Tesseract version mismatch (Windows 5.5.x vs Android 5.3.4). Attempted 5.5.2 upgrade — fought CMake/Gradle caching for 3 builds before getting genuine 5.5.2 compile. 5.5.2 appeared to break extraction (0 items). App on S25 appeared broken.
+**Decisions**: User wants latest versions. Three options presented.
+**Next**: Resolved in Session 532 — 5.5.2 works, caching was the issue.
 
 ## Active Plans
 
-### pdfrx Parity + Grid Line Threshold — PLAN COMPLETE (Session 529)
-- **Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
-- **Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
-- **Review**: `.claude/adversarial_reviews/2026-03-09-pdfrx-parity/review.md`
-- **Dependency Graph**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
-- **Blast Radius**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/blast-radius.md`
-- **Status**: Plan finalized + adversarial review addressed. Ready for `/implement`.
+### Pipeline Test Suite Restructure — READY TO IMPLEMENT (Session 535)
+- **Spec**: `.claude/specs/2026-03-10-pipeline-test-restructure-spec.md`
+- **Plan**: `.claude/plans/2026-03-10-pipeline-test-restructure.md`
+- **Dependency Graph**: `.claude/dependency_graphs/2026-03-10-pipeline-test-restructure/`
+- **Status**: `/implement` skill fixed. Run `/implement` to execute the plan.
 
-### 100% Accuracy R1-R5 — DEFERRED (Session 528)
+### pdfrx Parity + Grid Line Threshold — COMPLETE (Session 532)
+- **Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
+- **Status**: Full convergence achieved across all platforms
+
+### 100% Accuracy R1-R5 — READY TO WORK (Session 532)
 - **Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
-- **Status**: Deferred until pdfrx parity established. Will re-evaluate after three-device validation.
+- **Status**: Unblocked now that version alignment is resolved
 
 ### UI Refactor — PLAN REVIEWED + HARDENED (Session 512)
 - **Plan**: `.claude/plans/2026-03-06-ui-refactor-comprehensive.md`
 - **Status**: 12 phases + Phase 3.5. Reviewed by 3 agents.
 
 ## Reference
+- **Pipeline Test Plan**: `.claude/plans/2026-03-10-pipeline-test-restructure.md`
+- **Test Suite Audit Plan**: `.claude/plans/2026-03-10-test-suite-audit-plan.md`
 - **pdfrx Parity Plan**: `.claude/plans/2026-03-09-pdfrx-parity.md`
-- **pdfrx Parity Spec**: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`
-- **Adversarial Review (spec)**: `.claude/adversarial_reviews/2026-03-09-pdfrx-parity/review.md`
-- **Dependency Graph**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/dependency-graph.md`
-- **Blast Radius**: `.claude/dependency_graphs/2026-03-09-pdfrx-parity/blast-radius.md`
-- **Device Baselines**: `test/features/pdf/extraction/device-baselines/`
+- **Post-Migration Baselines**: `test/features/pdf/extraction/device-baselines/post-migration/`
 - **100% Accuracy Plan**: `.claude/plans/2026-03-09-100pct-accuracy-plan.md`
-- **Grid Line Fix Plan**: `.claude/plans/2026-03-08-grid-line-threshold-fix.md`
-- **pdfrx Migration Plan (old)**: `.claude/plans/2026-03-07-pdfrx-renderer-migration.md`
 - **Defects**: `.claude/defects/_defects-pdf.md`, `_defects-sync.md`, `_defects-projects.md`
 - **Archive**: `.claude/logs/state-archive.md`

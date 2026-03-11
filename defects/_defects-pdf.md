@@ -5,6 +5,12 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-09: BLOCKER-35 — Cross-Device Checksum Divergence $500K (Session 530)
+**Pattern**: After pdfrx migration, both Windows and S25 Ultra extract 130 items (item count parity achieved), but computed checksums diverge by $500K: Windows=$7,602,768.73, S25=$8,102,768.73. OCR element counts also differ slightly (1249 vs 1246). Specific differences: item 94 normalized as "Boy" (Windows) vs "Bey" (S25), item 108 qty changed on Windows but not S25.
+**Root Cause**: Unknown. pdfrx uses same bundled PDFium on both platforms — pixel output should be identical. Hypotheses: (1) Tesseract OCR non-determinism across platforms, (2) preprocessing timing differences causing different image quality, (3) subtle pixel differences despite same PDFium (different CPU architecture, float precision). Need pixel-by-pixel comparison of rendered images + element-by-element OCR diff.
+**Prevention**: Compare rendered page images byte-for-byte between devices. If pixels differ, root cause is in PDFium/platform. If pixels match, root cause is in Tesseract/preprocessing.
+**Ref**: `test/features/pdf/extraction/device-baselines/post-migration/COMPARISON-REPORT.md`
+
 ### [DATA] 2026-03-09: R2 Plan Gap — First priceContinuation Path Unchecked (Session 527)
 **Pattern**: `_isMinorTextContent` fix targets SECOND priceContinuation path (lines 281-298), but "Boy" row hits FIRST path (lines 265-278) because item-column text goes to `itemElements`, not `textPopulated`. First path checks `textPopulated.isEmpty` → true → classifies as priceContinuation before reaching the fix.
 **Prevention**: Add `!itemElements.any((e) => e.text.trim().isNotEmpty)` guard to first priceContinuation path (line 267). Both paths must check for item-column text.

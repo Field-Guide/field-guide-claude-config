@@ -1,174 +1,99 @@
 ---
 name: writing-plans
-description: "Use when you have an approved spec for a multi-step task, before touching code. Indexes codebase, builds dependency graph, and creates detailed implementation plans."
+description: "Use when you have an approved spec for a multi-step task, before touching code. Launches an orchestrator that indexes the codebase, builds dependency graphs, and creates detailed implementation plans by dispatching work to specialized agents."
 user-invocable: true
 ---
 
 # Writing Plans
 
-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+**Announce at start:** "I'm using the writing-plans skill to launch the plan-writing orchestrator."
 
-## Overview
+## Orchestration Model
 
-Write comprehensive implementation plans assuming the implementing agent has **zero context** for our codebase. Document everything they need to know: which files to touch, complete code with annotations explaining WHY, exact verification commands, and expected output. Give them the whole plan as bite-sized steps organized into Phases, Sub-phases, and Steps.
-
-**Principles:** DRY. YAGNI. TDD. Offline-first.
-
-<HARD-GATE>
-Do NOT write any plan steps until you have:
-1. Received and read the approved spec from `.claude/specs/`
-2. Completed full codebase indexing with CodeMunch
-3. Built the dependency graph and blast radius analysis
-4. Saved the analysis to `.claude/dependency_graphs/`
-</HARD-GATE>
-
-## Checklist
-
-Complete these items **in order**:
-
-1. **Read the spec** — load the approved spec from `.claude/specs/`
-2. **Index the codebase** — full CodeMunch index of the project
-3. **Build dependency graph** — trace all symbols affected by the spec's changes
-4. **Determine blast radius** — map every file, function, and method impacted
-5. **Map cleanup needs** — identify dead code, unused imports, stale references
-6. **Save analysis** — write to `.claude/dependency_graphs/YYYY-MM-DD-<name>/`
-7. **Write the plan** — Phase > Sub-phase > Step with full code + annotations
-8. **Run adversarial review** — light review (code-review + security, one round, parallel)
-9. **Address findings** — fix any CRITICAL/HIGH issues in the plan
-10. **Present to user** — show plan summary and await approval
-
-## Process Flow
+This skill does NOT run inline. The main agent spawns a **single orchestrator agent** via the Task tool, which then dispatches sub-tasks to specialized agents.
 
 ```
-Read Spec from .claude/specs/
-    ↓
-Index Codebase (CodeMunch MCP: mcp__jcodemunch__index_folder)
-    ↓
-Build Dependency Graph + Blast Radius
-    ↓
-Save Analysis → .claude/dependency_graphs/YYYY-MM-DD-<name>/
-    ↓
-Write Plan (Phase > Sub-phase > Step)
-    ↓
-Adversarial Review (code-review-agent + security-agent, parallel, one round)
-    ↓
-Address CRITICAL/HIGH Findings
-    ↓
-Present to User → User Approves?
-    ↓ yes                    ↓ no
-Save to .claude/plans/     Revise plan
+Main Agent (you)
+  └─ spawns → Orchestrator (Task tool, subagent_type: general-purpose, model: opus)
+                ├─ Phase 1: Read spec + Index codebase (inline, parallel tools)
+                ├─ Phase 2: Build dependency graph + blast radius (inline)
+                ├─ Phase 3: Write the plan (inline)
+                ├─ Phase 4: Adversarial review (dispatches 2 agents in parallel)
+                │     ├─ code-review-agent (Task tool)
+                │     └─ security-agent (Task tool)
+                ├─ Phase 5: Address findings (inline)
+                └─ Phase 6: Return plan summary to main agent
 ```
 
----
+### What the Main Agent Does
 
-## Step 1: Read the Spec
+1. Identify the spec file (from user's message or `.claude/specs/`)
+2. Spawn the orchestrator with a detailed prompt (see below)
+3. Receive the plan summary from the orchestrator
+4. Present the summary to the user
 
-Load the approved spec from `.claude/specs/YYYY-MM-DD-<name>-spec.md`.
+### Orchestrator Prompt Template
 
-Extract:
-- Feature requirements and success criteria
-- Data model changes
-- User flow changes
-- UI components needed
-- Offline behavior requirements
-- Testing strategy
-- Security implications
-- Migration/cleanup needs
-
-Also read the adversarial review at `.claude/adversarial_reviews/YYYY-MM-DD-<name>/review.md` for any NICE-TO-HAVE items that should be incorporated into the plan.
-
----
-
-## Step 2: Index the Codebase
-
-Use the CodeMunch MCP to perform a **full index** of the project:
+When spawning the orchestrator, use this prompt structure:
 
 ```
-mcp__jcodemunch__index_folder(path: ".", use_ai_summaries: true)
+You are the plan-writing orchestrator. Your job is to create a comprehensive
+implementation plan from an approved spec. You have access to all tools.
+
+**NEVER run `flutter clean`. It is prohibited by the user.**
+
+## Inputs
+- Spec file: [path to spec]
+- Adversarial review (if exists): [path to adversarial review]
+
+## Your Workflow
+
+### Phase 1: Read Spec + Index Codebase (parallel)
+- Read the spec file and extract all requirements
+- Also read the adversarial review for NICE-TO-HAVE items
+- In parallel: run mcp__jcodemunch__index_folder on the project root
+- Then get the repo outline with mcp__jcodemunch__get_repo_outline
+
+### Phase 2: Build Dependency Graph + Blast Radius
+- Use CodeMunch search_symbols and get_symbol to trace all affected symbols
+- Map callers, callees, cross-cutting concerns (2+ levels deep)
+- Categorize impact: DIRECT | DEPENDENT | TEST | CLEANUP
+- Save analysis to .claude/dependency_graphs/YYYY-MM-DD-<name>/
+
+### Phase 3: Write the Plan
+- Structure as Phase > Sub-phase > Step (see plan format below)
+- Assign agents per the routing table
+- Include complete code with WHY annotations
+- Include verification commands with expected output
+- Save to .claude/plans/YYYY-MM-DD-<name>.md
+
+### Phase 4: Adversarial Review (dispatch 2 agents in PARALLEL)
+Spawn both agents simultaneously using two Task tool calls in one message:
+
+1. code-review-agent (subagent_type: code-review-agent):
+   - Does the plan cover EVERY spec requirement?
+   - Are file paths correct? DRY/YAGNI? Test quality?
+   - What's missing? What if a step fails?
+
+2. security-agent (subagent_type: security-agent):
+   - Security vulnerabilities? Auth gaps? RLS implications? Data exposure?
+
+### Phase 5: Address Findings
+- CRITICAL/HIGH: Fix in the plan before returning
+- MEDIUM/LOW: Note in plan, address during implementation
+
+### Phase 6: Return Summary
+Return a concise summary with:
+- Plan file path
+- Phase count, sub-phase count, step count
+- Files affected (direct, dependent, tests, cleanup)
+- Agents involved
+- Any unresolved MEDIUM/LOW findings
 ```
 
-This gives a complete symbol map of every function, class, method, and constant in the codebase.
+## Plan Format Reference
 
-Then get the repository outline:
-```
-mcp__jcodemunch__get_repo_outline(repo: "<indexed-repo-name>")
-```
-
----
-
-## Step 3: Build Dependency Graph
-
-Using the CodeMunch index, trace the dependency chain for every change the spec requires:
-
-1. **Identify entry points** — use `search_symbols` to find existing symbols that will be modified
-2. **Trace callers** — use `get_symbol` with `context_lines` to see who calls these symbols
-3. **Trace callees** — what do these symbols depend on?
-4. **Map the graph** — document the full dependency chain (2+ levels deep)
-5. **Identify cross-cutting concerns** — shared utilities, base classes, mixins
-
-For each affected symbol, document:
-- Symbol name and file path (with line number)
-- What calls it (callers)
-- What it calls (callees)
-- Impact: MODIFY | VERIFY | TEST | CLEANUP
-
----
-
-## Step 4: Determine Blast Radius
-
-From the dependency graph, map the full blast radius:
-
-| Category | Description | Action |
-|----------|-------------|--------|
-| **Direct** | Files explicitly changed by the spec | Modify in plan |
-| **Dependent** | Files that import/use changed symbols | Verify compatibility |
-| **Test** | Tests for any Direct or Dependent file | Update or create |
-| **Cleanup** | Dead code, unused imports after changes | Remove in cleanup phase |
-
----
-
-## Step 5: Save Analysis
-
-Save to `.claude/dependency_graphs/YYYY-MM-DD-<name>/`:
-
-**`dependency-graph.md`** — Full symbol dependency map:
-```markdown
-## Symbol: ClassName.methodName
-- **File**: `lib/features/X/data/repository.dart:45`
-- **Callers**: [list with file:line]
-- **Callees**: [list with file:line]
-- **Impact**: MODIFY | VERIFY | TEST | CLEANUP
-```
-
-**`blast-radius.md`** — Summary of all affected files:
-```markdown
-## Blast Radius Summary
-
-**Direct Changes**: N files
-**Dependent Files**: N files
-**Tests Needed**: N files
-**Cleanup Items**: N items
-
-### Direct Changes
-| File | Changes | Risk |
-|------|---------|------|
-
-### Dependent Files
-| File | Dependency | Action Needed |
-|------|------------|---------------|
-
-### Tests Needed
-| File | Status | Action |
-|------|--------|--------|
-
-### Cleanup
-| File | Item | Action |
-|------|------|--------|
-```
-
----
-
-## Step 6: Write the Plan
+The orchestrator must follow these standards when writing the plan.
 
 ### Plan Document Header
 
@@ -276,43 +201,15 @@ Expected: PASS
 
 ---
 
-## Step 7: Adversarial Review (Light)
+## Hard Gate (Pre-Flight Check)
 
-After the plan is written, run a **light adversarial review**. This is lighter than the spec review because the spec has already been validated.
-
-**One round, two agents in parallel:**
-
-**Code Review Agent** (`code-review-agent`, model: claude-opus-4-6):
-- Does the plan cover EVERY requirement from the spec?
-- Are file paths correct and consistent?
-- Does the plan follow DRY/YAGNI?
-- Are test cases meaningful?
-- Devil's advocate: What if a step fails? What's missing?
-
-**Security Agent** (`security-agent`, model: claude-opus-4-6):
-- Do any steps introduce security vulnerabilities?
-- Auth/authorization gaps?
-- RLS policy implications?
-- Data exposure risks?
-
-### Handling Findings
-- **CRITICAL/HIGH** — Address before presenting to user
-- **MEDIUM/LOW** — Note in plan, address during implementation
-
----
-
-## Step 8: Present to User
-
-**"Plan complete and saved to `.claude/plans/YYYY-MM-DD-<name>.md`.**
-
-**Summary:**
-- **Phases**: [N phases, N sub-phases, N total steps]
-- **Files affected**: [N direct, N dependent, N tests, N cleanup]
-- **Agents involved**: [list]
-
-**Analysis**: `.claude/dependency_graphs/YYYY-MM-DD-<name>/`
-
-**Ready to implement? Use `/implement .claude/plans/YYYY-MM-DD-<name>.md`**"
+<HARD-GATE>
+Do NOT write any plan steps until the orchestrator has:
+1. Received and read the approved spec from `.claude/specs/`
+2. Completed full codebase indexing with CodeMunch
+3. Built the dependency graph and blast radius analysis
+4. Saved the analysis to `.claude/dependency_graphs/`
+</HARD-GATE>
 
 ---
 
@@ -333,6 +230,7 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 
 | Anti-Pattern | Why It's Wrong | Do This Instead |
 |--------------|----------------|-----------------|
+| Running skill inline | Blows up main context | Spawn orchestrator via Task tool |
 | Vague steps ("add validation") | Agent has to think | Complete code with annotations |
 | Missing file paths | Agent guesses wrong | Exact `path/to/file.dart:line` |
 | Skipping tests | Breaks TDD cycle | Every sub-phase has test steps |
@@ -340,11 +238,13 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 | No blast radius analysis | Misses side effects | Always run CodeMunch first |
 | No agent assignments | Wrong agent gets work | Route by file pattern |
 | No cleanup phase | Leaves dead code | Always include cleanup |
+| Sequential adversarial review | Wastes time | Always dispatch both in parallel |
 
 ---
 
 ## Remember
 
+- **Spawn orchestrator** — never run this skill inline in the main conversation
 - **Exact file paths** — always, including line numbers for modifications
 - **Complete code** — never "add validation here", always the actual code
 - **Annotations** — explain WHY, not just WHAT
@@ -353,6 +253,7 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 - **DRY, YAGNI, TDD** — every step, every phase
 - **No commits in plan** — implement first, commit after verification
 - **CodeMunch first** — always index before planning
+- **Parallel adversarial review** — code-review + security agents dispatched simultaneously
 
 ## Save Location
 

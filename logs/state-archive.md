@@ -6,6 +6,14 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 529 (2026-03-09)
+**Work**: Ran `/writing-plans` on pdfrx parity spec. CodeMunch index (681 files). Wrote 7-phase plan with full code. Dual adversarial review (code-review + security). All CRITICAL/HIGH addressed.
+**Decisions**: Centralize BGRA→PNG in `RenderedPage.toPngBytes()`. Runtime `if` not `assert` for buffer validation. Verify pdfrx API post-install before coding.
+
+### Session 525 (2026-03-09)
+**Work**: Full GT trace (34 failures). 7 research agents + 2 Opus verification. Found 3/5 original fixes had wrong root causes. Revised to R1-R5 plan.
+**Decisions**: Opus verification before implementation. GT unit abbreviations are correct — pipeline normalization is wrong.
+
 ### Session 524 (2026-03-08)
 **Work**: Implemented grid line threshold fix via /implement. `_adaptiveC` -2.0→10.0. Mask coverage 77%→5.3%. Item 96 bid_amount recovered.
 **Next**: Commit changes. Create PR.
