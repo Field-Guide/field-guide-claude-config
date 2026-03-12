@@ -6,18 +6,22 @@ user-invocable: true
 
 # /implement Skill
 
-Autonomous plan execution via `claude --agent implement-orchestrator`. The supervisor (this conversation) manages the checkpoint, launches the orchestrator as a separate headless process, monitors progress, and handles results.
+Autonomous plan execution via `claude --agent implement-orchestrator`. The supervisor (this conversation) controls the **phase loop** — launching one orchestrator per phase (or phase group), verifying checkpoint progress between launches.
 
 ## Architecture
 
 ```
 This conversation (supervisor)
   │
+  ├─ Reads plan, builds phase dispatch list
   ├─ Initializes checkpoint JSON
-  ├─ Launches: claude --agent implement-orchestrator --print (via Bash)
-  ├─ Monitors: reads checkpoint file for phase-by-phase progress
-  ├─ Reads: orchestrator output (captured to file)
-  └─ Handles: DONE → summary, HANDOFF → re-launch, BLOCKED → user prompt
+  ├─ FOR EACH dispatch group:
+  │     ├─ Launches: claude --agent implement-orchestrator --print (via Bash)
+  │     │     └─ Orchestrator does: implement → build → reviews → fix → checkpoint
+  │     ├─ Reads checkpoint to verify phase(s) marked done + reviews passed
+  │     ├─ Reports progress to user
+  │     └─ Handles: DONE → next group, HANDOFF → re-launch same group, BLOCKED → user prompt
+  └─ Final summary when all groups complete
 ```
 
 The orchestrator runs as a **separate main-thread CLI process** (not a subagent). This gives it:
@@ -43,15 +47,21 @@ NEVER run `flutter clean`. It is prohibited.
 1. The user invokes `/implement <plan-path>`. If no path is provided, ask for it.
 2. If the user gave a bare filename (e.g. `my-plan.md`), search `.claude/plans/` for the file.
 3. Read the plan file. Extract the phase list (names only) so you can present them to the user.
-4. Check for an existing checkpoint at `.claude/state/implement-checkpoint.json`:
+4. **Build dispatch groups**: By default, each phase is its own dispatch group. However, lightweight phases (verification-only, run-a-command phases) can be grouped together. Present the grouping to the user for approval.
+5. Check for an existing checkpoint at `.claude/state/implement-checkpoint.json`:
    - File does not exist → start fresh.
    - File exists and `"plan"` matches the requested plan path → ask the user: "Resume from checkpoint (phases already done: X) or start fresh?"
    - File exists but `"plan"` is a different plan → delete it and start fresh.
-5. If starting fresh, initialize the checkpoint now (Write the file):
+6. If starting fresh, initialize the checkpoint now (Write the file):
 
 ```json
 {
   "plan": "<plan file path>",
+  "dispatch_groups": [
+    {"phases": [1], "status": "pending"},
+    {"phases": [2], "status": "pending"},
+    {"phases": [3, 4, 5, 6], "status": "pending"}
+  ],
   "phases": [
     {
       "name": "Phase N title",
@@ -90,14 +100,14 @@ NEVER run `flutter clean`. It is prohibited.
 }
 ```
 
-6. Present the phase list to the user and ask for confirmation before starting:
+7. Present the plan with dispatch groups and ask for confirmation:
 
 ```
 Plan: [plan filename]
-Phases:
-  1. [Phase 1 name]
-  2. [Phase 2 name]
-  ...
+Dispatch Groups:
+  Group 1: Phase 1 — [Phase 1 name]
+  Group 2: Phase 2 — [Phase 2 name]
+  Group 3: Phases 3-6 — [Phase 3 name], [Phase 4 name], ...
 
 Start implementation? (yes / no / adjust)
 ```
@@ -106,72 +116,84 @@ Wait for user confirmation before proceeding.
 
 ---
 
-### Step 2: Launch the Orchestrator
+### Step 2: Phase Loop (Supervisor-Controlled)
 
-Build and execute the orchestrator command via Bash:
+The supervisor iterates over dispatch groups sequentially. For each group:
+
+#### 2a: Launch the Orchestrator
+
+Build the phase-specific prompt. The key difference from the old approach: the orchestrator is told to execute **ONLY the specified phases**, then return.
 
 ```bash
-unset CLAUDECODE && claude --agent implement-orchestrator --print --output-format text "Execute the implementation plan.
+unset CLAUDECODE && claude --agent implement-orchestrator --print --output-format text "Execute ONLY the specified phases of the implementation plan, then return.
 
 PLAN_PATH: <absolute path to plan file>
 CHECKPOINT_PATH: <absolute path to checkpoint JSON>
+PHASES_TO_EXECUTE: <comma-separated phase numbers, e.g. '1' or '3,4,5,6'>
 
-Read the plan and checkpoint, then implement all pending phases following your Implementation Loop. For each phase: dispatch implementer, run build, run reviews, fix issues, update checkpoint. After all phases, run quality gates. Return your termination status (DONE/HANDOFF/BLOCKED)." 2>&1 | tee /tmp/implement-orchestrator-output.txt
+Read the plan and checkpoint. Implement ONLY the listed phases following your Implementation Loop. For each phase: dispatch implementer, run build, run reviews, fix issues, update checkpoint. Do NOT proceed to phases not in PHASES_TO_EXECUTE. When all listed phases are done, return STATUS: DONE. If context runs low, return STATUS: HANDOFF with current progress." 2>&1 | tee /tmp/implement-orchestrator-output.txt
 ```
 
-**Important launch parameters:**
-- `unset CLAUDECODE` — required to bypass nested-session protection
+**Launch parameters:**
+- `unset CLAUDECODE` — bypasses nested-session protection
 - `--print` — non-interactive headless mode
 - `--output-format text` — plain text output (parseable)
 - `| tee /tmp/implement-orchestrator-output.txt` — capture output to file AND display
-- `timeout: 600000` — 10 minute timeout per Bash call. For multi-phase runs, use `run_in_background: true` instead (no timeout limit) and poll checkpoint for progress
-- `run_in_background: true` — run as background task so we can monitor
+- `run_in_background: true` — always run as background task (no timeout limit)
 
-After launching, immediately tell the user:
+After launching, tell the user:
 ```
-Orchestrator launched. Monitoring progress via checkpoint file.
-I'll check in periodically and report status.
+Group N launched (Phases X-Y). Running in background.
 ```
 
----
+#### 2b: Wait for Completion
 
-### Step 3: Monitor Progress
+Wait for the background task to complete. Once done, read the output file.
 
-While the orchestrator is running (background task):
+#### 2c: Verify Checkpoint
 
-1. **Poll the checkpoint file** every time you want to check status — read `.claude/state/implement-checkpoint.json`
-2. Report to the user which phases are done, which is in-progress
-3. If the user asks for status, read the checkpoint and summarize
+After the orchestrator returns, **always read the checkpoint file** to verify:
+- Each phase in the group has `"status": "done"`
+- All review statuses show `"pass"` (or have findings addressed)
+- `modified_files` has been updated
 
-When the background task completes, read the output:
-- Read `/tmp/implement-orchestrator-output.txt` for the full orchestrator output
-- Parse the first line for the termination status
+This is the **trust-but-verify** step that prevents fabricated stats.
 
----
-
-### Step 4: Handle the Orchestrator Result
-
-Inspect the output for one of three termination states:
+#### 2d: Handle Result
 
 | Status | Action |
 |--------|--------|
-| `STATUS: DONE` | Go to Step 5 (final summary). |
-| `STATUS: HANDOFF` | Log the handoff. Re-launch the orchestrator (Step 2 again) with the same plan/checkpoint paths. The checkpoint preserves progress. |
-| `STATUS: BLOCKED` | Present the blocked issue to the user. Ask: "Fix it manually and continue, skip this phase, or adjust the plan?" Wait for response, then either re-launch or stop. |
+| `STATUS: DONE` + checkpoint verified | Report to user, advance to next dispatch group. |
+| `STATUS: DONE` but checkpoint NOT updated | The orchestrator lied. Report to user, ask how to proceed. |
+| `STATUS: HANDOFF` | Re-launch the same group (orchestrator will resume from checkpoint). |
+| `STATUS: BLOCKED` | Present the blocked issue to the user. Ask: "Fix it manually and continue, skip this phase, or adjust the plan?" |
 
-**Handoff loop**: keep re-launching (Step 2) until status is DONE or the user chooses to stop.
+**Handoff loop**: keep re-launching the same group until it completes or the user stops.
+
+#### 2e: Report Progress
+
+After each group completes, report to the user:
+
+```
+Group N complete (Phases X-Y).
+  Phase X: DONE — Reviews: completeness=PASS, code=PASS, security=PASS
+  Phase Y: DONE — Reviews: completeness=PASS, code=PASS, security=PASS
+  Files modified: [list]
+
+Proceeding to Group N+1...
+```
 
 ---
 
-### Step 5: Final Summary
+### Step 3: Final Summary
 
-Print this summary when STATUS: DONE is received:
+After ALL dispatch groups complete, print this summary:
 
 ```
 ## Implementation Complete
 
 **Plan**: [plan filename]
-**Orchestrator cycles**: N (M handoffs)
+**Orchestrator launches**: N (M handoffs)
 
 ### Phases
 1. [Phase name] — DONE
@@ -185,14 +207,6 @@ Print this summary when STATUS: DONE is received:
 ### Files Modified
 - [file list from checkpoint]
 
-### Integration Gates
-- Build:              PASS
-- Analyze + Test:     PASS
-- Integration Reviews:
-  - Completeness: PASS (C:0, H:0, M:0, L:0)
-  - Code Review:  PASS (C:0, H:0, M:0, L:0)
-  - Security:     PASS (C:0, H:0, M:0, L:0)
-
 ### Decisions Made
 - [list]
 
@@ -205,6 +219,9 @@ Read the final checkpoint to populate this summary. The supervisor does NOT comm
 
 ## Troubleshooting
 
+### Orchestrator runs phases outside its assigned group
+The orchestrator's prompt says "ONLY the listed phases." If it ignores this, strengthen the instruction in the prompt or add a checkpoint verification that rejects work on unassigned phases.
+
 ### Orchestrator uses Edit/Write directly instead of dispatching
 The orchestrator's system prompt behaviorally restricts it to Read/Glob/Grep/Task. If it violates this, the agent file at `.claude/agents/implement-orchestrator.md` needs prompt strengthening.
 
@@ -214,5 +231,8 @@ Custom agents must exist in `.claude/agents/`. Verify the files exist with Glob.
 ### Output file empty
 Check that `unset CLAUDECODE` is included in the Bash command. Without it, the nested session check blocks the launch.
 
+### Checkpoint not updated (fabrication detection)
+If the orchestrator returns DONE but checkpoint phases are still "pending", the orchestrator skipped checkpoint writes. Report this to the user immediately. Do NOT proceed to the next group.
+
 ### Timeout
-A single phase can take 30-60 minutes (implement + build + reviews + fix cycles). **Always use `run_in_background: true`** for the Bash call — background tasks have no timeout. Monitor progress by polling the checkpoint file. For very large plans, instruct the orchestrator: "Execute only Phase N, then return HANDOFF."
+A single phase can take 30-60 minutes (implement + build + reviews + fix cycles). **Always use `run_in_background: true`** for the Bash call — background tasks have no timeout. Each dispatch group gets its own launch, so context exhaustion within a single group is rare.

@@ -6,6 +6,28 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 541 (2026-03-11)
+**Work**: Pipeline regression verified (81/131 items). 3 root causes confirmed. 6 research agents. 3-way diagnostic comparison.
+**Decisions**: Need brainstorming. Matched filter needs multi-sample median.
+**Next**: Brainstorm → implement → verify.
+
+### Session 538 (2026-03-11)
+**Work**: Full brainstorming on grid removal fix. 4 agents for deep context. Adversarial review (6 MUST-FIX all resolved). Spec finalized.
+**Decisions**: Intersection-anchored refinement. `GridLine` struct. `cv.line()` per segment. R1 expanded.
+**Next**: `/writing-plans` → `/implement` → measure.
+
+### Session 537 (2026-03-11)
+**Work**: Systematic debugging of extraction failures. Created diagnostic test. Visual proof: 25-38% mask excess.
+**Decisions**: Grid removal = upstream root cause. Detector output wasted by remover.
+
+### Session 534 (2026-03-11)
+**Work**: Updated writing-plans skill. Attempted /implement 4 times — orchestrator writes code directly. Investigated tool restrictions.
+**Decisions**: All haiku→sonnet. Writing-plans works. Implement broken.
+
+### Session 533 (2026-03-10)
+**Work**: 8-agent test audit. Brainstorming spec for pipeline test restructure. Adversarial review (16 items). Spec finalized.
+**Decisions**: Report-first architecture. Regression ratchet. No normalization. Single comparator.
+
 ### Session 529 (2026-03-09)
 **Work**: Ran `/writing-plans` on pdfrx parity spec. CodeMunch index (681 files). Wrote 7-phase plan with full code. Dual adversarial review (code-review + security). All CRITICAL/HIGH addressed.
 **Decisions**: Centralize BGRA→PNG in `RenderedPage.toPngBytes()`. Runtime `if` not `assert` for buffer validation. Verify pdfrx API post-install before coding.

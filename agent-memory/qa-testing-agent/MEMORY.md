@@ -12,8 +12,19 @@
 - **Known flutter_tester.exe lock issue**: Multiple flutter_tester.exe processes linger after test runs. Run `Stop-Process -Name 'flutter_tester' -Force` to unblock.
 - Test locations: `test/features/pdf/extraction/` (contracts, golden, integration, models, ocr, pipeline, stages, shared)
 - Pipeline report test: `integration_test/springfield_report_test.dart` (requires `-d windows --dart-define=SPRINGFIELD_PDF=<path>`). CLI comparison: `tools/pipeline_comparator.dart`.
-- Springfield PDF path: `C:\Users\rseba\Projects\Field_Guide_App\Pre-devolopment and brainstorming\Screenshot examples\Companies IDR Templates and examples\864130 Springfield DWSRF Water System Improvements CTC.pdf`
+- Springfield PDF path: `C:\Users\rseba\OneDrive\Desktop\864130 Springfield DWSRF Water System Improvements CTC [16-23] Pay Items.pdf`
 - **3 LOW metrics**: Row Classification headers (17 vs 6 expected), B1 unitPrice 6.2%, B2 bidAmount Δ0.062 — these are stable/expected
+
+### Grid Line Remover v3 Baseline (2026-03-12, post mask position fix)
+- **Items extracted**: 35/131 (16.8%) — REGRESSION from pre-v3 baseline of 131/131
+- **Quality score**: 0.793, QualityStatus.reviewFlagged
+- **Checksum**: $2,138,497.40 / $7,882,926.73 GT
+- **OCR elements**: 1601 (was 1625 with text protection enabled)
+- **Diagnostic**: 0 excess mask pixels on all 6 pages (mask position fix confirmed working)
+- **Mask coverage avg**: 3.37% (was ~25-38% excess in v1/v2)
+- **Row classification**: 329 total rows, only 38 data rows (was ~200+ in pre-v3)
+- **Diagnostic test**: requires `-d windows` flag — without it, rendering hangs/times out at 30min
+- **Root problem**: grid removal is now working (0 excess), but downstream extraction drastically reduced. Row classifier producing only 38 data rows from 329 total (vs 131 expected). Needs investigation.
 
 ### pdfrx Migration Quality Fix (2026-03-08, RESOLVED 2026-03-09)
 - **Root cause of 0.977→0.918 regression**: Item 96 (`HMA, 4EL`) had `raw_bid_amount = "$177.1 33.00"` — OCR misread `,` as `. ` (period+space). No currency rule handled embedded spaces → null bid_amount → checksum $177,135 short → checksum_validation 0.5 → quality 0.918.
