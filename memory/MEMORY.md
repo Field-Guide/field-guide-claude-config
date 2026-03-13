@@ -119,7 +119,8 @@
 - Pre-existing test failure: table_locator_test "rejects section heading" (expects Y=1700, gets 1610)
 - post_process_normalization.dart `cleanOcrArtifacts()` removes commas from text (regex `[;:,!]`)
 
-### CRITICAL: Memory File Location
-- **ALWAYS** use `.claude/memory/MEMORY.md` (project dir), NOT the auto-memory dir
-- Wrong: `C:\Users\rseba\.claude\projects\...\memory\MEMORY.md`
-- Right: `C:\Users\rseba\Projects\Field Guide App\.claude\memory\MEMORY.md`
+### Memory File Notes
+- This file (`.claude/memory/MEMORY.md`) is the detailed project knowledge base, loaded on-demand by agents
+- Auto-memory (`~/.claude/projects/.../memory/MEMORY.md`) is the brief index loaded every session
+- Boilerplate hypothesis DISPROVEN (Session 552) — page 1 text never enters OCR pipeline
+- Grid removal v0→v1→v2 superseded by v3 (commit 2a149d8). See `.claude/specs/2026-03-12-grid-removal-v3-spec.md`

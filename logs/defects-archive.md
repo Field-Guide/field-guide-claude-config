@@ -4,6 +4,29 @@ Historical defects moved from per-feature defect files. Reference only.
 
 ---
 
+## Sync (archived 2026-03-13, session 558)
+
+### [DATA] 2026-03-06: SyncRegistry.registerAdapters() never called in production (Session 507)
+**Pattern**: `SyncRegistry.instance.adapters` is empty in production — only called in test code. Push/pull loops iterate 0 adapters and silently succeed.
+**Prevention**: Registration must happen in BOTH foreground AND background. Use a shared top-level function.
+**Ref**: @lib/features/sync/engine/sync_registry.dart:26
+
+---
+
+## PDF (archived 2026-03-13, session 560)
+
+### [DATA] 2026-03-07: Cross-Platform + Cross-Device Renderer Divergence — CONFIRMED (Session 528)
+**Pattern**: `pdfx` delegates to AOSP PdfRenderer which differs between Android versions. Session 528 confirmed: S21+ (Android 15) = 1243 elements/131 items, S25 Ultra (Android 16) = 1238 elements/130 items/$457K gap. Same APK, same PDF, different OS renderer. Also diverges from Windows (Printing.raster/PDFium).
+**Prevention**: Replace pdfx with `pdfrx: 2.2.24` (pinned) which bundles PDFium 144.0.7520.0 on ALL platforms. Spec: `.claude/specs/2026-03-09-pdfrx-parity-spec.md`.
+**Ref**: @lib/features/pdf/services/extraction/stages/page_renderer_v2.dart:165
+
+### [QUALITY] 2026-03-02: Tesseract x_wconf Unreliable for Dollar Amounts — Root Cause of B1/B2 LOWs
+**Pattern**: Tesseract reports 14-52% confidence on perfectly-extracted dollar amounts (e.g., "$860,970.00" at 34% conf, "$4,911.90" at 14%). The 50% OCR weight in `field_confidence_scorer.dart` weighted geometric mean amplifies this into B2 LOW.
+**Prevention**: Fixes needed at Tesseract interpretation layer: confidence floor override, comma-recovery heuristic, space-strip for spurious word breaks.
+**Ref**: @lib/features/pdf/services/extraction/scoring/field_confidence_scorer.dart:298-306
+
+---
+
 ## PDF (archived 2026-03-08, session 523)
 
 ### [DATA] 2026-03-02: Geometry-Aware Upscaler Causes Comma/Period OCR Confusion — $357B Budget (BLOCKER-19)

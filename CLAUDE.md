@@ -4,13 +4,6 @@ Cross-platform mobile/desktop app for construction inspectors. Offline-first wit
 
 **HARD CONSTRAINT: Security is non-negotiable. No shortcuts that bypass approval flows, weaken RLS, or create privilege escalation paths.**
 
-## Quick Reference
-<!-- Defects: per-feature files in .claude/defects/_defects-{feature}.md -->
-
-## Archives (On-Demand) DO NOT AUTO-LOAD THESE
-- `.claude/logs/state-archive.md`
-- `.claude/logs/defects-archive.md`
-
 ## Project Structure
 ```
 lib/
@@ -30,149 +23,70 @@ lib/
 | `lib/core/database/database_service.dart` | SQLite schema |
 | `lib/features/sync/` | Sync orchestrator |
 
-## Domain Rules (with paths: frontmatter)
+## Data Flow
+```
+Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
+```
+
+## Domain Rules (lazy-loaded via paths: frontmatter)
 | Rule | Loads When |
 |------|------------|
 | `rules/architecture.md` | Any lib/**/*.dart |
 | `rules/platform-standards.md` | Android/iOS config files |
 | `rules/frontend/flutter-ui.md` | lib/**/presentation/** |
-| `rules/frontend/ui-prototyping.md` | mockups/**, prototyping workflow |
+| `rules/frontend/ui-prototyping.md` | mockups/** |
 | `rules/backend/data-layer.md` | lib/**/data/** |
 | `rules/backend/supabase-sql.md` | Supabase work |
 | `rules/auth/supabase-auth.md` | lib/features/auth/** |
 | `rules/pdf/pdf-generation.md` | lib/features/pdf/** |
 | `rules/sync/sync-patterns.md` | lib/features/sync/** |
 | `rules/database/schema-patterns.md` | lib/core/database/** |
-| `rules/testing/patrol-testing.md` | integration_test/**, test/**, lib/test_harness/**, lib/driver_main.dart |
-
-## Agents
-| Agent | Use For | Phase |
-|-------|---------|-------|
-| `frontend-flutter-specialist-agent` | Screens, widgets, performance | IMPLEMENT |
-| `backend-data-layer-agent` | Models, repositories, providers | IMPLEMENT |
-| `backend-supabase-agent` | Sync, schema, RLS | IMPLEMENT |
-| `auth-agent` | Auth flows | IMPLEMENT |
-| `pdf-agent` | PDF generation | IMPLEMENT |
-| `code-review-agent` | Architecture, code quality | REVIEW |
-| `security-agent` | Security audits, vulnerability scanning, OWASP compliance | REVIEW |
-| `qa-testing-agent` | Testing, debugging | TEST/VERIFY |
-| `test-wave-agent` | ADB-based automated user flow testing on Android | TEST |
-
-**Note**: All agents must be at root `.claude/agents/` level (no subdirectories).
-
-## Skills (Agent Enhancements)
-| Skill | Purpose | Used By |
-|-------|---------|---------|
-| `brainstorming` | Collaborative spec design with adversarial review | User-invoked |
-| `writing-plans` | CodeMunch-powered implementation plans with dependency analysis | User-invoked |
-| `systematic-debugging` | Root cause analysis | qa-testing-agent |
-| `interface-design` | Design system | frontend-flutter-specialist |
-| `pdf-processing` | CLI PDF analysis/debugging | pdf-agent |
-| `implement` | Autonomous plan execution with quality gates | User-invoked |
-| `resume-session` | Load HOT context on session start | User-invoked |
-| `end-session` | Session handoff with auto-archiving | User-invoked |
-| `test` | ADB-based automated user flow testing on Android devices | test-wave-agent |
-| `audit-config` | Audit .claude/ directory against current codebase | User-invoked |
-
-Skills are loaded via `skills:` frontmatter in agent files or invoked directly by the user. The planning pipeline flows: brainstorming (spec) → writing-plans (plan) → implement (execute).
-
-## Session
-- `/resume-session` - Load HOT context only
-- `/end-session` - Save state with auto-archiving
-- State: `.claude/autoload/_state.md` (max 5 sessions)
-- Defects: Per-feature files in `.claude/defects/` (max 5 per feature)
-- Archives: `.claude/logs/state-archive.md`, `.claude/logs/defects-archive.md`
-
-## Directory Reference
-| Directory | Purpose |
-|-----------|---------|
-| plans/ | Implementation plans and design specs |
-| prds/ | Product Requirements Documents |
-| agent-memory/ | Agent-specific memory (auto-managed) |
-| defects/ | Per-feature defect tracking files |
-| logs/ | Archives (state, defects, archive-index) |
-| code-reviews/ | Code review reports (auto-saved by code-review-agent) |
-| hooks/ | Pre-flight and post-work validation scripts |
-| test-results/ | UI test findings per journey run |
-| specs/ | Design specifications from brainstorming |
-| dependency_graphs/ | CodeMunch codebase analysis per plan |
-| adversarial_reviews/ | Spec-level adversarial review reports |
-
-## Documentation System
-`.claude/docs/` — Feature overviews + architecture docs (lazy-loaded by agents)
-`.claude/architecture-decisions/` — Feature-specific constraints + shared rules
-`.claude/state/` — JSON state files for project tracking
-`.claude/hooks/` — Pre-flight + post-work validation scripts
-`.claude/specs/` — Design specifications produced by brainstorming skill
-`.claude/dependency_graphs/` — CodeMunch analysis (dependency graphs + blast radius)
-`.claude/adversarial_reviews/` — Spec-level adversarial review reports
-Agents load feature docs on demand; see `state/feature-{name}.json` per feature.
-
-**Note**: `calculator`, `forms`, `gallery`, `todos` are sub-features of `toolbox` — covered by `feature-toolbox-overview.md` and `feature-toolbox.json`. They do not have separate state/doc files.
+| `rules/testing/patrol-testing.md` | test/**, integration_test/**, lib/test_harness/** |
 
 ## Quick Reference Commands
 
 **CRITICAL**: Git Bash silently fails on Flutter. ALWAYS use pwsh wrapper.
 
 ### Build & Run
-1. `pwsh -File tools/build.ps1 -Platform android`                              — Build release APK → releases/android/release/
-2. `pwsh -File tools/build.ps1 -Platform windows`                              — Build Windows → releases/windows/release/
-3. `pwsh -File tools/build.ps1 -Platform android -BuildType debug`             — Build debug APK → releases/android/debug/
-4. `pwsh -Command "flutter run -d windows"`                                    — Run on desktop (dev)
-5. `pwsh -Command "flutter clean"`                                             — Clean build artifacts
+1. `pwsh -File tools/build.ps1 -Platform android` — Release APK
+2. `pwsh -File tools/build.ps1 -Platform windows` — Windows build
+3. `pwsh -File tools/build.ps1 -Platform android -BuildType debug` — Debug APK
+4. `pwsh -Command "flutter run -d windows"` — Desktop dev
 
-### Testing
-6. `pwsh -Command "flutter test"`                                              — All tests
+### Testing & Diagnostics
+5. `pwsh -Command "flutter test"` — All tests
+6. `pwsh -Command "flutter pub get"` — Get dependencies
+7. `pwsh -Command "flutter analyze"` — Static analysis
 
-### Process Management (SAFE — preserves MCP servers)
-7. `pwsh -Command "Stop-Process -Name 'construction_inspector' -Force -ErrorAction SilentlyContinue"`  — Kill app ONLY
+### Process Management
+8. `pwsh -Command "Stop-Process -Name 'construction_inspector' -Force -ErrorAction SilentlyContinue"` — Kill app ONLY
 
-### Dependencies & Diagnostics
-8. `pwsh -Command "flutter pub get"`        — Get dependencies
-9. `pwsh -Command "flutter pub upgrade"`    — Upgrade dependencies
-10. `pwsh -Command "flutter analyze"`       — Static analysis
-11. `pwsh -Command "flutter doctor"`        — Environment diagnostics
-
-### Git
-12. `git log --oneline -10`                 — Recent commits
-13. `git diff --stat`                       — Change summary
-
-### Common Mistakes (from 577+ errors across 30+ sessions)
+### Common Mistakes
 - NEVER run flutter/dart directly in Git Bash — ALWAYS use `pwsh -Command "..."`
 - NEVER use wc, sed, awk, grep as Bash — use Read/Edit/Grep tools instead
 - ALWAYS use `-ErrorAction SilentlyContinue` on Stop-Process
-- ALWAYS set `timeout: 600000` on `flutter run` commands (default 120s is too short)
-- ALWAYS quote paths with spaces: `"C:\Users\rseba\Projects\Field Guide App"`
-- **NEVER run `Stop-Process -Name 'dart'`** — this can kill background Dart processes. Only kill `construction_inspector`.
+- ALWAYS set `timeout: 600000` on `flutter run` commands (default 120s too short)
+- ALWAYS quote paths with spaces
+- **NEVER run `Stop-Process -Name 'dart'`** — kills MCP servers. Only kill `construction_inspector`.
 
-## Development Tools
-| Tool | Location | Purpose |
-|------|----------|---------|
-| run_and_tail_logs.ps1 | `tools/` | Run app with live log tailing |
-| dump_inspect.py | `tools/` | Crash dump analysis |
-| **UI Prototyping** | MCP: `html-sync` + `playwright` | Rapid browser-based UI mockups (see below) |
+## Session & Workflow
+- `/resume-session` — Load HOT context | `/end-session` — Save state with auto-archiving
+- State: `.claude/autoload/_state.md` | Defects: `.claude/defects/_defects-{feature}.md` (max 5 per feature)
+- Git: Feature branches only, never commit to main. `gh pr create` / `gh pr merge --squash`
+- Planning pipeline: `brainstorming` (spec) → `writing-plans` (plan) → `implement` (execute)
 
-## UI Prototyping (Browser Mockups)
-
-Rapid visual design iteration before writing Flutter code. Uses two MCP servers:
-
-| Server | Package | Purpose |
-|--------|---------|---------|
-| `html-sync` | `mcp-html-sync-server` | Create/update HTML with live hot reload |
-| `playwright` | `@playwright/mcp` | Navigate, screenshot, device emulation |
-
-**Workflow**: `create_page` → user opens URL → `browser_take_screenshot` → iterate via `update_page` → approve → write Flutter code.
-**CSS Framework**: Beer CSS (Material Design 3) — mockups look like Flutter widgets.
-**Full guide**: `docs/guides/ui-prototyping-workflow.md`
-**Rules**: `rules/frontend/ui-prototyping.md` (auto-loads for mockups/ files)
-
-## Data Flow
-```
-Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
-```
-
-## Platform Requirements
-See `.claude/rules/platform-standards.md` for Android SDK (compileSdk 36/targetSdk 36/minSdk 24/Gradle 8.14/AGP 8.11.1), iOS 15.0+, and test config (Orchestrator 1.6.1 / JVM 12G / Patrol 4.1.0).
+## Pointers (on-demand, NOT auto-loaded)
+| What | Where |
+|------|-------|
+| Agents (9 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
+| Skills (10 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
+| Directory structure | `.claude/docs/directory-reference.md` |
+| Platform requirements | `.claude/rules/platform-standards.md` |
+| UI prototyping workflow | `.claude/rules/frontend/ui-prototyping.md` |
+| Testing setup & harnesses | `.claude/rules/testing/patrol-testing.md` |
+| Detailed project knowledge | `.claude/memory/MEMORY.md` |
+| Archives | `.claude/logs/state-archive.md`, `.claude/logs/defects-archive.md` |
+| Audit system (backlogged) | `.claude/backlogged-plans/2026-02-15-audit-system-design.md` |
 
 ## Repositories
 | Repo | URL |
@@ -182,58 +96,8 @@ See `.claude/rules/platform-standards.md` for Android SDK (compileSdk 36/targetS
 
 `.claude/` is gitignored from app repo and tracked separately.
 
-## Audit System & Lint Suggestions
-
-**Backlogged plan**: `.claude/backlogged-plans/2026-02-15-audit-system-design.md`
-
-### Git Workflow (Feature Branch + PR)
-- Work on feature branches, never commit directly to main
-- Use `gh pr create` to open PRs, `gh pr merge --squash` to merge
-- Pre-commit hook at `tools/audit/pre-commit.sh` validates every commit (not yet implemented)
-- CI (`quality-gate.yml`) must pass before merging to main
-
-### Lint Rule Suggestions (Per-Session Check)
-Each session, after completing implementation work, check:
-1. Did we encounter a new anti-pattern or recurring issue during this session?
-2. Could it be caught by a grep pattern or custom lint rule?
-3. If yes, suggest it to the user: "I noticed [pattern]. Want to add this as a [grep check / custom lint rule]?"
-4. Reference: 68 existing checks in the audit system plan
-
-### Pre-Commit Hook
-- Location: `tools/audit/pre-commit.sh` (symlinked from `.git/hooks/pre-commit`) **(not yet implemented)**
-- Setup: Run `tools/audit/setup-hooks.sh` once after cloning **(not yet implemented)**
-- Hook scripts do not yet exist on disk. Run `tools/audit/setup-hooks.sh` once they are created.
-- Bypass (WIP only): `git commit --no-verify` (CI will still catch issues)
-
-## Testing
-
-All testing details (widget harness, flow harness, Patrol E2E, PDF stage trace, widget keys) live in:
-- **`rules/testing/patrol-testing.md`** — Auto-loads when touching `test/**`, `integration_test/**`, `lib/test_harness/**`, `lib/driver_main.dart`, or testing keys files
-- **`docs/guides/testing/e2e-test-setup.md`** — Device setup, CI/CD, troubleshooting (loaded by agents on demand)
-
-Key entry points:
-| Target | Entry Point |
-|--------|-------------|
-| Full app | `lib/driver_main.dart` |
-| Single screen harness | `lib/test_harness.dart` + `harness_config.json` |
-| Flow harness (multi-screen) | `lib/test_harness.dart` + `harness_config.json` with `"flow"` key |
-| Unit tests | `pwsh -Command "flutter test"` |
-| Screen registry | `lib/test_harness/screen_registry.dart` |
-| Flow registry | `lib/test_harness/flow_registry.dart` |
-| Widget keys | `lib/shared/testing_keys/testing_keys.dart` |
-
 ## Context Efficiency
-
-Rules to minimize token waste across sessions:
-
-### Subagent Usage
-- **Prefer parallel Task calls** in a single message over `run_in_background`. Parallel calls already run concurrently without polling overhead.
-- When `run_in_background` is necessary, read output **exactly once** using `block=true` to wait for completion. Never poll with timeout then re-read.
-- **Never call TaskOutput more than once** for the same subagent.
-- Cap **Explore agents at 3 per session**. Use Glob/Grep/Read directly for targeted file searches.
-- Only spawn a subagent when the task genuinely requires 5+ tool calls. For simpler work, do it inline.
-
-### Context Hygiene
-- Don't echo back file contents already in context.
-- When summarizing subagent results to the user, keep it to 3-5 bullets. Don't paste the full agent output.
-- Prefer file:line references over pasting code blocks when discussing changes.
+- **Prefer parallel Task calls** over `run_in_background`. Never call TaskOutput more than once per subagent.
+- Cap **Explore agents at 3 per session**. Only spawn subagents for 5+ tool-call tasks.
+- Don't echo back file contents already in context. Prefer file:line references over code blocks.
+- Summarize subagent results in 3-5 bullets, not full output.

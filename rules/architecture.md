@@ -19,11 +19,14 @@ lib/
 │   └── database/
 │       └── schema/  # Schema files organized by domain
 ├── shared/      # Base classes, common utilities
-├── features/    # 13 feature modules
+├── features/    # 17 feature modules (auth, calculator, contractors, dashboard, entries,
+│   │            # forms, gallery, locations, pdf, photos, projects, quantities,
+│   │            # settings, sync, todos, toolbox, weather)
 │   └── [feature]/
 │       ├── data/         # Models, repositories, datasources
 │       └── presentation/ # Screens, widgets, providers
-│       # Note: No domain/ layer in most features (only sync uses full Clean Architecture)
+│       # Note: calculator/forms/gallery/todos are sub-features of toolbox
+│       # No domain/ layer in most features (only sync uses full Clean Architecture)
 └── services/    # Cross-cutting services
 ```
 

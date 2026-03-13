@@ -6,6 +6,46 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 556 (2026-03-13)
+**Work**: Disabled text protection. Pipeline: 67 data rows, 61 items, 23 BOGUS, 0.920 median confidence.
+**Decisions**: Text protection hurts more than helps. Leading fix: disable + confidence filter.
+**Next**: Fix cell grid display format, decide text protection permanently.
+
+### Session 555 (2026-03-13)
+**Work**: Systematic debugging of 2 auth/onboarding bugs. Plan written via writing-plans orchestrator.
+**Decisions**: Bug 1: isLoadingProfile guard. Bug 2: update search_companies RPC.
+**Next**: `/implement` the auth-onboarding-bugfix plan.
+
+### Session 554 (2026-03-13)
+**Work**: Deep pipeline tracing (20 stages). Root cause: Grid Removal v3 regressed 130→38 data rows. Anti-aliasing fringe measured.
+**Decisions**: Text protection can't be disabled (Tesseract crashes). Need smarter approach.
+**Next**: Fix grid removal v3 text protection approach.
+
+### Session 553 (2026-03-12)
+**Work**: Implemented grid-aware row classification via /implement (5 files, 10 tests). Pipeline regressed: 37/131 items but 22 BOGUS (was 3). Root cause: OCR noise accumulation.
+**Decisions**: Grid-aware grouping correct in principle but requires clean OCR.
+**Next**: Revert grid-aware code, fix OCR noise at source.
+
+### Session 552 (2026-03-12)
+**Work**: Implemented+tested+reverted Option C (no downstream impact). Disproved boilerplate intrusion hypothesis.
+**Decisions**: Option C reverted. Boilerplate NOT entering OCR pipeline.
+**Next**: Investigate row classification accuracy.
+
+### Session 550 (2026-03-12)
+**Work**: Verified mask fix (0 excess, 35/131 items). Confirmed text protection hypothesis. Wrote Option C plan (table-bounded dilation). Major project cleanup (~1.78 GB, 23K stale lines). Committed all work (5 commits across 2 repos).
+**Decisions**: Option C selected for text protection fix. Restrict dilation to grid table bounds using sortedH/sortedV. Margin = maxLineWidth//2 + 3. Degenerate guard falls back to global.
+**Next**: `/implement` Option C, re-run pipeline, verify.
+
+### Session 546 (2026-03-12)
+**Work**: Full v3 brainstorming session. 5 Opus agents for research. Brainstormed 3 approaches → Option A selected. Spec written (6-step algorithm). Adversarial review (7 MUST-FIX + 6 SHOULD-CONSIDER). All MUST-FIX addressed.
+**Decisions**: Morph isolation + HoughLinesP + text protection. No GridLine model changes (YAGNI). 5x5 text dilation. 15px cross-ref tolerance.
+**Next**: `/writing-plans` → `/implement` → verify.
+
+### Session 545 (2026-03-12)
+**Work**: Ran v2 verification phases. 56/131 items. Mask deviates from grid lines. Root cause: matched filter at perpendicular intersections.
+**Decisions**: Matched filter fundamentally flawed. v3 will use HoughLinesP.
+**Next**: Research → brainstorm/spec → implement.
+
 ### Session 541 (2026-03-11)
 **Work**: Pipeline regression verified (81/131 items). 3 root causes confirmed. 6 research agents. 3-way diagnostic comparison.
 **Decisions**: Need brainstorming. Matched filter needs multi-sample median.

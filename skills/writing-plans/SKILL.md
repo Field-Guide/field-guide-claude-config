@@ -1,95 +1,113 @@
 ---
 name: writing-plans
-description: "Use when you have an approved spec for a multi-step task, before touching code. Launches an orchestrator that indexes the codebase, builds dependency graphs, and creates detailed implementation plans by dispatching work to specialized agents."
+description: "Use when you have an approved spec for a multi-step task, before touching code. Main agent gathers context via CodeMunch + MCP tools, then hands off to a plan-writer agent, then dispatches parallel adversarial reviews."
 user-invocable: true
 ---
 
 # Writing Plans
 
-**Announce at start:** "I'm using the writing-plans skill to launch the plan-writing orchestrator."
+**Announce at start:** "I'm using the writing-plans skill to create an implementation plan."
 
-## Orchestration Model
+## Architecture
 
-This skill does NOT run inline. The main agent spawns a **single orchestrator agent** via the Task tool, which then dispatches sub-tasks to specialized agents.
+Subagents CANNOT use MCP tools or spawn sub-subagents. Therefore the main agent (you) drives the entire workflow, delegating only the plan-writing and adversarial reviews to subagents.
 
 ```
 Main Agent (you)
-  └─ spawns → Orchestrator (Task tool, subagent_type: general-purpose, model: opus)
-                ├─ Phase 1: Read spec + Index codebase (inline, parallel tools)
-                ├─ Phase 2: Build dependency graph + blast radius (inline)
-                ├─ Phase 3: Write the plan (inline)
-                ├─ Phase 4: Adversarial review (dispatches 2 agents in parallel)
-                │     ├─ code-review-agent (Task tool)
-                │     └─ security-agent (Task tool)
-                ├─ Phase 5: Address findings (inline)
-                └─ Phase 6: Return plan summary to main agent
+  ├─ Phase 1: Read spec + Index codebase (CodeMunch MCP — only you have access)
+  ├─ Phase 2: Build dependency graph + blast radius (CodeMunch MCP)
+  ├─ Phase 3: Save dependency graph to disk
+  ├─ Phase 4: Spawn plan-writer agent (Task tool, model: opus)
+  │     └─ Reads dependency graph + spec from disk, writes the plan
+  ├─ Phase 5: Adversarial review (dispatch 2 agents in PARALLEL)
+  │     ├─ code-review-agent (Task tool)
+  │     └─ security-agent (Task tool)
+  ├─ Phase 6: Address findings (edit plan inline or re-spawn plan-writer)
+  └─ Phase 7: Present summary to user
 ```
-
-### What the Main Agent Does
-
-1. Identify the spec file (from user's message or `.claude/specs/`)
-2. Spawn the orchestrator with a detailed prompt (see below)
-3. Receive the plan summary from the orchestrator
-4. Present the summary to the user
-
-### Orchestrator Prompt Template
-
-When spawning the orchestrator, use this prompt structure:
-
-```
-You are the plan-writing orchestrator. Your job is to create a comprehensive
-implementation plan from an approved spec. You have access to all tools.
-
-**NEVER run `flutter clean`. It is prohibited by the user.**
-
-## Inputs
-- Spec file: [path to spec]
-- Adversarial review (if exists): [path to adversarial review]
 
 ## Your Workflow
 
-### Phase 1: Read Spec + Index Codebase (parallel)
-- Read the spec file and extract all requirements
-- Also read the adversarial review for NICE-TO-HAVE items
-- In parallel: run mcp__jcodemunch__index_folder on the project root
-- Then get the repo outline with mcp__jcodemunch__get_repo_outline
+### Phase 1: Read Spec + Index Codebase
+
+Do these in PARALLEL (you have MCP access):
+
+1. Read the spec file from `.claude/specs/`
+2. Read the adversarial review if it exists (from `.claude/adversarial_reviews/`)
+3. Run `mcp__jcodemunch__index_folder` on the project root with `incremental: true`, `use_ai_summaries: false`
+
+Once indexing completes:
+4. Run `mcp__jcodemunch__get_repo_outline`
 
 ### Phase 2: Build Dependency Graph + Blast Radius
-- Use CodeMunch search_symbols and get_symbol to trace all affected symbols
-- Map callers, callees, cross-cutting concerns (2+ levels deep)
-- Categorize impact: DIRECT | DEPENDENT | TEST | CLEANUP
-- Save analysis to .claude/dependency_graphs/YYYY-MM-DD-<name>/
 
-### Phase 3: Write the Plan
-- Structure as Phase > Sub-phase > Step (see plan format below)
-- Assign agents per the routing table
-- Include complete code with WHY annotations
-- Include verification commands with expected output
-- Save to .claude/plans/YYYY-MM-DD-<name>.md
+Using CodeMunch (only you have MCP access):
 
-### Phase 4: Adversarial Review (dispatch 2 agents in PARALLEL)
-Spawn both agents simultaneously using two Task tool calls in one message:
+1. `mcp__jcodemunch__get_file_outline` on every file listed in "Files to Modify" in the spec
+2. `mcp__jcodemunch__search_symbols` for every key symbol mentioned in the spec
+3. `mcp__jcodemunch__get_symbol` to read full source of each relevant symbol
+4. For each symbol found, trace callers/callees 2+ levels deep using `search_symbols`
+5. Categorize all affected symbols: DIRECT | DEPENDENT | TEST | CLEANUP
 
-1. code-review-agent (subagent_type: code-review-agent):
+### Phase 3: Save Dependency Graph
+
+Write the analysis to `.claude/dependency_graphs/YYYY-MM-DD-<name>/analysis.md` with:
+- Direct changes (files, symbols, line ranges, change type)
+- Dependent files (callers, consumers — 2+ levels)
+- Test files that exercise affected code
+- Dead code to clean up after rewrite
+- Data flow diagram (ASCII)
+- Blast radius summary counts
+
+### Phase 4: Spawn Plan-Writer Agent
+
+Spawn a single agent via Task tool:
+- `subagent_type: general-purpose`
+- `model: opus`
+
+The plan-writer has NO MCP access, so pass ALL context it needs in the prompt:
+- Full spec content (paste it — the agent can't read MCP-indexed data)
+- Full adversarial review content
+- Full dependency graph analysis content
+- Key source excerpts it needs (symbol sources from Phase 2)
+- The plan format template (see below)
+- The agent routing table
+- Save location: `.claude/plans/YYYY-MM-DD-<name>.md`
+
+The plan-writer's ONLY job is to write the plan file using Write tool. It does NOT need to explore the codebase — you already did that.
+
+### Phase 5: Adversarial Review (dispatch 2 agents in PARALLEL)
+
+After the plan-writer returns, spawn BOTH review agents in a SINGLE message:
+
+1. **code-review-agent** (subagent_type: code-review-agent):
+   - Read the plan at `.claude/plans/YYYY-MM-DD-<name>.md`
+   - Read the spec at `.claude/specs/YYYY-MM-DD-<name>-spec.md`
    - Does the plan cover EVERY spec requirement?
    - Are file paths correct? DRY/YAGNI? Test quality?
    - What's missing? What if a step fails?
+   - Return APPROVE or REJECT with specific findings.
 
-2. security-agent (subagent_type: security-agent):
+2. **security-agent** (subagent_type: security-agent):
+   - Read the plan at `.claude/plans/YYYY-MM-DD-<name>.md`
    - Security vulnerabilities? Auth gaps? RLS implications? Data exposure?
+   - Return APPROVE or REJECT with findings.
 
-### Phase 5: Address Findings
-- CRITICAL/HIGH: Fix in the plan before returning
+### Phase 6: Address Findings
+
+- CRITICAL/HIGH: Fix in the plan (edit inline or re-spawn plan-writer)
 - MEDIUM/LOW: Note in plan, address during implementation
+- Save review reports to `.claude/code-reviews/YYYY-MM-DD-<name>-plan-review.md`
 
-### Phase 6: Return Summary
-Return a concise summary with:
+### Phase 7: Present Summary
+
+Show the user:
 - Plan file path
 - Phase count, sub-phase count, step count
 - Files affected (direct, dependent, tests, cleanup)
 - Agents involved
+- Review verdicts
 - Any unresolved MEDIUM/LOW findings
-```
 
 ## Plan Format Reference
 
@@ -204,11 +222,11 @@ Expected: PASS
 ## Hard Gate (Pre-Flight Check)
 
 <HARD-GATE>
-Do NOT write any plan steps until the orchestrator has:
-1. Received and read the approved spec from `.claude/specs/`
-2. Completed full codebase indexing with CodeMunch
-3. Built the dependency graph and blast radius analysis
-4. Saved the analysis to `.claude/dependency_graphs/`
+Do NOT spawn the plan-writer agent (Phase 4) until YOU have:
+1. Read the approved spec from `.claude/specs/`
+2. Completed full codebase indexing with CodeMunch (`index_folder` + `get_repo_outline`)
+3. Traced all affected symbols via CodeMunch (`get_file_outline`, `search_symbols`, `get_symbol`)
+4. Built and saved the dependency graph to `.claude/dependency_graphs/`
 </HARD-GATE>
 
 ---
@@ -230,7 +248,8 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 
 | Anti-Pattern | Why It's Wrong | Do This Instead |
 |--------------|----------------|-----------------|
-| Running skill inline | Blows up main context | Spawn orchestrator via Task tool |
+| Delegating CodeMunch to subagent | Subagents have NO MCP access | Main agent runs all CodeMunch calls |
+| Expecting subagent to spawn agents | Subagents can't use Task tool | Main agent dispatches all subagents |
 | Vague steps ("add validation") | Agent has to think | Complete code with annotations |
 | Missing file paths | Agent guesses wrong | Exact `path/to/file.dart:line` |
 | Skipping tests | Breaks TDD cycle | Every sub-phase has test steps |
@@ -239,12 +258,14 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 | No agent assignments | Wrong agent gets work | Route by file pattern |
 | No cleanup phase | Leaves dead code | Always include cleanup |
 | Sequential adversarial review | Wastes time | Always dispatch both in parallel |
+| Telling plan-writer to "read files" | It can Read but lacks MCP context | Paste all needed source in prompt |
 
 ---
 
 ## Remember
 
-- **Spawn orchestrator** — never run this skill inline in the main conversation
+- **You drive the workflow** — main agent does CodeMunch, dependency graph, and agent dispatch
+- **Plan-writer gets ALL context in its prompt** — paste spec, review, dependency graph, key source excerpts
 - **Exact file paths** — always, including line numbers for modifications
 - **Complete code** — never "add validation here", always the actual code
 - **Annotations** — explain WHY, not just WHAT

@@ -5,6 +5,16 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [FLUTTER] 2026-03-13: Router redirects auth routes to `/` before profile loads — flash of wrong screen
+**Pattern**: `isAuthenticated && isAuthRoute → return '/'` fires before `isLoadingProfile` guard. New users see project screen flash before company setup.
+**Prevention**: Check `isLoadingProfile` BEFORE redirecting authenticated users off auth routes. Return `null` to stay put while profile loads.
+**Ref**: @lib/core/router/app_router.dart:128
+
+### [DATA] 2026-03-13: search_companies RPC returns partial columns — Company.fromJson() TypeError silently caught
+**Pattern**: RPC returns `(id, name)` only but `Company.fromJson()` requires `created_at`/`updated_at`. TypeError thrown, caught by bare `catch (_)` with no logging.
+**Prevention**: RPC return types must match the Dart model factory. Never use `catch (_)` without logging — always `catch (e) { debugPrint(...); }`.
+**Ref**: @supabase/migrations search_companies, @lib/features/auth/presentation/screens/company_setup_screen.dart:173
+
 ### [ASYNC] 2026-03-03: Inactivity timeout must check before reset on foreground resume
 **Pattern**: `updateLastActive()` resets the 7-day timer without checking `checkInactivityTimeout()` first. On foreground resume, always check timeout THEN reset.
 **Prevention**: In any `onResumed` callback, call `checkInactivityTimeout()` before `updateLastActive()`. Return early if timed out.

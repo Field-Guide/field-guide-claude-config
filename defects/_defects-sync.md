@@ -5,29 +5,29 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-13: Sync pushes hard DELETE instead of soft-delete UPDATE — BLOCKER-29 (Session 558)
+**Pattern**: `_pushDelete()` calls `.delete().eq('id', recordId)` (hard delete) but SQLite uses soft-delete (`deleted_at`). Record disappears from server. Next pull re-creates it locally. Deleted data resurrects.
+**Prevention**: Push soft-delete as `.update({'deleted_at': timestamp, 'deleted_by': userId})`. Pull must respect `deleted_at`. Add `stamp_deleted_by()` server trigger.
+**Ref**: @lib/features/sync/engine/sync_engine.dart:327-339
+
+### [DATA] 2026-03-13: Upsert uses PRIMARY KEY conflict but tables have compound UNIQUE — BLOCKER-24 (Session 558)
+**Pattern**: `.upsert(payload)` defaults to `id` as conflict target. `projects` has `UNIQUE(company_id, project_number)`. Different UUID + same project number → INSERT → duplicate key crash. Blocks all child table sync.
+**Prevention**: Pre-check for existing match on natural key before upsert. Categorize `23505` as retryable (TOCTOU safety net). SQLite constraints already exist for projects/entry_contractors/user_certifications.
+**Ref**: @lib/features/sync/engine/sync_engine.dart:398-399
+
 ### [FLUTTER] 2026-03-06: Mock SyncOrchestrator missing getPendingBuckets() causes test hang (Session 511)
-**Pattern**: `MockSyncOrchestrator` in widget tests overrode `getPendingCount()` but not `getPendingBuckets()`. `SyncProvider._refreshPendingCount()` calls `getPendingBuckets()` → hits real DB init → hangs forever in test binding. Test runner shows infinite iterations.
-**Prevention**: When mocking SyncOrchestrator, ALWAYS override both `getPendingCount()` AND `getPendingBuckets()`. Remove unnecessary `Future.delayed()` from mock methods — fake timers interact poorly with test bindings.
+**Pattern**: `MockSyncOrchestrator` overrode `getPendingCount()` but not `getPendingBuckets()`. Hits real DB init → hangs forever in test binding.
+**Prevention**: When mocking SyncOrchestrator, ALWAYS override both methods. Remove unnecessary `Future.delayed()` from mocks.
 **Ref**: @test/features/sync/presentation/widgets/sync_status_icon_test.dart:170
 
 ### [ASYNC] 2026-03-06: _lastSyncTime persisted on failure creates 24h dead zone (Session 511)
-**Pattern**: `_lastSyncTime = DateTime.now()` and its DB persist ran unconditionally after sync — even on failure. Lifecycle manager saw a recent timestamp and wouldn't force retry for 24 hours.
-**Prevention**: Only update `_lastSyncTime` inside the `if (!result.hasErrors)` success block. Failed syncs should leave the old timestamp so staleness detection works.
+**Pattern**: `_lastSyncTime = DateTime.now()` ran unconditionally after sync — even on failure. Lifecycle manager saw recent timestamp and wouldn't force retry for 24 hours.
+**Prevention**: Only update `_lastSyncTime` inside the success block. Failed syncs should leave old timestamp.
 **Ref**: @lib/features/sync/application/sync_orchestrator.dart:224-237
 
-### [ASYNC] 2026-03-06: _isTransientError() defeats auth retry — 'auth' in nonTransientPatterns (Session 509) — FIXED
-**Pattern**: FIX-A added a 5s retry loop in `_createEngine()`, but `_isTransientError()` has `'auth'` in `nonTransientPatterns`. The error "No auth context available for sync" matches, killing retries.
-**Prevention**: Add early guard in `_isTransientError()` to treat "No auth context" as transient BEFORE the nonTransient pattern loop. **FIXED in Session 511**: Early-return guard added.
-**Ref**: @lib/features/sync/application/sync_orchestrator.dart:367-374
-
 ### [CONFIG] 2026-03-06: Stale config banner checks only checkConfig() timestamp (Session 508)
-**Pattern**: `AppConfigProvider.isConfigStale` only checks `_lastConfigCheckAt`. Successful sync also proves server reachability but doesn't reset the clock. Banner shows permanently if `checkConfig()` fails, even when sync works fine.
-**Prevention**: Unify staleness to `max(lastConfigCheck, lastSyncSuccess) > 24h`. Call `recordSyncSuccess()` after successful push/pull.
+**Pattern**: `AppConfigProvider.isConfigStale` only checks `_lastConfigCheckAt`. Successful sync also proves server reachability but doesn't reset the clock.
+**Prevention**: Unify staleness to `max(lastConfigCheck, lastSyncSuccess) > 24h`.
 **Ref**: @lib/features/auth/presentation/providers/app_config_provider.dart:57-61
-
-### [DATA] 2026-03-06: SyncRegistry.registerAdapters() never called in production (Session 507)
-**Pattern**: `SyncRegistry.instance.adapters` is empty in production — only called in test code. Push/pull loops iterate 0 adapters and silently succeed.
-**Prevention**: Registration must happen in BOTH foreground (`SyncOrchestrator.initialize()`) AND background (`backgroundSyncCallback()`). Use a shared top-level function.
-**Ref**: @lib/features/sync/engine/sync_registry.dart:26
 
 <!-- Add defects above this line -->
