@@ -1,22 +1,22 @@
 ---
 name: systematic-debugging
-description: Root cause analysis framework that prevents guess-and-check debugging
+description: Log-first root cause analysis framework with HTTP server integration, hypothesis tagging, and structured cleanup gates
 user-invocable: true
 ---
 
 # Systematic Debugging Skill
 
-**Purpose**: Interactive root cause analysis framework. Investigates bugs WITH the user, never autonomously.
+**Purpose**: Interactive root cause analysis framework with log-first investigation. Investigates bugs WITH the user, never autonomously.
 
 ## CRITICAL: This Skill Is Interactive
 
-**This skill runs in the main conversation.** It does NOT delegate to subagents or run autonomously.
+**This skill runs in the main conversation.** Code changes require explicit user approval.
 
 - **Show progress** at every step — the user must see what you're doing
 - **Present findings** after each phase before moving on
 - **NEVER write code** without explicit user approval
 - **NEVER skip to implementation** — investigation comes first, always
-- **Use subagents only for parallel research** (read-only exploration), not for code changes
+- **Deep mode only**: subagents run for parallel read-only research
 
 ## Iron Law
 
@@ -24,187 +24,463 @@ user-invocable: true
 
 Every fix must be preceded by understanding WHY the bug exists. Guessing wastes time and creates new bugs.
 
-## Before Starting: Use Existing Results
+---
 
-**Do NOT run the full test suite on skill startup.** The user typically already has recent test/scorecard results before invoking this skill. Ask what results they have or review context before launching any test runs. Only run tests when the investigation requires it (e.g., to reproduce a specific failure, validate a hypothesis, or check regressions after a fix).
+## Entry: Choose Debug Mode
 
-## Before Starting: Check Per-Feature Defects
+**Ask the user before starting:**
 
-Before debugging ANY issue:
-1. Read `.claude/defects/_defects-{feature}.md` for the relevant feature
-2. Search for matching pattern (ASYNC, E2E, FLUTTER, DATA, CONFIG, SYNC, MIGRATION, SCHEMA)
-3. Apply known prevention strategies if pattern matches
+> "Quick mode (direct investigation, no server needed) or Deep mode (log server + background research agent)?"
 
-@.claude/skills/systematic-debugging/references/defects-integration.md
+| Mode | Use When | Setup |
+|------|----------|-------|
+| Quick | Clear repro, no race conditions, obvious error | None |
+| Deep | Intermittent bug, state corruption, async timing, unknown origin | Start debug server, launch research agent |
 
-## Three-Phase Framework (Investigation Only)
+**Deep mode setup** (do before Phase 1):
+1. Load reference files (see below)
+2. Launch `debug-research-agent` with `run_in_background: true`, passing the issue description and suspected code paths
+3. Continue with Phase 1 while agent researches in parallel
 
-### Phase 1: Root Cause Investigation
+**Reference files** (load on entry):
+- `@.claude/skills/systematic-debugging/references/log-investigation-and-instrumentation.md`
+- `@.claude/skills/systematic-debugging/references/codebase-tracing-paths.md`
+- `@.claude/skills/systematic-debugging/references/defects-integration.md`
+- `@.claude/skills/systematic-debugging/references/debug-session-management.md`
 
-**Goal**: Understand the bug before touching code.
+---
 
-1. **Read the error** - Full message, stack trace, context
-2. **Reproduce** - Exact steps that trigger the bug
-3. **Isolate** - Minimal reproduction case
-4. **Gather Evidence in Multi-Component Systems** - Before proposing a fix, instrument each component boundary. Add logging/echo at the entry and exit of each layer: `Screen → Provider → Repository → Datasource → SQLite → SyncEngine → Supabase`. Confirm which layer produces the unexpected output before touching any code.
-5. **Trace Data Flow** - Follow the data path end-to-end. A bug that appears in Stage 4E may originate in Stage 3. See root-cause-tracing.md for the full checklist.
-6. **Timeline** - When did this last work? What changed?
+## Phase 1: TRIAGE
 
-**Key Questions**:
-- What is the EXACT error message?
-- What are the EXACT steps to reproduce?
-- When did this start happening?
-- What changed recently (commits, dependencies, config)?
+**Goal**: Establish clean baseline before touching anything.
 
-**USER GATE**: After Phase 1, present findings to the user. Ask if the investigation direction is correct before continuing.
+### 1.1 Scan for orphaned hypothesis markers
 
-@.claude/skills/systematic-debugging/references/root-cause-tracing.md
+Search for leftover markers from previous sessions:
 
-### Phase 2: Pattern Analysis
+```bash
+# Search entire codebase for hypothesis markers
+Grep "hypothesis(" lib/ --output_mode=files_with_matches
+```
 
-**Goal**: Find similar working code to understand the gap.
+If any found: list them to the user. Ask if they belong to this session or are orphaned. Orphaned markers MUST be removed before continuing.
 
-1. **Find working example** - Similar code that works correctly
-2. **Compare differences** - What's different about the failing case?
-3. **Check timing** - Is this a race condition or async issue?
-4. **Validate assumptions** - Is the data actually what you think it is?
+### 1.2 Check server health (Deep mode only)
 
-**Analysis Checklist**:
-- [ ] Found working code that does similar thing
-- [ ] Identified specific difference
-- [ ] Checked for async/timing issues
-- [ ] Validated input data is correct
+```bash
+curl http://127.0.0.1:3947/health
+```
 
-@.claude/skills/systematic-debugging/references/defense-in-depth.md
+Expected response: `{"status":"ok","entries":N,"maxEntries":30000,"memoryMB":N,"uptimeSeconds":N}`
 
-### Phase 3: Hypothesis & Root Cause Report
+If server not running, prompt user to start it:
+```
+node tools/debug-server/server.js
+```
 
-**Goal**: Form hypothesis, present root cause analysis to user.
+For Android devices, set up ADB port forwarding:
+```
+adb reverse tcp:3947 tcp:3947
+```
 
-1. **Form hypothesis** - "The bug occurs because X"
-2. **Support with evidence** - Cite specific files, lines, fixture data
-3. **When You Don't Know** — Say "I don't understand X yet." Do NOT pretend. Return to Phase 1.
+### 1.3 Clear previous session logs (Deep mode only)
 
-**Rules**:
-- ONE hypothesis at a time
-- Log your hypotheses and results
+```bash
+curl -X POST http://127.0.0.1:3947/clear
+```
 
-**OUTPUT**: Present a root cause report to the user with:
-- Root cause (with evidence)
-- Upstream origin (most upstream stage/file where the problem starts)
-- Proposed fix approach (DO NOT implement — describe only)
-- Files that would need to change
-- Risk assessment
+This ensures evidence from this session is not mixed with old data.
 
-### STOP HERE — User Decides Next Steps
+### 1.4 Check known defects
 
-**After Phase 3, STOP.** Present your findings and let the user decide:
-- Approve the proposed fix → user tells you to implement
-- Modify the approach → user redirects
-- Investigate further → return to Phase 1
-- Defer → user handles it later
+Read `.claude/defects/_defects-{feature}.md` for the relevant feature. Check categories: `[ASYNC]`, `[SYNC]`, `[DATA]`, `[CONFIG]`, `[SCHEMA]`, `[FLUTTER]`, `[E2E]`, `[MIGRATION]`.
 
-**NEVER auto-proceed to implementation. The user must explicitly ask for code changes.**
+If a known pattern matches: apply documented prevention. May resolve without further investigation.
 
-@.claude/skills/systematic-debugging/references/condition-based-waiting.md
+**Present triage findings to user before Phase 2.**
 
-## Red Flags — STOP and Follow Process
+---
 
-These thought patterns mean you're off-track. Stop immediately and return to Phase 1:
+## Phase 2: COVERAGE CHECK
+
+**Goal**: Understand what the Logger already captures in the relevant code path.
+
+### 2.1 Identify the code path
+
+Use codebase-tracing-paths.md to map the likely flow. Example: "Sync not pushing entries" → SyncProvider → SyncOrchestrator → SyncEngine → TableAdapter.
+
+### 2.2 Assess existing Logger coverage
+
+For each file in the path:
+```bash
+Grep "Logger\." lib/features/sync/engine/sync_engine.dart --output_mode=content
+```
+
+Note: which entry/exit points are already logged? Which boundaries have no coverage?
+
+### 2.3 Identify gaps
+
+List boundaries that have zero Logger calls. These are blind spots where the bug could hide undetected.
+
+**Present coverage map to user before Phase 3.**
+
+---
+
+## Phase 3: INSTRUMENT GAPS
+
+**Goal**: Add targeted instrumentation so the bug leaves evidence.
+
+### 3.1 Add hypothesis markers at key boundaries
+
+Use `Logger.hypothesis()` for temporary markers scoped to this session:
+
+**Auth restriction**: NEVER log tokens, passwords, API keys, or session secrets — even in hypothesis markers. See auth blocklist in log-investigation-and-instrumentation.md.
+
+```dart
+Logger.hypothesis('H001', 'sync', 'SyncEngine.push entry point', data: {
+  'pendingCount': pendingChanges.length,
+  'userId': currentUserId,
+});
+```
+
+Naming convention: `H001`, `H002`, etc. (reset each session).
+
+### 3.2 Fill permanent Logger gaps
+
+If a code boundary has no Logger coverage at all (not just missing hypothesis markers), add a permanent Logger call using the appropriate category:
+
+```dart
+Logger.sync('SyncEngine.push', data: {'table': tableName, 'operation': op});
+```
+
+These are KEPT after the session (they fill genuine coverage gaps).
+
+### 3.3 Rebuild app
+
+Deep mode (Android):
+```
+pwsh -Command "flutter run -d <device> --dart-define=DEBUG_SERVER=true"
+```
+
+Windows:
+```
+pwsh -Command "flutter run -d windows --dart-define=DEBUG_SERVER=true"
+```
+
+**Do NOT use `--dart-define=DEBUG_SERVER=true` in release builds.**
+
+---
+
+## Phase 4: REPRODUCE
+
+**Goal**: Get clean, reliable reproduction with logs flowing.
+
+### 4.1 User interview
+
+Ask the user these five questions before they reproduce:
+
+1. What exact steps trigger the bug?
+2. How often does it happen (always, intermittent, first-launch only)?
+3. What device/platform?
+4. When did this last work correctly?
+5. What changed since it last worked (commits, data, permissions)?
+
+### 4.2 ADB health check (Android only)
+
+```bash
+adb devices
+adb reverse tcp:3947 tcp:3947
+```
+
+Confirm device is listed and port forwarding is active.
+
+### 4.3 Guide reproduction
+
+Have the user follow the exact steps. Watch for any app crash output in the terminal. Confirm log entries are flowing to the server:
+
+```bash
+curl "http://127.0.0.1:3947/logs?last=5"
+```
+
+If no entries appear: the app is not reaching the server. Check ADB forwarding, DEBUG_SERVER flag, and server status.
+
+---
+
+## Phase 5: EVIDENCE ANALYSIS
+
+**Goal**: Read log evidence to form a data-driven hypothesis.
+
+### 5.1 Fetch hypothesis-tagged logs
+
+```bash
+curl "http://127.0.0.1:3947/logs?hypothesis=H001&last=100"
+curl "http://127.0.0.1:3947/logs?hypothesis=H002&last=100"
+```
+
+### 5.2 Fetch by category
+
+```bash
+curl "http://127.0.0.1:3947/logs?category=sync&last=50"
+curl "http://127.0.0.1:3947/logs?category=error&last=20"
+```
+
+### 5.3 Check available categories
+
+```bash
+curl http://127.0.0.1:3947/categories
+```
+
+### 5.4 Read agent research (Deep mode)
+
+If the research agent has completed, read its output. Integrate its findings with the log evidence.
+
+### 5.5 Identify the failure point
+
+The failure point is where expected log entries STOP appearing or where values diverge from expected. Document:
+- Last correct log entry (file:line, hypothesis ID, value)
+- First incorrect/missing log entry
+- Any error entries in the error category
+
+### 5.6 Quick mode investigation
+
+Without a log server, use:
+```bash
+# ADB logcat for Android
+adb logcat -s flutter | grep -i error
+
+# Flutter console (terminal running flutter run)
+# Look for exceptions and stack traces
+```
+
+---
+
+## Phase 6: ROOT CAUSE REPORT
+
+**Goal**: Present findings for user approval before touching any code.
+
+### Report format
+
+Present a structured report:
+
+```
+ROOT CAUSE ANALYSIS
+
+Bug: [one-sentence description]
+
+Evidence:
+- H001 fired at sync_engine.dart:142 with pendingCount=3
+- H002 never fired → push() not reached
+- Error log: "FK constraint failed" at 14:23:05.441
+
+Root Cause:
+The sync engine is not calling push() when pendingCount > 0 because [specific condition].
+The upstream origin is [file:line] where [condition] prevents the call.
+
+Proposed Fix:
+[Describe the fix — do NOT implement yet]
+
+Files that would change:
+- lib/features/sync/engine/sync_engine.dart (line ~142)
+
+Risk: Low / Medium / High — [reason]
+```
+
+### USER GATE — stop here
+
+**STOP. Present the report. Wait for user approval.**
+
+User options:
+- "Approved" → proceed to Phase 7
+- "Investigate more" → return to Phase 5
+- "Wrong direction" → return to Phase 2
+- "Defer" → skip to Phase 9 (cleanup only)
+
+**NEVER auto-proceed to implementation.**
+
+---
+
+## Phase 7: FIX
+
+**Goal**: Implement the approved fix and verify it resolves the bug.
+
+### 7.1 Implement fix
+
+Apply the approved changes. One change at a time.
+
+### 7.2 Clear logs
+
+```bash
+curl -X POST http://127.0.0.1:3947/clear
+```
+
+### 7.3 Verify fix
+
+Have the user reproduce the original steps. Confirm:
+- Bug no longer occurs
+- Hypothesis markers show the new correct flow
+- No new errors in error category
+
+```bash
+curl "http://127.0.0.1:3947/logs?category=error&last=20"
+```
+
+### 7.4 Check for regressions
+
+Run targeted tests for the affected feature:
+```bash
+pwsh -Command "flutter test test/features/{feature}/"
+```
+
+---
+
+## Phase 8: INSTRUMENTATION REVIEW
+
+**Goal**: Decide which markers to keep and which to remove.
+
+### For each hypothesis marker added in Phase 3:
+
+| Decision | Criteria |
+|----------|----------|
+| REMOVE | Temporary hypothesis tag (H001, H002, etc.) — always remove |
+| KEEP | Fills a genuine permanent coverage gap with no other Logger call at that boundary |
+
+Present a table to the user:
+
+```
+Marker  | File:Line           | Decision | Reason
+H001    | sync_engine.dart:142 | REMOVE   | Hypothesis confirmed, gap now covered by H002's permanent replacement
+H002    | sync_engine.dart:198 | KEEP     | No other Logger.sync() at this push() entry point
+```
+
+Wait for user confirmation on any "KEEP" decisions.
+
+---
+
+## Phase 9: CLEANUP HARD GATE
+
+**This phase is MANDATORY. It cannot be skipped.**
+
+### 9.1 Remove ALL hypothesis markers
+
+For every marker marked REMOVE in Phase 8:
+
+1. Find and delete the `Logger.hypothesis()` call
+2. Verify the file compiles (no dangling variables)
+
+### 9.2 Global search — no markers left behind
+
+```bash
+Grep "hypothesis(" lib/ --output_mode=files_with_matches
+```
+
+**If this returns ANY results: stop. Remove remaining markers. Re-run search.**
+
+Zero results required to proceed.
+
+### 9.3 Write session log
+
+Create a scrubbed session log at `.claude/debug-sessions/YYYY-MM-DD_{bug-slug}.md`:
+
+```markdown
+# Debug Session: {bug-slug}
+Date: YYYY-MM-DD
+Duration: ~Xh
+Mode: Quick / Deep
+
+## Bug
+[One-sentence description]
+
+## Root Cause
+[Finding, with file:line references]
+
+## Fix Applied
+[What was changed and why]
+
+## Markers Added (Permanent)
+- Logger.sync() at sync_engine.dart:198 — push() entry coverage
+
+## Markers Removed
+- H001, H002 — hypothesis confirmed and removed
+```
+
+**Scrubbing rules**: No user data, no actual log values that could contain PII, no credentials.
+
+### 9.4 Prune 30-day retention
+
+Check `.claude/debug-sessions/` for session logs older than 30 days. List any found and ask user to confirm deletion.
+
+---
+
+## Phase 10: DEFECT LOG
+
+**Goal**: Record new patterns for future prevention.
+
+If this bug represents a new pattern not already in the feature's defect file:
+
+1. Identify category: `[ASYNC]`, `[SYNC]`, `[DATA]`, `[CONFIG]`, `[SCHEMA]`, `[FLUTTER]`, `[E2E]`, `[MIGRATION]`
+2. Add to `.claude/defects/_defects-{feature}.md`:
+
+```markdown
+### [SYNC] 2026-03-14: Brief Title
+**Pattern**: What caused the issue
+**Prevention**: How to avoid it next time
+**Ref**: lib/features/sync/engine/sync_engine.dart:142
+```
+
+3. If feature file is at 5 defects, archive the oldest to `.claude/logs/defects-archive.md` first.
+
+---
+
+## Red Flags — STOP and Return to Phase 1
+
+These thought patterns mean you're off-track:
 
 - "Let me just try one more thing…"
-- "I think I see the problem" (before you've confirmed with evidence)
-- "This is probably caused by…" (without looking at data)
+- "I think I see the problem" (before log evidence confirms it)
+- "This is probably caused by…" (without data)
 - "The fix didn't work but the next one will"
-- "I'll add a workaround and come back to the root cause"
 - Starting to modify code before you can explain WHY the bug exists
-
-## Your Human Partner's Signals
-
-When the user says any of these, they are telling you to stop guessing:
-
-- **"Stop guessing"** — Return to Phase 1 immediately. State what evidence you have and what is still unknown.
-- **"Ultrathink this"** — Take extended time to reason through the full system before touching any code.
-- **"Walk me through it"** — Explain your current understanding of the data flow before proposing a fix.
-- **"You've been on this too long"** — Summarize your hypotheses, state what you've ruled out, and ask for guidance.
 
 ## Stop Conditions
 
-**STOP and reassess if**:
-- 3+ failed fix attempts — This is likely an architectural issue
-- Fix requires changing 5+ files — Scope is too broad
-- You can't explain the root cause — Go back to Phase 1
-- The "fix" just suppresses symptoms — You haven't found root cause
+**STOP and reassess if:**
+- 3+ failed fix attempts — likely architectural issue
+- Fix requires changing 5+ files — scope too broad, needs plan
+- You can't explain root cause in one sentence — go back to Phase 5
+- "Fix" suppresses symptoms without addressing cause
 
-> **When process reveals no root cause**: 95% of the time, "no root cause found" means the investigation was incomplete — not that the root cause doesn't exist. Expand Phase 1.
+## User Signals
 
-## After Fixing: Update Per-Feature Defects
-
-If you discovered a new pattern:
-1. Identify category: ASYNC, E2E, FLUTTER, DATA, CONFIG, SYNC, MIGRATION, SCHEMA
-2. Write pattern, prevention, and reference
-3. Add to `.claude/defects/_defects-{feature}.md` for the relevant feature
+| User says | Your response |
+|-----------|---------------|
+| "Stop guessing" | Return to Phase 5. State evidence you have and what's unknown. |
+| "Ultrathink this" | Reason through full system before touching code. |
+| "Walk me through it" | Explain data flow from log evidence, not assumption. |
+| "You've been on this too long" | Summarize hypotheses, what's ruled out, ask for guidance. |
 
 ## Rationalization Prevention
 
 | If You Think... | Stop And... |
 |-----------------|-------------|
-| "Let me just try this quick fix" | Form a hypothesis first |
+| "Let me just try this quick fix" | Form a hypothesis first, check Phase 5 |
 | "I'll add a retry and see if it helps" | Find the root cause |
 | "The tests are flaky, I'll skip them" | Find why they're flaky |
-| "I've been on this too long, just ship it" | Take a break, come back fresh |
-| "It works on my machine" | Reproduce in failing environment |
+| "One more fix and it'll work" | Count attempts — if ≥ 3, STOP |
+| "I see the problem" | Verify with log evidence before touching code |
 | "The pattern is too long to trace fully" | That's exactly when you must trace it |
-| "One more fix and it'll work" | Count your attempts — if ≥ 3, STOP |
-| "I see the problem" | Verify with evidence before touching code |
 
 ## Quick Reference
 
-| Phase | Key Activities | Success Criteria |
-|-------|---------------|-----------------|
-| 1: Root Cause Investigation | Read error, reproduce, isolate, instrument boundaries, trace data flow | Can explain WHY the bug exists |
-| 2: Pattern Analysis | Find working example, compare, validate data | Specific difference identified |
-| 3: Hypothesis Testing | Form ONE hypothesis, test minimally, evaluate | Hypothesis confirmed or denied |
-| 4: Implementation | Write failing test, targeted fix, verify, regressions | Test passes, no regressions |
-
-## Flutter-Specific Debug Commands
-
-```bash
-# Static analysis
-pwsh -Command "flutter analyze"
-
-# Full test suite
-pwsh -Command "flutter test"
-
-# Verbose test output
-pwsh -Command "flutter test --verbose"
-
-# Specific test with logging
-pwsh -Command "flutter test test/path/file.dart -r expanded"
-
-# Sync engine debugging — check pending changes
-sqlite3 app.db "SELECT * FROM change_log WHERE synced = 0;"
-
-# Sync engine debugging — inspect change_log status
-sqlite3 app.db "SELECT table_name, operation, processed, error_message FROM change_log ORDER BY created_at DESC LIMIT 20;"
-
-# Sync engine debugging — verify FK integrity
-sqlite3 app.db "PRAGMA foreign_key_check;"
-
-# Sync engine debugging — check adapter registration order
-# (trace through SyncRegistry.registerSyncAdapters() in lib/features/sync/engine/sync_registry.dart)
-
-# ADB-based E2E debugging
-adb logcat -s flutter | grep -i error
-adb shell uiautomator dump /dev/tty
-```
-
-## Anti-Patterns
-
-| Don't | Do Instead |
-|-------|-----------|
-| Add random delays | Find what you're waiting for |
-| Catch and ignore errors | Handle errors explicitly |
-| "Works now, don't know why" | Understand the fix |
-| Skip reproduction | Reliable repro is essential |
-| Change multiple things | One change at a time |
+| Phase | Goal | Hard Gate |
+|-------|------|-----------|
+| Entry | Choose mode, load refs | Ask user |
+| 1 TRIAGE | Clean baseline | Present findings |
+| 2 COVERAGE CHECK | Map Logger coverage | Present coverage map |
+| 3 INSTRUMENT GAPS | Add hypothesis markers | Auth restriction enforced |
+| 4 REPRODUCE | Get clean repro | User confirms repro |
+| 5 EVIDENCE ANALYSIS | Read log data | Identify failure point |
+| 6 ROOT CAUSE REPORT | Present findings | USER GATE — wait for approval |
+| 7 FIX | Implement approved fix | Verify + regression check |
+| 8 INSTRUMENTATION REVIEW | Keep vs remove decision | User confirms keeps |
+| 9 CLEANUP | Remove ALL hypothesis() | Global search must return zero |
+| 10 DEFECT LOG | Record new patterns | — |

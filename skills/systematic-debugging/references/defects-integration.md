@@ -1,6 +1,6 @@
 # Defects Integration
 
-How to use and update per-feature defect files during debugging.
+How to use and update per-feature defect files during debugging. Integrates with the Logger-based investigation workflow.
 
 ## Before Debugging
 
@@ -166,4 +166,42 @@ Grep "ASYNC" .claude/defects/
 
 # Search for sync patterns
 Grep "SYNC" .claude/defects/
+```
+
+---
+
+## Log Server Integration
+
+When using the debug server during investigation, cross-reference log evidence with defect patterns.
+
+### Connecting defects to log evidence
+
+When the server returns an error log entry, check if it matches a known defect pattern:
+
+```bash
+curl "http://127.0.0.1:3947/logs?category=error&last=20"
+```
+
+If the error message matches a known `[CATEGORY]` pattern in the defect file, apply the documented prevention rather than starting fresh investigation.
+
+### Logger categories map to defect categories
+
+| Logger Category | Defect Category |
+|-----------------|-----------------|
+| `Logger.sync()` | `[SYNC]` |
+| `Logger.db()` | `[SCHEMA]`, `[MIGRATION]`, `[DATA]` |
+| `Logger.auth()` | `[CONFIG]` |
+| `Logger.error()` | Any category |
+| `Logger.lifecycle()` | `[ASYNC]` |
+
+### Recording log patterns in defect entries
+
+When writing a new defect entry, include the Logger call that would have caught it earlier:
+
+```markdown
+### [SYNC] 2026-03-14: Push skipped silently on auth state change
+**Pattern**: SyncEngine.push() returns early when auth state changes mid-sync with no log output
+**Prevention**: Check Logger.sync() output at push() entry — if H-marker fires but push never fires, check auth state guard
+**Logger signal**: Logger.sync('SyncEngine.push.skipped') missing from error log when pendingCount > 0
+**Ref**: lib/features/sync/engine/sync_engine.dart
 ```

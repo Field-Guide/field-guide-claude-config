@@ -23,8 +23,14 @@
 | dependency_graphs/ | CodeMunch codebase analysis per plan |
 | adversarial_reviews/ | Spec-level adversarial review reports |
 | backlogged-plans/ | Deferred/future implementation plans |
+| debug-sessions/ | Session logs from systematic debugging (gitignored, 30-day retention) |
 | outputs/ | Audit output reports |
 | user-notes/ | Raw user notes |
+
+## Project-Level Tools
+| Directory | Purpose |
+|-----------|---------|
+| `tools/debug-server/` | Node.js HTTP log server for debug sessions (receives structured JSON from Logger HTTP transport) |
 
 ## Documentation System
 - `.claude/docs/` — Feature overviews + architecture docs (lazy-loaded by agents)

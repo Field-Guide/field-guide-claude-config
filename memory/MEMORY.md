@@ -32,7 +32,7 @@
 - **Post-Processing**: Validation validates item numbers (^\d+(\.\d+)?$) and units (57 known units)
 
 ### Logging System
-- DebugLogger: 9 categories in `Troubleshooting/Detailed App Wide Logs/session_YYYY-MM-DD_HH-MM-SS/`
+- Logger (unified, replaces DebugLogger/AppLogger): 9 categories in `Troubleshooting/Detailed App Wide Logs/session_YYYY-MM-DD_HH-MM-SS/`
 - PDF/OCR pipeline has excellent coverage (59+ calls)
 - Column detection pipeline now has logging (added Session 284)
 - Log files: app_session.log, ocr.log, pdf_import.log, sync.log, database.log, auth.log, navigation.log, errors.log, ui.log

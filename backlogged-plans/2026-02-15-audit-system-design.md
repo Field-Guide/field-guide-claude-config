@@ -367,7 +367,7 @@ packages/field_guide_lints/
 
 **Banned Patterns (5)**:
 5. `import.*deprecated/` in non-deprecated files
-6. `debugPrint(` in lib/ (use AppLogger)
+6. `debugPrint(` in lib/ (use Logger)
 7. `DatabaseService()` in presentation/
 8. `dynamic` in test mock overrides
 9. V1 stage imports in V2 files
