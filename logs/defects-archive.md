@@ -4,6 +4,20 @@ Historical defects moved from per-feature defect files. Reference only.
 
 ---
 
+## PDF (archived 2026-03-14)
+
+### [QUALITY] 2026-03-08: Silent Null bid_amount Pass-Through — 4-Layer Quality Gap
+**Pattern**: When OCR fragments a currency value into multiple elements (e.g., "$177.1" + "33.00"), cell extractor joins with space → currency parser rejects → bid_amount=null. Four layers silently pass this through: (1) consistency_checker skips null bid_amount in math validation, (2) no bidAmount=qty×unitPrice inference exists, (3) field confidence gives only 5% penalty (0.95x completeness multiplier), (4) quality gate checksum weight (15%) too low to block autoAccept even with major discrepancy.
+**Prevention**: Add bidAmount inference rule in consistency_checker (when qty and unitPrice present). Add quality gate veto layer for major checksum discrepancies. Consider smarter fragment joining in cell_extractor for numeric columns.
+**Ref**: @lib/features/pdf/services/extraction/stages/consistency_checker.dart, @lib/features/pdf/services/extraction/stages/quality_validator.dart:59-66
+
+## Sync
+
+### [CONFIG] 2026-03-06: Stale config banner checks only checkConfig() timestamp (Session 508)
+**Pattern**: `AppConfigProvider.isConfigStale` only checks `_lastConfigCheckAt`. Successful sync also proves server reachability but doesn't reset the clock.
+**Prevention**: Unify staleness to `max(lastConfigCheck, lastSyncSuccess) > 24h`.
+**Ref**: @lib/features/auth/presentation/providers/app_config_provider.dart:57-61
+
 ## Sync (archived 2026-03-13, session 558)
 
 ### [DATA] 2026-03-06: SyncRegistry.registerAdapters() never called in production (Session 507)

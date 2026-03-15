@@ -42,6 +42,14 @@ TesseractInitializer tests skip when `eng.traineddata` asset not available in te
 **Fix**: Check if `user_defined_dpi` is set via `GetIntVariable()` before applying fallback.
 **Prevention**: When adding Tesseract configuration options, ensure native FFI layer respects variable precedence (user-defined > embedded > fallback).
 
+### Sync Engine Test Patterns (2026-03-13)
+- **SyncEngine cannot be unit-tested directly** — requires a real `SupabaseClient` that can't be instantiated in tests.
+- **Existing sync tests** test components in isolation: `ChangeTracker`, `ConflictResolver`, `SyncMutex`, adapters — never `SyncEngine.pushOnly()`.
+- **Phase 8A pattern**: Test soft-delete routing by verifying SQLite state (change_log `operation='update'` from trigger, `deleted_at != null` on record). Use `SqliteTestHelper.getChangeLogEntries()` + `db.query()`.
+- **Phase 8B pattern**: Test `_preCheckUniqueConstraint` logic with an inline injectable mirror function; test the `23505` retryable path via `ChangeTracker.markFailed()` + `hasFailedEntries()`.
+- **`SyncEngineConfig.maxRetryCount = 5`** (not 3). `hasFailedEntries` returns true only when `retry_count >= 5`.
+- **Test file**: `test/features/sync/engine/sync_engine_test.dart` — 29 tests, all passing as of 2026-03-13.
+
 ## Gotchas & Quirks
 
 ### Flutter Command Execution

@@ -5,6 +5,31 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-15: Crop Boundaries at Grid Line Centers Include TELEA Interpolation Artifacts (Session 570)
+**Pattern**: `_computeCellCrops` places crop edges at `GridLine.position` (grid line center). `cv.inpaint` TELEA at mask boundary produces gray pixels (not white). Both adjacent cells include the center pixel via `floor`/`ceil` rounding. After 2x OCR upscale, 1-2px gray stripes become pipe `|` artifacts (18.3% avg edge dark fraction). The docblock comment "no inset needed because inpainting makes it clean" is provably false.
+**Prevention**: Inset crop edges by `(halfWidth + fringe + 1px safety)` beyond the grid line center, using per-line fringe measurements threaded from grid_line_remover. Plan ready at `.claude/plans/2026-03-14-fringe-edge-crop-boundaries.md`.
+**Ref**: @lib/features/pdf/services/extraction/stages/text_recognizer_v2.dart:1175-1219
+
+### [DATA] 2026-03-15: halfThick Formula Mismatch Between Scanner and cv.line (Session 570)
+**Pattern**: `_measureLineFringe` used `line.thickness ~/ 2` for halfThick, but `cv.line()` uses `(thickness + 1) ~/ 2` for its actual half-extent. For odd thicknesses (T=3, most common), the scanner started probing inside the line body, all samples were skipped, fringe reported as 0 → no mask expansion → fringe residue survived.
+**Prevention**: Always use `(thickness + 1) ~/ 2` to match cv.line's pixel half-extent. The `centerShift` asymmetric correction was also contradictory with `maxFringeSide` symmetric expansion — don't combine two compensation strategies that fight each other.
+**Ref**: @lib/features/pdf/services/extraction/stages/grid_line_remover.dart:855
+
+### [DATA] 2026-03-14: Anti-Aliased Fringe Band (128-200) Survives Binary Threshold and Causes Phantom OCR Elements (Session 567)
+**Pattern**: Grid line removal mask uses detector `widthPixels` from binary threshold (128), but anti-aliased fringe pixels (grayscale 128-200) survive thresholding and remain in OCR crops. Tesseract reads these as `|`, `CB`, `Be`, `®`, etc., creating +150 phantom elements that cascade into item loss (105→82).
+**Prevention**: Measure fringe dynamically from the grayscale image (scan perpendicular to each line, detect 128-200 band pixels), expand removal mask to cover. Use dual-boundary stop (>=200 OR <128) to avoid counting intersection pixels as fringe.
+**Ref**: @lib/features/pdf/services/extraction/stages/grid_line_remover.dart, `.claude/specs/2026-03-14-dynamic-fringe-removal-spec.md`
+
+### [E2E] 2026-03-14: Wave-1 Grid Tuning Must Be Reversible Until Springfield Beats Baseline (Session 566)
+**Pattern**: Conservative fringe-expansion and text-protected removal changes in `GridLineRemover` materially regressed the real Springfield extraction before any upstream gain was proven. The run recovered only after grid-removal behavior was rolled back while leaving diagnostics in place.
+**Prevention**: Treat Stage `2B-ii.6` tuning as experimental until both the cell harness and Springfield improve over the archived pre-wave baseline. Keep diagnostics, but revert behavioral tuning immediately when control columns or item totals regress.
+**Ref**: @lib/features/pdf/services/extraction/stages/grid_line_remover.dart
+
+### [DATA] 2026-03-13: Description Cells Using Row PSM 7 Blank On Multiline Crops (Session 565)
+**Pattern**: `TextRecognizerV2` first pass still inherits `rowPsm` for all columns, so wrapped `description` cells often run with `psm 7`. On Springfield page 6, visually clean multiline description crops like `Timber Wall Repair` and `Pavt Mrkg, Waterborne, 2nd Application 4", Yellow` return blank under `psm 7` but read correctly under multiline-friendly modes like `psm 6`.
+**Prevention**: Make first-pass OCR truly column-aware. Description cells need a multiline-friendly first-pass policy plus result-and-image-gated retries, instead of relying on row-height heuristics.
+**Ref**: @lib/features/pdf/services/extraction/stages/text_recognizer_v2.dart:735-911
+
 ### [DATA] 2026-03-09: BLOCKER-35 — Cross-Device Checksum Divergence $500K (Session 530)
 **Pattern**: After pdfrx migration, both Windows and S25 Ultra extract 130 items (item count parity achieved), but computed checksums diverge by $500K: Windows=$7,602,768.73, S25=$8,102,768.73. OCR element counts also differ slightly (1249 vs 1246). Specific differences: item 94 normalized as "Boy" (Windows) vs "Bey" (S25), item 108 qty changed on Windows but not S25.
 **Root Cause**: Unknown. pdfrx uses same bundled PDFium on both platforms — pixel output should be identical. Hypotheses: (1) Tesseract OCR non-determinism across platforms, (2) preprocessing timing differences causing different image quality, (3) subtle pixel differences despite same PDFium (different CPU architecture, float precision). Need pixel-by-pixel comparison of rendered images + element-by-element OCR diff.
@@ -15,20 +40,5 @@ Archive: .claude/logs/defects-archive.md
 **Pattern**: `_isMinorTextContent` fix targets SECOND priceContinuation path (lines 281-298), but "Boy" row hits FIRST path (lines 265-278) because item-column text goes to `itemElements`, not `textPopulated`. First path checks `textPopulated.isEmpty` → true → classifies as priceContinuation before reaching the fix.
 **Prevention**: Add `!itemElements.any((e) => e.text.trim().isNotEmpty)` guard to first priceContinuation path (line 267). Both paths must check for item-column text.
 **Ref**: @lib/features/pdf/services/extraction/stages/row_classifier_v3.dart:265-278
-
-### [DATA] 2026-03-08: Grid Line Removal Adaptive Threshold — REVERTED, FIX PENDING (Session 528)
-**Pattern**: `_adaptiveC = -2.0` with `THRESH_BINARY_INV` included background in mask (77% coverage). Inpainting damaged text.
-**Fix**: Was changed to 10.0 in Session 524 (mask 5.3%), but REVERTED by destructive `git checkout -- .` in Session 527. Current code: -2.0. Included in pdfrx parity spec for re-application.
-**Ref**: @lib/features/pdf/services/extraction/stages/grid_line_remover.dart:15
-
-### [QUALITY] 2026-03-08: Silent Null bid_amount Pass-Through — 4-Layer Quality Gap
-**Pattern**: When OCR fragments a currency value into multiple elements (e.g., "$177.1" + "33.00"), cell extractor joins with space → currency parser rejects → bid_amount=null. Four layers silently pass this through: (1) consistency_checker skips null bid_amount in math validation, (2) no bidAmount=qty×unitPrice inference exists, (3) field confidence gives only 5% penalty (0.95x completeness multiplier), (4) quality gate checksum weight (15%) too low to block autoAccept even with major discrepancy.
-**Prevention**: Add bidAmount inference rule in consistency_checker (when qty and unitPrice present). Add quality gate veto layer for major checksum discrepancies. Consider smarter fragment joining in cell_extractor for numeric columns.
-**Ref**: @lib/features/pdf/services/extraction/stages/consistency_checker.dart, @lib/features/pdf/services/extraction/stages/quality_validator.dart:59-66
-
-### [DATA] 2026-03-08: _measureContrast Bug — 70% Underreported After 1-Channel Conversion
-**Pattern**: After `processed.convert(numChannels: 1)` at line 229, `_measureContrast(processed)` at line 233 calls `img.getLuminance(pixel)` which computes `0.299*r + 0.587*g + 0.114*b`. On a 1-channel image, `g=0` and `b=0`, so it returns `0.299 * r` instead of `r`. The `contrastAfter` metric is systematically underreported by ~70%. Does not affect downstream logic (metric-only), but corrupts diagnostic output.
-**Prevention**: Either move `_measureContrast()` before the 1-channel conversion, or use `pixel.r` directly instead of `getLuminance()` (consistent with `_isDarkPixel` in grid_line_detector).
-**Ref**: @lib/features/pdf/services/extraction/stages/image_preprocessor_v2.dart:229-233
 
 <!-- Add defects above this line -->

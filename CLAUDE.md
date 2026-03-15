@@ -58,8 +58,13 @@ Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
 6. `pwsh -Command "flutter pub get"` — Get dependencies
 7. `pwsh -Command "flutter analyze"` — Static analysis
 
+### Supabase CLI
+8. `npx supabase db push` — Push pending migrations to remote
+9. `npx supabase db pull` — Pull remote schema changes
+10. `npx supabase db diff` — Diff local vs remote schema
+
 ### Process Management
-8. `pwsh -Command "Stop-Process -Name 'construction_inspector' -Force -ErrorAction SilentlyContinue"` — Kill app ONLY
+11. `pwsh -Command "Stop-Process -Name 'construction_inspector' -Force -ErrorAction SilentlyContinue"` — Kill app ONLY
 
 ### Common Mistakes
 - NEVER run flutter/dart directly in Git Bash — ALWAYS use `pwsh -Command "..."`

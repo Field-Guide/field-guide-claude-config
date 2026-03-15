@@ -6,6 +6,40 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 563 (2026-03-13)
+**Work**: Verification pass — analyze clean, migration review, fixed `user_id→id` bug in email backfill, deployed both Supabase migrations. Added Supabase CLI to CLAUDE.md.
+**Decisions**: `npx supabase` is the CLI access pattern.
+**Next**: Commit all changes. On-device smoke test. Decide on text protection.
+
+## March 2026
+
+### Session 561 (2026-03-13)
+**Work**: Pipeline report redesign implemented via `/implement`. Orchestrator Phases 1-2, supervisor Phase 3. Manual fixes: column truncation, OCR element limit (3/cell), Performance Summary kept. Springfield test passes 2m17s.
+**Decisions**: Performance Summary kept (user override). Column truncation essential for readability. Orchestrator overkill for single-file changes.
+**Next**: Commit report changes. `/implement` sync hardening plan.
+
+### Session 560 (2026-03-13)
+**Work**: Full `/writing-plans` for sync hardening. CodeMunch dependency graph (14 direct, 6 dependent, 14 test files). Opus plan-writer (9 phases, 24 sub-phases). Parallel adversarial review (code-review + security). All CRITICAL/HIGH findings fixed in plan.
+**Decisions**: M-8 false positive (intentional double read). user_certifications not synced (removed). Migration timestamps aligned.
+**Next**: `/implement` sync hardening plan.
+
+### Session 559 (2026-03-13)
+**Work**: Fixed CodeMunch MCP index_folder hang. Root cause: local fork v0.2.14 (92 commits behind) lacked asyncio.to_thread + os.walk. Switched to PyPI v1.3.8. Fresh index working (828 files, 14.5s).
+**Decisions**: PyPI over local fork. AI summaries ON. Context providers OFF. New repo name `local/Field_Guide_App-37debbe5`.
+**Next**: `/writing-plans` → `/implement` sync hardening or report redesign.
+
+### Session 558 (2026-03-13)
+**Work**: Auth bugfix implemented + deployed. Sync engine audit (20 issues, 3 agents). Full brainstorming (21 items triaged). Sync hardening spec written + adversarial review (both APPROVE, 6 MUST-FIX addressed).
+**Decisions**: Local soft-delete (Option A). Pre-check only (no onConflict). Keep pull cursor margin. stamp_deleted_by trigger. Backfill emails. Tighten RLS.
+**Next**: `/writing-plans` → `/implement` sync hardening spec.
+
+## March 2026
+
+### Session 557 (2026-03-13)
+**Work**: Brainstormed pipeline report redesign with 4 Opus research agents. Spec written + adversarial review.
+**Decisions**: Markdown tables mirroring PDF layout. Two tables (clean + OCR). Stage summary one row per stage.
+**Next**: `/writing-plans` → `/implement` the report redesign.
+
 ### Session 556 (2026-03-13)
 **Work**: Disabled text protection. Pipeline: 67 data rows, 61 items, 23 BOGUS, 0.920 median confidence.
 **Decisions**: Text protection hurts more than helps. Leading fix: disable + confidence filter.

@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [CONFIG] 2026-03-13: Migration used wrong column name for user_profiles PK (Session 563)
+**Pattern**: Email backfill SQL used `up.user_id` but `user_profiles` PK is `id` (1:1 with `auth.users.id`). Migration failed on deploy.
+**Prevention**: `user_profiles` uses `id` as PK/FK to auth.users, NOT `user_id`. Always verify column names against actual schema before writing SQL.
+**Ref**: @supabase/migrations/20260313100000_sync_hardening_triggers.sql:98
+
 ### [DATA] 2026-03-13: Sync pushes hard DELETE instead of soft-delete UPDATE — BLOCKER-29 (Session 558)
 **Pattern**: `_pushDelete()` calls `.delete().eq('id', recordId)` (hard delete) but SQLite uses soft-delete (`deleted_at`). Record disappears from server. Next pull re-creates it locally. Deleted data resurrects.
 **Prevention**: Push soft-delete as `.update({'deleted_at': timestamp, 'deleted_by': userId})`. Pull must respect `deleted_at`. Add `stamp_deleted_by()` server trigger.
@@ -24,10 +29,5 @@ Archive: .claude/logs/defects-archive.md
 **Pattern**: `_lastSyncTime = DateTime.now()` ran unconditionally after sync — even on failure. Lifecycle manager saw recent timestamp and wouldn't force retry for 24 hours.
 **Prevention**: Only update `_lastSyncTime` inside the success block. Failed syncs should leave old timestamp.
 **Ref**: @lib/features/sync/application/sync_orchestrator.dart:224-237
-
-### [CONFIG] 2026-03-06: Stale config banner checks only checkConfig() timestamp (Session 508)
-**Pattern**: `AppConfigProvider.isConfigStale` only checks `_lastConfigCheckAt`. Successful sync also proves server reachability but doesn't reset the clock.
-**Prevention**: Unify staleness to `max(lastConfigCheck, lastSyncSuccess) > 24h`.
-**Ref**: @lib/features/auth/presentation/providers/app_config_provider.dart:57-61
 
 <!-- Add defects above this line -->
