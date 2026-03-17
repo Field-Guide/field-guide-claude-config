@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-16: Background isolate missing BackgroundIsolateBinaryMessenger init (Session 580)
+**Pattern**: `ExtractionJobRunner._workerEntryPoint()` did not call `BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken)`. `pdfrx` uses platform channels for page rendering → all 6 pages failed with "Bad state: BackgroundIsolateBinaryMessenger.instance value is invalid". Extraction completed in 246ms with 0 items — silent total failure.
+**Prevention**: ANY isolate that uses platform channels (pdfrx, path_provider, etc.) MUST call `BackgroundIsolateBinaryMessenger.ensureInitialized()` before any work. Pass `RootIsolateToken.instance!` via the init message.
+**Ref**: @lib/features/pdf/services/extraction/runner/extraction_job_runner.dart:334
+
 ### [DATA] 2026-03-15: Crop Boundaries at Grid Line Centers Include TELEA Interpolation Artifacts (Session 570)
 **Pattern**: `_computeCellCrops` places crop edges at `GridLine.position` (grid line center). `cv.inpaint` TELEA at mask boundary produces gray pixels (not white). Both adjacent cells include the center pixel via `floor`/`ceil` rounding. After 2x OCR upscale, 1-2px gray stripes become pipe `|` artifacts (18.3% avg edge dark fraction). The docblock comment "no inset needed because inpainting makes it clean" is provably false.
 **Prevention**: Inset crop edges by `(halfWidth + fringe + 1px safety)` beyond the grid line center, using per-line fringe measurements threaded from grid_line_remover. Plan ready at `.claude/plans/2026-03-14-fringe-edge-crop-boundaries.md`.
@@ -30,15 +35,5 @@ Archive: .claude/logs/defects-archive.md
 **Prevention**: Sort Y-first (using Y-band tolerance = 0.5 * median fragment height), then X within each band. This preserves reading order for multi-line cells without breaking single-line text with baseline jitter.
 **Ref**: @lib/features/pdf/services/extraction/stages/cell_extractor_v2.dart:528
 
-### [DATA] 2026-03-09: BLOCKER-35 — Cross-Device Checksum Divergence $500K (Session 530)
-**Pattern**: After pdfrx migration, both Windows and S25 Ultra extract 130 items (item count parity achieved), but computed checksums diverge by $500K: Windows=$7,602,768.73, S25=$8,102,768.73. OCR element counts also differ slightly (1249 vs 1246). Specific differences: item 94 normalized as "Boy" (Windows) vs "Bey" (S25), item 108 qty changed on Windows but not S25.
-**Root Cause**: Unknown. pdfrx uses same bundled PDFium on both platforms — pixel output should be identical. Hypotheses: (1) Tesseract OCR non-determinism across platforms, (2) preprocessing timing differences causing different image quality, (3) subtle pixel differences despite same PDFium (different CPU architecture, float precision). Need pixel-by-pixel comparison of rendered images + element-by-element OCR diff.
-**Prevention**: Compare rendered page images byte-for-byte between devices. If pixels differ, root cause is in PDFium/platform. If pixels match, root cause is in Tesseract/preprocessing.
-**Ref**: `test/features/pdf/extraction/device-baselines/post-migration/COMPARISON-REPORT.md`
-
-### [DATA] 2026-03-09: R2 Plan Gap — First priceContinuation Path Unchecked (Session 527)
-**Pattern**: `_isMinorTextContent` fix targets SECOND priceContinuation path (lines 281-298), but "Boy" row hits FIRST path (lines 265-278) because item-column text goes to `itemElements`, not `textPopulated`. First path checks `textPopulated.isEmpty` → true → classifies as priceContinuation before reaching the fix.
-**Prevention**: Add `!itemElements.any((e) => e.text.trim().isNotEmpty)` guard to first priceContinuation path (line 267). Both paths must check for item-column text.
-**Ref**: @lib/features/pdf/services/extraction/stages/row_classifier_v3.dart:265-278
 
 <!-- Add defects above this line -->

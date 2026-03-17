@@ -6,6 +6,38 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 576 (2026-03-15) — Archived from _state.md (Session 581 rotation)
+**Work**: Deep systematic debug of all 6 OCR failures. Fixed 3 (items 22, 26, 97). Deep-traced remaining 3 with individual agents. Springfield: 130/131, desc 98.5%, numerics 100%. Tried whitewash bleed reduction — regressed, reverted.
+**Decisions**: Pipe stripping must run AFTER rules. `_kWhitewashBleed=2` is essential (bleed=1 causes 126/131 regression). Item 130 needs text-aware whitewash. Item 62 needs sequential dedup or PSM 13. Item 38 needs per-token retry or PDF text layer.
+**Next**: Fix item 62 (sequential dedup), fix item 130 (text-aware whitewash), fix item 38 (per-token retry). Commit.
+
+### Archived PDF Defects (from _defects-pdf.md, Session 580 rotation)
+
+**[DATA] 2026-03-09**: BLOCKER-35 — Cross-Device Checksum Divergence $500K (S530). pdfrx migration: Windows vs S25 checksums differ by $500K. Likely Tesseract non-determinism.
+**[DATA] 2026-03-09**: R2 Plan Gap — First priceContinuation Path Unchecked (S527). Both priceContinuation paths must check for item-column text.
+
+### Archived Sync Defects (from _defects-sync.md, Session 580 rotation)
+
+**[FLUTTER] 2026-03-06**: Mock SyncOrchestrator missing `getPendingBuckets()` causes test hang (S511). Override both methods when mocking.
+**[ASYNC] 2026-03-06**: `_lastSyncTime` persisted on failure creates 24h dead zone (S511). Only update on success.
+
+### Session 574 (2026-03-15)
+**Work**: Implemented post-inpaint whitewash (Option B) in grid_line_remover. Springfield: 131/131 items, $0 checksum (was $1.39M), numeric 100%. Description 90% — investigated 13 failures (4 categories), wrote OCR normalization plan (5 rules across 2 files).
+**Decisions**: Whitewash at expandedThickness+4px bleed. Text protection confirmed already disabled. Generic algorithmic rules only (no PDF-specific heuristics). 2 items unfixable (OCR limitations).
+**Next**: `/implement` OCR normalization plan. Commit all changes.
+
+### Session 575 (2026-03-15)
+**Work**: Implemented OCR accuracy fixes plan (6 fixes across 4 phases). Springfield: 130/131, desc 96.2%, unit/qty/price/amount 100%. 4 items fixed (36, 37, 52, 106). 2 regressions from 900 DPI upscale (items 22, 97). Cell crop diagnostic confirms all crops pristine — failures are Tesseract misreads.
+**Decisions**: 900 DPI description upscale is counterproductive — must revert to 600 max. Need deep debug session for remaining 6 failures.
+**Next**: Revert 900 DPI, add pipe to roman numeral regex, deep debug all remaining failures, commit.
+
+## March 2026
+
+### Session 573 (2026-03-15)
+**Work**: Phase 6 integration verification — Springfield REGRESSED ($1.39M checksum distance, -63 elements). Root-caused via systematic-debugging: TELEA creates ~2px bleed artifacts beyond mask boundary. Orange diff bands confirmed as diagnostic artifact (hardcoded fringeMargin). Generated 1644 cell crop PNGs. Three-agent investigation: Option B (post-inpaint whitewash in grid_line_remover) is the fix.
+**Decisions**: Option A (+2px safety) too marginal. Option C (mask expansion) already working. Option B eliminates TELEA bleed at source.
+**Next**: Investigate Option B with 2 agents, implement, re-run Springfield.
+
 ### Session 568 (2026-03-14)
 **Work**: Implemented dynamic fringe removal (4 orchestrator launches, all PASS). Springfield 82→114/131 (+32). Deep root cause analysis: 30% of lines have text-adjacent fringe that can't be measured → residue in crops → Tesseract reads "|" → item# garbled → rows misclassified as priceContinuation → mega-blobs. Option A (lower sample threshold) tested — no effect. Fringe fallback plan written.
 **Decisions**: Fix grid_line_remover fringe coverage first. Two-pass: measure all, compute page avg, apply as fallback to zero-measurement lines. Option B (crop inset) is fallback plan.

@@ -1,52 +1,29 @@
 # Session State
 
-**Last Updated**: 2026-03-15 | **Session**: 577
+**Last Updated**: 2026-03-16 | **Session**: 581
 
 ## Current Phase
-- **Phase**: OCR Accuracy — 131/131 items, 2 description blockers remain (38, 130)
-- **Status**: Items 100%. Checksum $0. Description 98.5% (2 failures: items 38, 130). All numerics 100%.
+- **Phase**: Project Lifecycle PLAN COMPLETE + REVIEWED
+- **Status**: 19-phase plan written via /writing-plans. 2 rounds of adversarial review (code + security). All CRITICAL/HIGH fixed. Plan ready for `/implement`.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (577)
+### What Was Done This Session (581)
 
-1. **Systematic debug** of remaining 3 failures (items 38, 62, 130) using systematic-debugging skill
-2. **Corrected wrong root cause for item 62** — prior session claimed "Tesseract drops 6 from 62, dedup kills it". Actually TWO failure modes exist:
-   - Mode A: Tesseract reads "62" correctly, but pipe artifact in amount cell (`| $1,752.40`) causes `_normalizeCorruptedSymbol` to produce `$$1,752.40` (double dollar sign) which fails parsing → bid_amount=null
-   - Mode B: Tesseract non-deterministically reads "2" instead of "62" → dedup groups with real item 2 → item 62 dropped
-3. **Fixed both failure modes**:
-   - Currency fix: `currency_rules.dart` — don't prepend `$` when remaining text already starts with `$`
-   - Sequential gap-fill: `item_deduplicator.dart` — before standard dedup, check if a duplicate item number fills a gap between neighbors (e.g., 61, "2", 63 → rename "2" to 62)
-4. **Verified**: Springfield 131/131 items, $0 checksum, all numerics 100%
-5. **Committed all changes** from sessions 575-577 as 5 logical commits
+1. **`/writing-plans` for project lifecycle** — Full workflow: CodeMunch index (850 files, 5469 symbols), dependency graph (95 files blast radius), Opus plan-writer agent produced 19-phase plan across 2 PRs.
+2. **Round 1 adversarial review** — code-review (REJECT: 3C/6H/5M/4L) + security (REJECT: 2H/2M/2L). All 18+6 findings addressed by fixer agent.
+3. **Round 2 adversarial review** — code-review (REJECT: 1H/2M/4L) + security (APPROVE: 2M/2L). Fixed 3 blocking issues:
+   - RLS `WITH CHECK` self-join bug → rewrote to `(deleted_at IS NULL) OR (owner OR admin)`
+   - Phase 7 double `setUp` → merged into single block
+   - Phase 7 `deletedBy:` → `userId:` param mismatch
+4. **Artifacts saved**: Plan at `.claude/plans/2026-03-16-project-lifecycle.md`, dependency graph at `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`, review report at `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
 
-### Verification Results
+### What Needs to Happen Next
 
-| Metric | Previous (S576) | Current (S577) | Delta |
-|--------|-----------------|----------------|-------|
-| Items | 130/131 | 131/131 | +1 (item 62 recovered) |
-| Checksum | $1,752.40 | $0 | Fixed |
-| Description | 98.5% | 98.5% | Same (items 38, 130 remain) |
-| Unit | 100% | 100% | Same |
-| Qty/Price/Amount | 100% | 100% | Same |
-
-### Remaining 2 Failures
-
-#### BLOCKER-34: Item 38 — Superscript `th` → `"` (Tesseract limitation)
-- PDF renders "20th" with `th` as superscript ordinal suffix
-- Tesseract reads superscript as `"` at confidence 0.87
-- **Fix**: Ordinal suffix recovery rule in `_descriptionArtifactRules` — convert `\d{1,3}"` to ordinal when NOT in a measurement context
-
-#### BLOCKER-36: Item 130 — Whitewash destroys `y` descender
-- Whitewash at bleed=2 overwrites descender pixels in wrapped text rows
-- textProtection mask won't work (descenders overlap gridMask → classified as grid, not text)
-- **Fix**: Threshold-based whitewash — only whitewash pixels brighter than ~160 (bleed artifacts are light, text is dark)
-
-### NOT Done — Carry to Next Session
-
-1. **Verify on Android device** — confirm 131/131 on physical device
-2. **Fix item 130** — threshold-based whitewash
-3. **Fix item 38** — ordinal suffix recovery rule
+1. **`/implement`** with `.claude/plans/2026-03-16-project-lifecycle.md` — execute the 19-phase plan
+2. **Commit pipeline UX overhaul changes** — 32 changed files uncommitted on `feat/sync-engine-rewrite`
+3. **Rebuild + test on device** — verify isolate fix (PDF should extract 131 items), verify sync connects
+4. **Remaining OCR blockers** (items 38, 130) — deferred, separate effort
 
 ## Blockers
 
@@ -68,50 +45,57 @@
 ### BLOCKER-23: Flutter Keys Not Propagating to Android resource-id
 **Status**: OPEN — MEDIUM
 
+### BLOCKER-37: Sync DNS Check Fails on Android (NEW)
+**Status**: FIXED (S580) — Replaced `InternetAddress.lookup` with HTTP HEAD request. Added `ACCESS_NETWORK_STATE` permission.
+
 ## Recent Sessions
+
+### Session 581 (2026-03-16)
+**Work**: /writing-plans for project lifecycle. CodeMunch indexed 850 files/5469 symbols. Opus plan-writer produced 19-phase plan (PR1: 14 phases lifecycle, PR2: 5 phases logger migration). Two rounds of adversarial review: R1 found 24 issues (all fixed by fixer agent), R2 found 7 more (3 blocking fixed inline: RLS self-join bug, double setUp, param mismatch).
+**Decisions**: RLS WITH CHECK uses simpler `(deleted_at IS NULL) OR (owner OR admin)` — avoids OLD-row reference impossibility. Phase 7 test uses real SoftDeleteService (not raw SQL). isAdmin sourced from live AuthProvider. stamp_deleted_by() NOT recreated in new migration.
+**Next**: /implement the plan. Commit pipeline UX changes. Rebuild + test on device.
+
+### Session 580 (2026-03-16)
+**Work**: Implemented pipeline UX overhaul (9 phases via /implement, 5 dispatch groups, all reviews PASS, 2838 tests). Fixed 3 critical bugs (isolate init, DNS check, banner visibility). Built + installed APK on S25 Ultra. Brainstormed project lifecycle spec (12 sections). Adversarial review (code + security) found 8 issues, 7 valid, all addressed. Verified logging system.
+**Decisions**: Add `project_id` to `change_log` via migration. New `ProjectImportBanner` (independent from PDF). Tighten RLS UPDATE policy for soft-delete (owner/admin). Interim import uses full sync; targeted sync is future work. Release-only file transport scrubbing. Drop `client_name` from metadata fetch. Keep ProjectSelectionScreen in Sync Dashboard (read-only).
+**Next**: /writing-plans for project lifecycle. Commit pipeline UX changes. Rebuild + test on device.
+
+### Session 579 (2026-03-16)
+**Work**: Writing-plans skill for pipeline UX overhaul PR1. CodeMunch indexing (836 files, 5415 symbols). Built dependency graph. Opus agent wrote 9-phase plan (22 sub-phases). Parallel adversarial review: code-review (REJECT→fixed: 3C/5H) + security (APPROVE: 2H). All CRITICAL/HIGH addressed in plan addendum.
+**Decisions**: MpExtractionResult needs toMap(). Guard both recognizeImage + recognizeCrop. Banner stays in ShellRoute (pragmatic). stackTrace not sent across isolate boundary. PR2 release filter must be first step before migration.
+**Next**: /implement PR1. Measure OCR time on device. Write PR2 plan.
+
+### Session 578 (2026-03-15)
+**Work**: Built/installed release APK on S25 Ultra (new Firebase key). Verified 131/131 on device (4.5 min, $0 checksum, 0.993 score). Identified ANR + progress UX issues via systematic debugging + device logs. Brainstormed and wrote full spec for pipeline UX overhaul. Adversarial review by code-review + security agents (10 MUST-FIX, all addressed). Confirmed Tesseract re-init bug (setPageSegMode forces unnecessary Init per call).
+**Decisions**: Fix re-init first, measure, then decide on parallel workers. Single worker isolate (not 4 sub-isolates). Split into 2 PRs. Accept background limitation (warn user). Release logging ON with PII scrubbing. Project save → navigate to dashboard.
+**Next**: Approve spec. Invoke writing-plans. Implement PR1 then PR2.
 
 ### Session 577 (2026-03-15)
 **Work**: Systematic debug of items 38, 62, 130. Corrected wrong root cause for item 62 (NOT a dedup issue — currency parsing bug + OCR non-determinism). Fixed both: currency double-dollar bug in `_normalizeCorruptedSymbol`, sequential gap-fill in `ItemDeduplicator.deduplicate`. Springfield: 131/131, $0 checksum. Committed 5 logical commits.
 **Decisions**: Item 62 had TWO failure modes (Tesseract non-determinism). textProtection won't work for item 130 (descenders classified as grid). Threshold-based whitewash is the correct approach.
 **Next**: Verify on Android device. Fix items 130 (threshold whitewash) and 38 (ordinal suffix recovery).
 
-### Session 576 (2026-03-15)
-**Work**: Deep systematic debug of all 6 OCR failures. Fixed 3 (items 22, 26, 97). Deep-traced remaining 3 with individual agents. Springfield: 130/131, desc 98.5%, numerics 100%. Tried whitewash bleed reduction — regressed, reverted.
-**Decisions**: Pipe stripping must run AFTER rules. `_kWhitewashBleed=2` is essential (bleed=1 causes 126/131 regression). Item 130 needs text-aware whitewash. Item 62 needs sequential dedup or PSM 13. Item 38 needs per-token retry or PDF text layer.
-**Next**: Fix item 62 (sequential dedup), fix item 130 (text-aware whitewash), fix item 38 (per-token retry). Commit.
-
-### Session 575 (2026-03-15)
-**Work**: Implemented OCR accuracy fixes plan (6 fixes across 4 phases). Springfield: 130/131, desc 96.2%, unit/qty/price/amount 100%. 4 items fixed (36, 37, 52, 106). 2 regressions from 900 DPI upscale (items 22, 97). Cell crop diagnostic confirms all crops pristine — failures are Tesseract misreads.
-**Decisions**: 900 DPI description upscale is counterproductive — must revert to 600 max. Need deep debug session for remaining 6 failures.
-**Next**: Revert 900 DPI, add pipe to roman numeral regex, deep debug all remaining failures, commit.
-
-### Session 574 (2026-03-15)
-**Work**: Implemented post-inpaint whitewash (Option B) in grid_line_remover. Springfield: 131/131 items, $0 checksum (was $1.39M), numeric 100%. Description 90% — investigated 13 failures (4 categories), wrote OCR normalization plan (5 rules across 2 files).
-**Decisions**: Whitewash at expandedThickness+4px bleed. Text protection confirmed already disabled. Generic algorithmic rules only (no PDF-specific heuristics). 2 items unfixable (OCR limitations).
-**Next**: `/implement` OCR normalization plan. Commit all changes.
-
-### Session 573 (2026-03-15)
-**Work**: Phase 6 integration verification — Springfield REGRESSED ($1.39M checksum distance, -63 elements). Root-caused via systematic-debugging: TELEA creates ~2px bleed artifacts beyond mask boundary. Orange diff bands confirmed as diagnostic artifact (hardcoded fringeMargin). Generated 1644 cell crop PNGs. Three-agent investigation: Option B (post-inpaint whitewash in grid_line_remover) is the fix.
-**Decisions**: Option A (+2px safety) too marginal. Option C (mask expansion) already working. Option B eliminates TELEA bleed at source.
-**Next**: Investigate Option B with 2 agents, implement, re-run Springfield.
-
 ## Active Plans
+
+### Project Lifecycle Management — PLAN COMPLETE, READY FOR /implement (Session 581)
+- **Spec**: `.claude/specs/2026-03-16-project-lifecycle-spec.md`
+- **Plan**: `.claude/plans/2026-03-16-project-lifecycle.md`
+- **Dep Graph**: `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`
+- **Reviews**: `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
+- **Status**: 19-phase plan. 2 rounds adversarial review (code + security). All CRITICAL/HIGH fixed. Ready for `/implement`.
+- **Scope**: PR1 (14 phases: project visibility, import, delete, schema, RLS) + PR2 (5 phases: logger migration)
+
+### Pipeline UX Overhaul — IMPLEMENTED (Session 580)
+- **Spec**: `.claude/specs/2026-03-15-pipeline-ux-overhaul-spec.md`
+- **Plan**: `.claude/plans/2026-03-16-pipeline-ux-overhaul.md`
+- **Checkpoint**: `.claude/state/implement-checkpoint.json`
+- **Status**: All 9 phases complete. 3 hotfix bugs fixed. 32 files changed, uncommitted. Needs commit + device test.
 
 ### OCR Accuracy Fixes — COMPLETE (Session 576)
 - **Plan**: `.claude/plans/2026-03-15-ocr-accuracy-fixes.md`
 - **Status**: All code fixes applied. Items 22, 26, 97 fixed. Items 38, 62, 130 remain as blockers.
 
-### OCR Normalization Rules — IMPLEMENTED (Session 575)
-- **Plan**: `.claude/plans/2026-03-15-ocr-normalization-rules.md`
-- **Status**: All 3 phases complete.
-
-### Fringe-Edge Crop Boundaries — FIXED (Session 574)
-- **Plan**: `.claude/plans/2026-03-14-fringe-edge-crop-boundaries.md`
-- **Status**: Complete. Whitewash applied. Springfield: $0 checksum, 131/131 items.
-
 ### Debug Framework — IMPLEMENTED (Session 571)
-- **Spec**: `.claude/specs/2026-03-14-debug-framework-spec.md`
-- **Plan**: `.claude/plans/2026-03-14-debug-framework.md`
 - **Status**: All 7 phases complete. 19 files modified. 33 Logger tests pass.
 
 ### Sync Engine Hardening — IMPLEMENTED + DEPLOYED (Session 563)
@@ -122,12 +106,16 @@
 - **Status**: 12 phases + Phase 3.5. Reviewed by 3 agents.
 
 ## Reference
+- **Project Lifecycle Spec**: `.claude/specs/2026-03-16-project-lifecycle-spec.md`
+- **Project Lifecycle Plan**: `.claude/plans/2026-03-16-project-lifecycle.md`
+- **Project Lifecycle Dep Graph**: `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`
+- **Project Lifecycle Reviews**: `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
+- **Pipeline UX Plan**: `.claude/plans/2026-03-16-pipeline-ux-overhaul.md`
+- **Pipeline UX Spec**: `.claude/specs/2026-03-15-pipeline-ux-overhaul-spec.md`
+- **Pipeline UX Checkpoint**: `.claude/state/implement-checkpoint.json`
 - **OCR Accuracy Fixes Plan**: `.claude/plans/2026-03-15-ocr-accuracy-fixes.md`
-- **OCR Normalization Plan**: `.claude/plans/2026-03-15-ocr-normalization-rules.md`
 - **Debug Framework Spec**: `.claude/specs/2026-03-14-debug-framework-spec.md`
-- **Debug Framework Plan**: `.claude/plans/2026-03-14-debug-framework.md`
 - **Sync Hardening Plan**: `.claude/plans/2026-03-13-sync-engine-hardening.md`
 - **Pipeline Report Test**: `integration_test/springfield_report_test.dart`
 - **Latest Scorecard**: `test/features/pdf/extraction/reports/latest-windows/scorecard.md`
-- **Cell Crop PNGs**: `test/features/pdf/extraction/diagnostics/crops/`
 - **Defects**: `.claude/defects/_defects-pdf.md`, `_defects-sync.md`, `_defects-projects.md`
