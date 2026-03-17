@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 577 (2026-03-15) — Archived from _state.md (Session 582 rotation)
+**Work**: Systematic debug of items 38, 62, 130. Corrected wrong root cause for item 62 (NOT a dedup issue — currency parsing bug + OCR non-determinism). Fixed both: currency double-dollar bug in `_normalizeCorruptedSymbol`, sequential gap-fill in `ItemDeduplicator.deduplicate`. Springfield: 131/131, $0 checksum. Committed 5 logical commits.
+**Decisions**: Item 62 had TWO failure modes (Tesseract non-determinism). textProtection won't work for item 130 (descenders classified as grid). Threshold-based whitewash is the correct approach.
+**Next**: Verify on Android device. Fix items 130 (threshold whitewash) and 38 (ordinal suffix recovery).
+
 ### Session 576 (2026-03-15) — Archived from _state.md (Session 581 rotation)
 **Work**: Deep systematic debug of all 6 OCR failures. Fixed 3 (items 22, 26, 97). Deep-traced remaining 3 with individual agents. Springfield: 130/131, desc 98.5%, numerics 100%. Tried whitewash bleed reduction — regressed, reverted.
 **Decisions**: Pipe stripping must run AFTER rules. `_kWhitewashBleed=2` is essential (bleed=1 causes 126/131 regression). Item 130 needs text-aware whitewash. Item 62 needs sequential dedup or PSM 13. Item 38 needs per-token retry or PDF text layer.

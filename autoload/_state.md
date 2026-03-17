@@ -1,37 +1,82 @@
 # Session State
 
-**Last Updated**: 2026-03-16 | **Session**: 581
+**Last Updated**: 2026-03-17 | **Session**: 584
 
 ## Current Phase
-- **Phase**: Project Lifecycle PLAN COMPLETE + REVIEWED
-- **Status**: 19-phase plan written via /writing-plans. 2 rounds of adversarial review (code + security). All CRITICAL/HIGH fixed. Plan ready for `/implement`.
+- **Phase**: Sync hardening plan WRITTEN + REVIEWED
+- **Status**: Plan at `.claude/plans/2026-03-17-sync-hardening-and-rls.md` is ready for `/implement`. 8 prior bugfixes still uncommitted from S583.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (581)
+### What Was Done This Session (584)
 
-1. **`/writing-plans` for project lifecycle** — Full workflow: CodeMunch index (850 files, 5469 symbols), dependency graph (95 files blast radius), Opus plan-writer agent produced 19-phase plan across 2 PRs.
-2. **Round 1 adversarial review** — code-review (REJECT: 3C/6H/5M/4L) + security (REJECT: 2H/2M/2L). All 18+6 findings addressed by fixer agent.
-3. **Round 2 adversarial review** — code-review (REJECT: 1H/2M/4L) + security (APPROVE: 2M/2L). Fixed 3 blocking issues:
-   - RLS `WITH CHECK` self-join bug → rewrote to `(deleted_at IS NULL) OR (owner OR admin)`
-   - Phase 7 double `setUp` → merged into single block
-   - Phase 7 `deletedBy:` → `userId:` param mismatch
-4. **Artifacts saved**: Plan at `.claude/plans/2026-03-16-project-lifecycle.md`, dependency graph at `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`, review report at `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
+1. **Systematic debugging** — loaded debugging skill, ran Phase 1 triage (no orphaned hypothesis markers)
+2. **Launched 2 deep research agents in parallel**:
+   - Agent 1: BLOCKER-38 root cause trace + proactive sync audit (10 findings)
+   - Agent 2: BLOCKER-39 RLS audit + Supabase schema review
+3. **CodeMunch indexed** — 5520 symbols, traced all affected symbols via get_file_outline + get_symbols
+4. **Dependency graph saved** — `.claude/dependency_graphs/2026-03-17-sync-hardening-and-rls/analysis.md`
+5. **Plan written** — Opus plan-writer produced 6-phase, 10-commit plan
+6. **Adversarial review** — code-review-agent + security-agent ran in parallel:
+   - Code review: REJECT (2 CRIT, 5 HIGH, 4 MED)
+   - Security review: APPROVE WITH CONDITIONS (2 CRIT, 4 HIGH, 4 MED)
+7. **All findings fixed inline** — 14 specific fixes applied directly to plan text
+8. **Review report saved** — `.claude/code-reviews/2026-03-17-sync-hardening-and-rls-plan-review.md`
+
+### Key Decisions (S584)
+- ConflictResolver keeps `Future<ConflictWinner>` return type — uses `getConflictCount()` query instead of breaking API
+- Offline removal guard at BOTH service layer (throws StateError) AND UI (early-exit dialog)
+- Supabase migration uses `DROP POLICY IF EXISTS` for all known policy name variants — defensive against partial migration state
+- Step 1.2.2 covers 5 tables (not 3) — entry_equipment and entry_contractors also had USING(true) history
+- Magic number 3 → `SyncEngineConfig.conflictPingPongThreshold`
+- EntryPersonnelCountsAdapter fkColumnMap: `type_id` not `personnel_type_id`
 
 ### What Needs to Happen Next
 
-1. **`/implement`** with `.claude/plans/2026-03-16-project-lifecycle.md` — execute the 19-phase plan
-2. **Commit pipeline UX overhaul changes** — 32 changed files uncommitted on `feat/sync-engine-rewrite`
-3. **Rebuild + test on device** — verify isolate fix (PDF should extract 131 items), verify sync connects
-4. **Remaining OCR blockers** (items 38, 130) — deferred, separate effort
+1. **Commit 8 bugfixes from S583** — still uncommitted (auth, sync, admin, project_setup)
+2. **`/implement` the sync hardening plan** — `.claude/plans/2026-03-17-sync-hardening-and-rls.md`
+3. **Test on device** after implementation
+4. **Fix BLOCKER-22**: Location field stuck "Loading" — HIGH PRIORITY
+
+### What Was Done Prior Session (583)
+
+1. **Pushed Supabase migrations** — already up to date (2 RLS migrations pushed in prior session)
+2. **Version bumped to 0.1.1+2** — `pubspec.yaml` updated
+3. **GitHub releases cleaned** — deleted 4 old releases, created v0.1.1 release APK
+4. **VS Code launch config updated** — added `--dart-define=DEBUG_SERVER=true` to Windows Desktop config
+5. **8 bugfixes applied** (uncommitted):
+   - `join_request_remote_datasource.dart`: `created_at` → `requested_at`
+   - `admin_provider.dart`: lazy repository with dynamic companyId, null-safety guards on all actions
+   - `main.dart`: removed AdminRepository import, simplified AdminProvider construction
+   - `sync_engine.dart`: company_id stamping moved before pre-check, FK cascade on ID remap with `_childFkColumns()`, trigger suppression during remap, `_UniqueConflict` result type
+   - `pending_approval_screen.dart`: fallback polling via profile refresh when requestId is empty
+   - `auth_provider.dart`: added `forceReauthOnly()` method (re-auth without data wipe)
+   - `main.dart`: upgrade handler uses `forceReauthOnly()` instead of `signOutLocally()`
+   - `project_setup_screen.dart`: draft INSERT suppresses change_log trigger
+6. **REVERTED auto-enrollment** — pulled projects should NOT auto-enroll in synced_projects. Selective import is by design — only metadata pulls, child data pulls after user explicitly imports.
+
+### KNOWN PROBLEM (must fix next session)
+- **Sync auto-enrollment was reverted** — the auto-enrollment of pulled projects into `synced_projects` was wrong. The design is: pull project metadata only, user explicitly imports to get child data. However, the investigation revealed that pulled-but-not-enrolled projects show in the project list but can't be imported (isRemoteOnly=false since they exist in local SQLite). This UX gap needs fixing — either show an "Import" option for pulled-but-unenrolled projects, or mark them differently.
+- **Ghost change_log entries** — on admin phone, 1 pending project change from old forced sign-out still persists. User needs to sign out + sign back in to clear it, then test with new build.
+
+### What Needs to Happen Next
+
+1. **Commit all valid fixes** — 8 bugfixes listed above are uncommitted
+2. **Fix project import UX gap** — pulled projects exist locally but aren't enrolled; need "Import" action visible for them
+3. **RLS ENABLE migration** — 8 tables have policies but RLS not enabled (UNRESTRICTED in Supabase dashboard)
+4. **Test admin dashboard** — with new APK, verify join request approval flow works end-to-end
+5. **BLOCKER-22**: Location field stuck "Loading" — HIGH PRIORITY
 
 ## Blockers
 
+### BLOCKER-38: Pulled Projects Can't Be Imported
+**Status**: PLAN READY — Root cause: sync_engine._pullTable() inserts projects but never enrolls in synced_projects. Fix in plan Phase 2.1.
+
+### BLOCKER-39: 8 Supabase Tables Missing ENABLE ROW LEVEL SECURITY
+**Status**: PLAN READY — Fix in plan Phase 1.2. Migration also covers 5 tables with USING(true) policies and adds 6 performance indexes.
+
 ### BLOCKER-34: Item 38 — Superscript `th` → `"` (Tesseract limitation)
 **Status**: OPEN — Ordinal suffix recovery rule needed in post-processing.
-
-### BLOCKER-35: Item 62 — Currency parsing + OCR non-determinism
-**Status**: FIXED (S577) — Two fixes: currency double-dollar bug + sequential gap-fill dedup.
 
 ### BLOCKER-36: Item 130 — Whitewash destroys `y` descender
 **Status**: OPEN — Threshold-based whitewash needed (skip dark text pixels).
@@ -45,77 +90,52 @@
 ### BLOCKER-23: Flutter Keys Not Propagating to Android resource-id
 **Status**: OPEN — MEDIUM
 
-### BLOCKER-37: Sync DNS Check Fails on Android (NEW)
-**Status**: FIXED (S580) — Replaced `InternetAddress.lookup` with HTTP HEAD request. Added `ACCESS_NETWORK_STATE` permission.
-
 ## Recent Sessions
 
+### Session 584 (2026-03-17)
+**Work**: Systematic debugging for BLOCKER-38 + BLOCKER-39 + proactive sync audit. Launched 2 deep research agents (found 10 additional sync issues). /writing-plans produced 6-phase plan. Adversarial review (code + security) found 2+2 CRITICAL, 5+4 HIGH findings — all fixed inline. Plan ready for /implement.
+**Decisions**: ConflictResolver keeps Future<ConflictWinner> (query-based conflict count). Offline removal guard at service + UI layers. Migration uses DROP POLICY IF EXISTS defensively. fkColumnMap corrected for EntryPersonnelCountsAdapter.
+**Next**: Commit S583 bugfixes. /implement sync hardening plan. Test on device.
+
+### Session 583 (2026-03-17)
+**Work**: Device testing session. Version bump to 0.1.1. Pushed Supabase migrations (already current). Built release + debug APKs. Set up VS Code launch config with DEBUG_SERVER. Fixed 8 bugs across auth, sync, and admin flows. Discovered root cause of all sync errors: version-upgrade forced signOutLocally() which wiped all local data, creating duplicate projects on re-sync. Fixed by adding forceReauthOnly() method. Also found draft project INSERT fires sync trigger (fixed with pulling=1 suppression). Reverted auto-enrollment of pulled projects (selective import is by design). Identified UX gap: pulled-but-unenrolled projects can't be imported.
+**Decisions**: forceReauthOnly() preserves local data on upgrade. Draft INSERTs must suppress triggers. Auto-enrollment of pulled projects is WRONG — selective import is intentional. Debug builds (no clean) are ~13s vs ~6min for release.
+**Next**: Commit fixes. Fix project import UX gap. RLS migration. Test admin dashboard.
+
+### Session 582 (2026-03-16)
+**Work**: /implement for project lifecycle (19 phases, 11 orchestrator launches, 0 handoffs). All reviews PASS. Committed 6 logical commits to app repo + 1 to config repo. ~140 files changed total.
+**Decisions**: Merged PR2 phases (15-19) into single orchestrator launch for speed — worked without context exhaustion.
+**Next**: Rebuild + test on device. Push Supabase migrations. Fix BLOCKER-22.
+
 ### Session 581 (2026-03-16)
-**Work**: /writing-plans for project lifecycle. CodeMunch indexed 850 files/5469 symbols. Opus plan-writer produced 19-phase plan (PR1: 14 phases lifecycle, PR2: 5 phases logger migration). Two rounds of adversarial review: R1 found 24 issues (all fixed by fixer agent), R2 found 7 more (3 blocking fixed inline: RLS self-join bug, double setUp, param mismatch).
-**Decisions**: RLS WITH CHECK uses simpler `(deleted_at IS NULL) OR (owner OR admin)` — avoids OLD-row reference impossibility. Phase 7 test uses real SoftDeleteService (not raw SQL). isAdmin sourced from live AuthProvider. stamp_deleted_by() NOT recreated in new migration.
-**Next**: /implement the plan. Commit pipeline UX changes. Rebuild + test on device.
+**Work**: /writing-plans for project lifecycle. CodeMunch indexed 850 files/5469 symbols. Opus plan-writer produced 19-phase plan.
+**Next**: /implement the plan.
 
 ### Session 580 (2026-03-16)
-**Work**: Implemented pipeline UX overhaul (9 phases via /implement, 5 dispatch groups, all reviews PASS, 2838 tests). Fixed 3 critical bugs (isolate init, DNS check, banner visibility). Built + installed APK on S25 Ultra. Brainstormed project lifecycle spec (12 sections). Adversarial review (code + security) found 8 issues, 7 valid, all addressed. Verified logging system.
-**Decisions**: Add `project_id` to `change_log` via migration. New `ProjectImportBanner` (independent from PDF). Tighten RLS UPDATE policy for soft-delete (owner/admin). Interim import uses full sync; targeted sync is future work. Release-only file transport scrubbing. Drop `client_name` from metadata fetch. Keep ProjectSelectionScreen in Sync Dashboard (read-only).
-**Next**: /writing-plans for project lifecycle. Commit pipeline UX changes. Rebuild + test on device.
-
-### Session 579 (2026-03-16)
-**Work**: Writing-plans skill for pipeline UX overhaul PR1. CodeMunch indexing (836 files, 5415 symbols). Built dependency graph. Opus agent wrote 9-phase plan (22 sub-phases). Parallel adversarial review: code-review (REJECT→fixed: 3C/5H) + security (APPROVE: 2H). All CRITICAL/HIGH addressed in plan addendum.
-**Decisions**: MpExtractionResult needs toMap(). Guard both recognizeImage + recognizeCrop. Banner stays in ShellRoute (pragmatic). stackTrace not sent across isolate boundary. PR2 release filter must be first step before migration.
-**Next**: /implement PR1. Measure OCR time on device. Write PR2 plan.
-
-### Session 578 (2026-03-15)
-**Work**: Built/installed release APK on S25 Ultra (new Firebase key). Verified 131/131 on device (4.5 min, $0 checksum, 0.993 score). Identified ANR + progress UX issues via systematic debugging + device logs. Brainstormed and wrote full spec for pipeline UX overhaul. Adversarial review by code-review + security agents (10 MUST-FIX, all addressed). Confirmed Tesseract re-init bug (setPageSegMode forces unnecessary Init per call).
-**Decisions**: Fix re-init first, measure, then decide on parallel workers. Single worker isolate (not 4 sub-isolates). Split into 2 PRs. Accept background limitation (warn user). Release logging ON with PII scrubbing. Project save → navigate to dashboard.
-**Next**: Approve spec. Invoke writing-plans. Implement PR1 then PR2.
-
-### Session 577 (2026-03-15)
-**Work**: Systematic debug of items 38, 62, 130. Corrected wrong root cause for item 62 (NOT a dedup issue — currency parsing bug + OCR non-determinism). Fixed both: currency double-dollar bug in `_normalizeCorruptedSymbol`, sequential gap-fill in `ItemDeduplicator.deduplicate`. Springfield: 131/131, $0 checksum. Committed 5 logical commits.
-**Decisions**: Item 62 had TWO failure modes (Tesseract non-determinism). textProtection won't work for item 130 (descenders classified as grid). Threshold-based whitewash is the correct approach.
-**Next**: Verify on Android device. Fix items 130 (threshold whitewash) and 38 (ordinal suffix recovery).
+**Work**: Implemented pipeline UX overhaul (9 phases via /implement). Fixed 3 critical bugs. Built + installed APK on S25 Ultra. Brainstormed project lifecycle spec.
+**Next**: /writing-plans for project lifecycle.
 
 ## Active Plans
 
-### Project Lifecycle Management — PLAN COMPLETE, READY FOR /implement (Session 581)
+### Sync Hardening & RLS Enforcement — PLAN READY (Session 584)
+- **Plan**: `.claude/plans/2026-03-17-sync-hardening-and-rls.md`
+- **Reviews**: `.claude/code-reviews/2026-03-17-sync-hardening-and-rls-plan-review.md`
+- **Status**: Plan written, reviewed (code + security), all findings fixed inline. Ready for `/implement`.
+- **Scope**: BLOCKER-38, BLOCKER-39, + 8 audit fixes. 6 phases, 10 commits, 8 modified files.
+
+### Project Lifecycle Management — IMPLEMENTED + COMMITTED (Session 582)
 - **Spec**: `.claude/specs/2026-03-16-project-lifecycle-spec.md`
 - **Plan**: `.claude/plans/2026-03-16-project-lifecycle.md`
-- **Dep Graph**: `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`
-- **Reviews**: `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
-- **Status**: 19-phase plan. 2 rounds adversarial review (code + security). All CRITICAL/HIGH fixed. Ready for `/implement`.
-- **Scope**: PR1 (14 phases: project visibility, import, delete, schema, RLS) + PR2 (5 phases: logger migration)
+- **Status**: All 19 phases implemented. Needs device test after bugfixes.
 
-### Pipeline UX Overhaul — IMPLEMENTED (Session 580)
+### Pipeline UX Overhaul — IMPLEMENTED + COMMITTED (Session 582)
 - **Spec**: `.claude/specs/2026-03-15-pipeline-ux-overhaul-spec.md`
 - **Plan**: `.claude/plans/2026-03-16-pipeline-ux-overhaul.md`
-- **Checkpoint**: `.claude/state/implement-checkpoint.json`
-- **Status**: All 9 phases complete. 3 hotfix bugs fixed. 32 files changed, uncommitted. Needs commit + device test.
-
-### OCR Accuracy Fixes — COMPLETE (Session 576)
-- **Plan**: `.claude/plans/2026-03-15-ocr-accuracy-fixes.md`
-- **Status**: All code fixes applied. Items 22, 26, 97 fixed. Items 38, 62, 130 remain as blockers.
-
-### Debug Framework — IMPLEMENTED (Session 571)
-- **Status**: All 7 phases complete. 19 files modified. 33 Logger tests pass.
-
-### Sync Engine Hardening — IMPLEMENTED + DEPLOYED (Session 563)
-- **Status**: All 9 phases complete. 29 files modified. 476 sync tests pass. Supabase migrations deployed.
-
-### UI Refactor — PLAN REVIEWED + HARDENED (Session 512)
-- **Plan**: `.claude/plans/2026-03-06-ui-refactor-comprehensive.md`
-- **Status**: 12 phases + Phase 3.5. Reviewed by 3 agents.
+- **Status**: All 9 phases complete. Needs device test.
 
 ## Reference
 - **Project Lifecycle Spec**: `.claude/specs/2026-03-16-project-lifecycle-spec.md`
-- **Project Lifecycle Plan**: `.claude/plans/2026-03-16-project-lifecycle.md`
-- **Project Lifecycle Dep Graph**: `.claude/dependency_graphs/2026-03-16-project-lifecycle/analysis.md`
-- **Project Lifecycle Reviews**: `.claude/code-reviews/2026-03-16-project-lifecycle-plan-review.md`
-- **Pipeline UX Plan**: `.claude/plans/2026-03-16-pipeline-ux-overhaul.md`
 - **Pipeline UX Spec**: `.claude/specs/2026-03-15-pipeline-ux-overhaul-spec.md`
-- **Pipeline UX Checkpoint**: `.claude/state/implement-checkpoint.json`
-- **OCR Accuracy Fixes Plan**: `.claude/plans/2026-03-15-ocr-accuracy-fixes.md`
-- **Debug Framework Spec**: `.claude/specs/2026-03-14-debug-framework-spec.md`
-- **Sync Hardening Plan**: `.claude/plans/2026-03-13-sync-engine-hardening.md`
-- **Pipeline Report Test**: `integration_test/springfield_report_test.dart`
-- **Latest Scorecard**: `test/features/pdf/extraction/reports/latest-windows/scorecard.md`
 - **Defects**: `.claude/defects/_defects-pdf.md`, `_defects-sync.md`, `_defects-projects.md`
+- **Debug build tag**: `v0.1.1-debug` on GitHub releases
+- **Release build tag**: `v0.1.1` on GitHub releases
