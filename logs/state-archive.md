@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 584 (2026-03-17)
+**Work**: Systematic debugging for BLOCKER-38 + BLOCKER-39 + proactive sync audit. Launched 2 deep research agents (found 10 additional sync issues). /writing-plans produced 6-phase plan. Adversarial review (code + security) found 2+2 CRITICAL, 5+4 HIGH findings — all fixed inline. Plan ready for /implement.
+**Decisions**: ConflictResolver keeps Future<ConflictWinner> (query-based conflict count). Offline removal guard at service + UI layers. Migration uses DROP POLICY IF EXISTS defensively. fkColumnMap corrected for EntryPersonnelCountsAdapter.
+**Next**: Commit S583 bugfixes. /implement sync hardening plan. Test on device.
+
 ### Session 583 (2026-03-17)
 **Work**: Device testing session. Version bump to 0.1.1. Fixed 8 bugs across auth, sync, and admin flows. Discovered root cause: version-upgrade forced signOutLocally() which wiped all local data. Fixed by adding forceReauthOnly() method. Reverted auto-enrollment of pulled projects.
 **Decisions**: forceReauthOnly() preserves local data on upgrade. Draft INSERTs must suppress triggers. Auto-enrollment of pulled projects is WRONG — selective import is intentional.

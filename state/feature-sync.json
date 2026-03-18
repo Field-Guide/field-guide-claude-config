@@ -3,7 +3,7 @@
   "name": "Sync Engine",
   "status": "in_progress",
   "description": "Bidirectional offline-first sync between SQLite and Supabase with last-write-wins conflict resolution and soft-delete awareness",
-  "current_phase": "S588: Phantom pending-count bug fixed (_pushUpsert pulling guard). Project State UI spec includes new project_assignments adapter + auto-enrollment rework. Needs commit + /writing-plans.",
+  "current_phase": "S589: Sync fixes committed (phantom pending, DNS recovery, hard-delete push, tombstone guard). Project State UI plan includes ProjectAssignmentAdapter (adapter-driven push, no triggeredTables). Ready for /implement.",
   "docs": {
     "overview": "docs/features/feature-sync-overview.md",
     "architecture": "docs/features/feature-sync-architecture.md",
