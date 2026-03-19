@@ -4,6 +4,16 @@ Historical defects moved from per-feature defect files. Reference only.
 
 ---
 
+### [CONFIG] 2026-03-16: InternetAddress.lookup fails on Android despite good connectivity (Session 580) — Archived S591
+**Pattern**: `SyncOrchestrator.checkDnsReachability()` used `InternetAddress.lookup(hostname)` which fails with errno=7 on Android. Known Android issue — Dart's DNS lookup doesn't bind to the correct network interface.
+**Prevention**: Use HTTP HEAD request instead of raw DNS lookup.
+**Ref**: @lib/features/sync/application/sync_orchestrator.dart:420-447
+
+### [DATA] 2026-03-16: RLS UPDATE policy allows any non-viewer to soft-delete any project (Session 580) — Archived S591
+**Pattern**: `company_projects_update` policy only checks `NOT is_viewer()`. Any inspector/engineer can soft-delete any project.
+**Prevention**: Tighten WITH CHECK for deleted_at transitions.
+**Ref**: @supabase/migrations/20260222100000_multi_tenant_foundation.sql:454-456
+
 ### [CONFIG] 2026-03-13: Migration used wrong column name for user_profiles PK (Session 563) — Archived S587
 **Pattern**: Email backfill SQL used `up.user_id` but `user_profiles` PK is `id` (1:1 with `auth.users.id`). Migration failed on deploy.
 **Prevention**: `user_profiles` uses `id` as PK/FK to auth.users, NOT `user_id`. Always verify column names against actual schema before writing SQL.

@@ -6,6 +6,25 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 587 (2026-03-18)
+**Work**: Device testing bug fixes (P1 location, P2 weather, P4/P8 delete-sync, P6/P7 admin offline). CRITICAL: found and fixed sync permanent offline trap (_isOnline never recovers). Debug APK v0.1.2-debug-s587 on GitHub.
+**Decisions**: Tombstone check via change_log not separate table. P3/P5 are network, not code.
+**Next**: Device test new APK. Commit.
+
+### Session 586 (2026-03-18)
+**Work**: /implement project management E2E plan (11 phases, 6 orchestrator launches, 0 handoffs). 30 files modified, 3032 tests passing. All reviews PASS. Bug found: code.contains('503') masks 23503 FK errors.
+**Decisions**: Batched final 4 phases into one orchestrator launch. Repair migration deferred as tech debt.
+**Next**: Commit. Push Supabase migrations. Build + device test. Fix BLOCKER-22. Fix 503 bug.
+
+---
+
+## March 2026
+
+### Session 585 (2026-03-17)
+**Work**: Implemented sync hardening plan (4 orchestrator launches, 2962 tests passing). Device testing found Import broken (missing Provider). Full project lifecycle audit (13 issues). Brainstormed + spec'd + planned project management E2E fix (11 phases). Committed 7 app commits + 2 config commits.
+**Decisions**: Metadata auto-sync only (no auto-enroll). Keep canWrite (add new methods alongside). SECURITY DEFINER RPC for remote delete. Remove viewer role. Available Projects from local SQLite.
+**Next**: /implement project management E2E plan. Build + device test. Fix BLOCKER-22.
+
 ### Session 584 (2026-03-17)
 **Work**: Systematic debugging for BLOCKER-38 + BLOCKER-39 + proactive sync audit. Launched 2 deep research agents (found 10 additional sync issues). /writing-plans produced 6-phase plan. Adversarial review (code + security) found 2+2 CRITICAL, 5+4 HIGH findings — all fixed inline. Plan ready for /implement.
 **Decisions**: ConflictResolver keeps Future<ConflictWinner> (query-based conflict count). Offline removal guard at service + UI layers. Migration uses DROP POLICY IF EXISTS defensively. fkColumnMap corrected for EntryPersonnelCountsAdapter.

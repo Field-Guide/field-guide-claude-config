@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [FLUTTER] 2026-03-18: canWrite=true for inspector — root cause of 10 permission gaps — BUG-008 (Session 591)
+**Pattern**: `UserRole.canWrite` returns `true` for ALL roles including inspector. This property gates 102 call sites across 24 files (edit pencil, archive toggle, add location/contractor/pay item buttons). Inspector has full write access everywhere. Additionally, no route guards on `/project/new` or `/project/:id/edit` (BUG-007), and dashboard Contractors card deep-links into unguarded edit screen (BUG-011).
+**Prevention**: Replace `canWrite` with granular permissions (`canEditProject`, `canArchiveProject`, `canManageSetup`). Add route guards in `app_router.dart` redirect function. Gate setup screen tabs behind role checks.
+**Ref**: @lib/features/auth/data/models/user_role.dart:36, @lib/core/router/app_router.dart:428-444, @lib/features/projects/presentation/screens/project_list_screen.dart:740,762
+
 ### [CONFIG] 2026-03-17: SyncOrchestrator not registered as Provider — crashes project management (Session 585)
 **Pattern**: `project_list_screen.dart` calls `context.read<SyncOrchestrator>()` in 3 places (network check, import, delete sheet) but `SyncOrchestrator` was never added to the MultiProvider tree in `main.dart`. Every project management action crashes with `ProviderNotFoundException`. The orchestrator was passed to `SyncProvider` constructor but never registered as its own Provider.
 **Prevention**: When a widget calls `context.read<T>()`, verify `T` is registered in the MultiProvider tree. Search `main.dart` for `Provider<T>` before using `context.read<T>()` in any screen.
