@@ -113,7 +113,6 @@
 - **Baseline Report**: `.claude/test_results/2026-03-20_08-02/baseline-report.md`
 - **Checkpoint**: `.claude/test_results/2026-03-20_08-02/checkpoint.json`
 - **Test Skill**: `.claude/skills/test/SKILL.md`
-- **Test Agent**: `.claude/agents/test-wave-agent.md`
 - **Test Credentials**: `.claude/test-credentials.secret`
 - **Test Registry**: `.claude/test-flows/registry.md`
 - **Defects**: `.claude/defects/_defects-projects.md`, `_defects-pdf.md`, `_defects-sync.md`, `_defects-entries.md`

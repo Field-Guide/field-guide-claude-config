@@ -1,16 +1,28 @@
 ---
 name: test
 description: Run E2E test flows via HTTP driver automation
-agents:
-  - .claude/agents/test-wave-agent.md
 ---
 
 # /test — HTTP Driver Test Skill
 
 ## Overview
 Runs end-to-end test flows against the running app via HTTP driver endpoints (port 4948).
-The app must be launched with `main_driver.dart` entrypoint. Widgets are driven via HTTP
-requests — cross-platform (Android + Windows).
+The app must be launched with `main_driver.dart` entrypoint. Main Claude executes all
+flows directly via curl — no sub-agents, no orchestrator layer.
+
+## HARD RULES — NEVER SKIP
+
+After **EVERY flow**, complete this checklist:
+- [ ] Driver response checked (200 = pass, 404/408 = fail)
+- [ ] Logs scanned: `curl -s "http://127.0.0.1:3947/logs?since=<START>&level=error"`
+- [ ] Widget tree verified (for data-creation flows): `/driver/tree?filter=<expected>`
+- [ ] Sync waited + verified (for mutation flows)
+- [ ] `checkpoint.json` updated
+- [ ] `registry.md` Status + Last Run updated
+
+After **EVERY tier**, additionally:
+- [ ] `report.md` updated with tier results table
+- [ ] Screenshot review: only view screenshots for FAILED flows
 
 ## Credentials
 `.claude/test-credentials.secret` — gitignored JSON with admin + inspector accounts.
@@ -18,49 +30,62 @@ requests — cross-platform (Android + Windows).
 ## Usage
 
 ```
-/test                     # Run all flows (T01-T14) as admin
-/test T01-T06             # Run Tier 1 Foundation only
-/test T07-T13             # Run Tier 2 Daily Entry Lifecycle only
-/test T14                 # Run Tier 3 PDF Export only
-/test T03                 # Run single flow
-/test overnight           # Full autonomous run — both roles, all flows, compaction-safe
-/test full                # Alias for overnight
+/test                              # Show available tiers
+/test auth                         # T01-T04 (Auth & Smoke)
+/test project-setup                # T05-T14 (Project Setup)
+/test entries                      # T15-T23 (Daily Entry Creation)
+/test lifecycle                    # T24-T30 (Entry Lifecycle)
+/test toolbox                      # T31-T40 (Toolbox)
+/test pdf                          # T41-T43 (PDF & Export)
+/test settings                     # T44-T52 (Settings & Profile)
+/test admin                        # T53-T58 (Admin Operations)
+/test edits                        # T59-T67 (Edit Mutations)
+/test deletes                      # T68-T77 (Delete Operations)
+/test sync                         # T78-T84 (Sync Verification)
+/test permissions                  # T85-T91 (Role Verification)
+/test navigation                   # T92-T96 (Nav & Dashboard)
+/test T03                          # Single flow
+/test T15-T23                      # Range
+/test full                         # All tiers, sequential
+/test --resume                     # Resume from checkpoint
+/test admin --role admin           # Explicit role
+/test permissions --role inspector # Inspector role
+```
+
+## Tier Alias Map
+
+```
+auth         → T01-T04
+project-setup → T05-T14
+entries      → T15-T23
+lifecycle    → T24-T30
+toolbox      → T31-T40
+pdf          → T41-T43
+settings     → T44-T52
+admin        → T53-T58
+edits        → T59-T67
+deletes      → T68-T77
+sync         → T78-T84
+permissions  → T85-T91
+navigation   → T92-T96
 ```
 
 ## Prerequisites (automated)
-1. Orchestrator runs: `pwsh -File tools/start-driver.ps1 -Platform windows`
+1. Run: `pwsh -File tools/start-driver.ps1 -Platform windows` (or `-Platform android`)
 2. Script handles debug server, app launch, and readiness gate
 3. No manual setup required
 
-For Android: `pwsh -File tools/start-driver.ps1 -Platform android`
+## Execution Model
 
-## Architecture
+Main Claude executes all flows directly — no sub-agents dispatched.
 
-### Agent Mode (short runs: `/test T01-T06`)
-Dispatches a test-wave-agent per tier. Agent interacts with the driver via curl.
-```
-Claude (orchestrator)
-  ├─ Tier 1 agent (T01-T06) — sequential
-  ├─ Tier 2 agent (T07-T13) — sequential (after Tier 1)
-  └─ Tier 3 agent (T14)     — sequential (after Tier 2)
-```
+1. **Setup**: Create timestamped results dir, read credentials, record start time
+2. **Per-flow**: Execute curl commands → check response → scan logs → update checkpoint
+3. **Per-tier**: Update report.md with tier results table
+4. **Checkpoint**: Written after every flow for resume capability
+5. **Report**: Updated after every tier (not just at the end)
 
-### Autonomous Mode (overnight: `/test overnight`)
-The orchestrator runs ALL flows **directly** — no sub-agents. Uses a checkpoint file
-to survive context compaction and resume seamlessly.
-
-```
-Claude (orchestrator) — runs flows directly via curl
-  ├─ Creates checkpoint.json at start
-  ├─ Executes one flow at a time: curl → verify sync → check logs → screenshot
-  ├─ Updates checkpoint.json after EACH flow
-  ├─ After all flows as admin → signs out → signs in as inspector → repeats
-  └─ Writes report.md with all findings at the end
-```
-
-## Autonomous Mode — Detailed Protocol
-
-### 1. Setup
+### Setup
 ```bash
 RESULTS_DIR=".claude/test_results/$(date +%Y-%m-%d_%H-%M)"
 mkdir -p "$RESULTS_DIR"
@@ -69,13 +94,13 @@ mkdir -p "$RESULTS_DIR"
 Read credentials from `.claude/test-credentials.secret`.
 Read testing keys from `lib/shared/testing_keys/*.dart` as needed per flow.
 
-### 2. Checkpoint File
+### Checkpoint File
 Write `.claude/test_results/<run>/checkpoint.json` **after every flow**:
 ```json
 {
-  "run_id": "2026-03-19_21-34",
+  "run_id": "2026-03-20_10-00",
   "platform": "windows",
-  "results_dir": ".claude/test_results/2026-03-19_21-34",
+  "results_dir": ".claude/test_results/2026-03-20_10-00",
   "current_role": "admin",
   "completed": {
     "admin": { "T01": "PASS", "T02": "FAIL" },
@@ -91,16 +116,7 @@ Write `.claude/test_results/<run>/checkpoint.json` **after every flow**:
 }
 ```
 
-### 3. After Compaction — Resume Protocol
-When context is compacted, the orchestrator MUST:
-1. Read `.claude/test_results/` to find the latest run directory
-2. Read `checkpoint.json` from that directory
-3. Read the credentials file: `.claude/test-credentials.secret`
-4. Take a screenshot to assess current app state
-5. Read the testing keys file needed for `next_flow`
-6. Resume execution from `next_flow`
-
-### 4. Per-Flow Execution
+### Per-Flow Execution
 For each flow:
 1. Record start time: `pwsh -Command "Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ'"`
 2. Execute driver steps (curl commands — see HTTP Driver Endpoints below)
@@ -114,72 +130,89 @@ For each flow:
    done
    ```
 5. Check logs: `curl -s "http://127.0.0.1:3947/logs?since=<START>&level=error"`
-6. Take screenshot
-7. If PASS: delete screenshot. If FAIL: keep as `<role>-<flow>-fail.png`
-8. Update `checkpoint.json`
-9. Update `.claude/test-flows/registry.md`
+6. Take screenshot: `curl -s http://127.0.0.1:4948/driver/screenshot --output "$RESULTS_DIR/<role>-<flow>.png"`
+7. Update `checkpoint.json`
+8. Update `.claude/test-flows/registry.md` (Status + Last Run)
 
-### 5. Role Switch
-After all flows complete as admin:
+## Failure Detection (Without Viewing Screenshots)
+
+Use these signals — do NOT view screenshots inline unless failure is detected:
+
+| Signal | Meaning | Action |
+|--------|---------|--------|
+| Driver returns 404 | Widget not found | Record missing key, FAIL flow |
+| Driver returns 408 | Wait timeout | FAIL flow |
+| `/logs?level=error` has entries | Runtime error | FAIL flow, log the error |
+| `/driver/tree?filter=<text>` missing | Expected data absent | FAIL flow |
+| `/driver/find?key=X` → `exists: false` | Widget doesn't exist | FAIL flow |
+| Sync doesn't reach idle in 30s | Sync failure | Capture `/sync/status`, FAIL flow |
+
+**Screenshots**: Save to disk ALWAYS. View ONLY when a failure signal is detected.
+
+## Compaction Protocol (Every 2 Tiers)
+
+After 2 tiers complete:
+1. Write full checkpoint with all results so far
+2. Update report.md with both tiers' results
+3. Output: **"Checkpoint written. Say 'continue' to proceed."**
+
+On resume (after compaction or `--resume`):
+1. Read `.claude/test_results/` to find the latest run directory
+2. Read `checkpoint.json` from that directory
+3. Read credentials: `.claude/test-credentials.secret`
+4. Read last screenshot path (if failure investigation needed)
+5. Continue from `next_flow`
+
+**NEVER view screenshots inline unless failure detected.**
+
+## Missing-Key Protocol
+
+When a flow fails with 404 (widget not found):
+1. Record the missing key name
+2. Continue executing remaining flows in the tier
+3. After tier completes, spawn a **background** Task agent (`frontend-flutter-specialist-agent`) to:
+   - Find the widget in presentation code
+   - Add the key constant to the appropriate `testing_keys/*.dart` file
+   - Add the `Key` to the widget
+4. Continue testing other tiers while agent works
+5. After agent completes + app restart (`POST /driver/hot-restart`), retry failed flows
+
+## Role Handling
+
+Always explicit — no automatic role switching.
+
+| Flag | Behavior |
+|------|----------|
+| `--role admin` | Default if unspecified |
+| `--role inspector` | Inspector account from credentials |
+
+Inspector-specific flows: T85-T91 (Role Verification tier).
+
+### Role Switch Procedure
 1. Sign out: `settings_nav_button` → `settings_sign_out_tile` → `sign_out_confirm_button`
 2. Wait for `login_screen`
-3. Log in as inspector (credentials from `.claude/test-credentials.secret`)
-4. Run all flows again — inspector will hit permission denials on some actions, **that's expected and should be logged**
-5. Update `checkpoint.json` with `current_role: "inspector"`
+3. Log in with target role credentials
+4. Update `checkpoint.json` with new `current_role`
 
-### 6. Report
-After both roles complete, write `.claude/test_results/<run>/report.md`:
+## Report Format
+
+Write/update `.claude/test_results/<run>/report.md` after each tier:
+
 ```markdown
 # Test Run Report — <date> <time>
 
-## Admin Results
+## <Tier Name> Results
 | Flow | Status | Notes |
 |------|--------|-------|
 | T01  | PASS   |       |
-| T02  | FAIL   | location button not found |
-
-## Inspector Results
-| Flow | Status | Notes |
-|------|--------|-------|
-| T01  | BLOCKED | No create project button (expected — inspector can't create) |
+| T02  | FAIL   | widget not found: some_key |
 
 ## Bugs Found
 - **[BUG]** <description> — screenshot: `admin-T02-fail.png`
 
-## Permission Denials (Inspector)
-- T01: No FAB visible (correct — inspector cannot create projects)
-- T06: Cannot manage assignments (correct)
-
 ## Observations
 - Sync averaged 3s per flow
-- Ghost project appeared after interrupted creation (known defect)
 ```
-
-## Agent Mode — Dispatch Instructions
-
-Before dispatching, create the timestamped results dir (see Setup above).
-
-The orchestrator prompt MUST include:
-1. **Platform** (windows or android)
-2. **Flow range** (e.g., T01-T06)
-3. **Current app state** (which screen, logged in as who)
-4. **Shared state from prior tiers** — e.g., "T01 created project 'E2E Test Project'"
-5. **Results directory path**
-
-### Flow Dependencies
-
-**Tier 1 (T01-T06)** — All flows operate on ONE project:
-- T01 creates "E2E Test Project" → saves it
-- T02-T06 navigate to that project's setup screen and use different tabs
-- Tabs: Details, Locations, Contractors, Pay Items, Assignments
-- Agent must NOT create a new project for each flow
-
-**Tier 2 (T07-T13)** — All flows operate on the T01 project:
-- T07 creates a daily entry for the T01 project
-- T08-T11 add data to that entry
-- T12-T13 use the toolbox within the T01 project context
-
-**Tier 3 (T14)** — Uses the entry from T07
 
 ## Key Reference: Testing Keys
 
@@ -233,9 +266,27 @@ Binds to loopback (127.0.0.1) only — no auth required.
 | POST | /driver/back | {} |
 | POST | /driver/wait | {"key": "X", "timeoutMs": 10000} |
 | POST | /driver/inject-photo | {"data": "<base64>", "filename": "test.jpg"} |
+| POST | /driver/inject-photo-direct | {"base64Data": "...", "filename": "...", "entryId": "...", "projectId": "..."} |
 | POST | /driver/inject-file | {"data": "<base64>", "filename": "doc.pdf"} |
+| POST | /driver/hot-restart | {} |
 
 > `/driver/screenshot` returns `image/png` binary. Use `curl --output <path>`.
+
+## Flow Dependencies
+
+**Tier 0 (T01-T04)** — Auth & Smoke: Login, navigate, sign out, inspector login
+**Tier 1 (T05-T14)** — Project Setup: T05 creates "E2E Test Project", T06-T14 add sub-entities
+**Tier 2 (T15-T23)** — Daily Entry Creation: Creates entries on the T05 project
+**Tier 3 (T24-T30)** — Entry Lifecycle: Edit/submit/approve entries from Tier 2
+**Tier 4 (T31-T40)** — Toolbox: Calculator, forms, gallery, todos
+**Tier 5 (T41-T43)** — PDF & Export: Generate/view PDFs for Tier 2 entries
+**Tier 6 (T44-T52)** — Settings & Profile
+**Tier 7 (T53-T58)** — Admin Operations
+**Tier 8 (T59-T67)** — Edit Mutations: Edit entities from earlier tiers
+**Tier 9 (T68-T77)** — Delete Operations: Delete entities (run last before cleanup)
+**Tier 10 (T78-T84)** — Sync Verification
+**Tier 11 (T85-T91)** — Role Verification (inspector role)
+**Tier 12 (T92-T96)** — Nav & Dashboard
 
 ## Teardown
 
@@ -243,14 +294,14 @@ After test run completes:
 ```
 pwsh -File tools/stop-driver.ps1
 ```
-
 Add `-IncludeDebugServer` to also kill the debug server.
 
 ## Error Handling
 - **Driver unreachable:** retry once after 2s, then FAIL
-- **Element not found:** take screenshot, wait 3s, retry once, then FAIL
+- **Element not found (404):** take screenshot, wait 3s, retry once, then FAIL
+- **Wait timeout (408):** FAIL flow, continue
 - **Sync timeout (30s):** capture /sync/status, FAIL flow, continue
-- **App crash:** detect via /driver/ready timeout, capture last logs, restart driver
+- **App crash:** detect via /driver/ready timeout, capture last logs, try `POST /driver/hot-restart`
 
 ## Flow Registry
 `.claude/test-flows/registry.md` — unified registry with all flows and run history.

@@ -5,8 +5,7 @@ $expected = @(
     "$base/lib/main_driver.dart",
     "$base/tools/prune-test-results.ps1",
     "$base/.claude/test-flows/registry.md",
-    "$base/.claude/skills/test/SKILL.md",
-    "$base/.claude/agents/test-wave-agent.md"
+    "$base/.claude/skills/test/SKILL.md"
 )
 foreach ($f in $expected) {
     if (Test-Path $f) { Write-Host "OK: $f" } else { Write-Host "MISSING: $f" }
