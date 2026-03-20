@@ -3,6 +3,7 @@
 **Date**: 2026-03-19
 **Session**: S592
 **Source**: `bugs_report.md` (14 bugs filed, 1 dismissed as non-issue)
+**Adversarial Review**: `.claude/adversarial_reviews/2026-03-19-bug-triage-fix/review.md`
 
 ## Overview
 
@@ -20,7 +21,7 @@ Fix 13 bugs found during live 2-device testing (S591) spanning sync engine relia
 - Fresh inspector device receives assignment data on first sync (no deadlock)
 - `_selectedProject` is cleared after removeFromDevice
 - All existing tests pass + new tests for permission gates
-- RLS INSERT policy blocks inspector project creation server-side
+- RLS INSERT and UPDATE policies block inspector project management server-side
 
 ### Decisions Made
 
@@ -30,9 +31,10 @@ Fix 13 bugs found during live 2-device testing (S591) spanning sync engine relia
 | Project management | Admin + engineer only (create, archive, delete, edit details) | Organizational actions, not field work |
 | Engineer delete | Allowed | Engineers need full project lifecycle control |
 | Sync recovery | Re-check DNS on every refresh + global offline indicator | User shouldn't feel chained to connectivity |
-| Enrollment deadlock | `project_assignments` → `ScopeType.direct` | Breaks chicken-and-egg with minimal change |
+| Enrollment deadlock | Reload `_syncedProjectIds` after `project_assignments` pull + orphan cleaner guard | `ScopeType.direct` already set; real fix is pull ordering |
 | Company tab visibility | All projects visible, download restricted to assigned for inspector | Inspector can see project cards but not import unassigned |
-| RLS fix | Tighten INSERT policy now | Defense-in-depth, small migration |
+| RLS fix | Tighten INSERT + UPDATE policies, replace `is_viewer()` body with `SELECT FALSE` | Defense-in-depth; safe approach to dead function cleanup |
+| `is_viewer()` handling | Replace body with `SELECT FALSE`, do NOT drop — 70-96 policy clauses still reference it | Dropping breaks all write policies. Batch clause cleanup deferred. |
 
 ---
 
@@ -46,6 +48,8 @@ UserRole:
   canManageProjects → admin, engineer only (create, archive, delete, edit project details)
   canEditFieldData  → all roles (contractors, equipment, personnel types, locations, pay items, entries, photos, todos, forms)
 ```
+
+Remove `canEditProject` dead code getter first (BUG-012) before adding new getters to avoid accidental use during migration.
 
 ### Permission Matrix
 
@@ -68,16 +72,37 @@ UserRole:
 | Download unassigned projects | Y | Y | **N** |
 | View all company projects | Y | Y | Y |
 
-### Migration Path for 102 `canWrite` Call Sites
+### Migration Path for ~139 `canWrite` Occurrences
 
-Two categories:
+**NOTE**: Grep shows ~139 auth-related occurrences across 24 files (not 102 as originally estimated). Implementer should expect more sites than estimated. Run `flutter analyze` after each pass to catch remaining compile errors.
+
+Three categories:
 1. **Project management actions** (create, archive, edit project details) → replace with `canManageProjects` — ~15 call sites
-2. **Field data actions** (contractors, equipment, personnel types, locations, pay items, entries, photos, todos, forms) → replace with `canEditFieldData` (true for all roles) — ~87 call sites
+2. **Field data actions** (contractors, equipment, personnel types, locations, pay items, entries, photos, todos, forms) → replace with `canEditFieldData` (true for all roles) — ~87+ call sites
+3. **`BaseListProvider.canWrite` injection sites** — 10 injection sites in `main.dart:782-895` wire `() => authProvider.canWrite` into every field-data provider (`LocationProvider`, `ContractorProvider`, `PersonnelTypeProvider`, `EquipmentProvider`, `PhotoProvider`, `TodoProvider`, `DailyEntryProvider`, `BidItemProvider`, `InspectorFormProvider`, `CalculatorProvider`). Replace all with `() => authProvider.canEditFieldData`.
 
 ### Route Guards (BUG-007)
 
+**IMPORTANT**: Guards must be in the top-level GoRouter `redirect:` callback in `_buildRouter()`, not widget-level. Deep links bypass widget guards.
+
+```dart
+// In top-level redirect callback (app_router.dart)
+if (location == '/project/new') {
+  final canManage = _authProvider.userProfile?.role.canManageProjects ?? false;
+  if (!canManage) return '/projects';
+}
+```
+
 - `/project/new` → redirect if `!canManageProjects`
-- `/project/:id/edit` → allow all roles. Inspector gets full access to contractors, locations, pay items tabs. Only the Details tab (project name, dates, etc.) is gated by `canManageProjects`
+- `/project/:id/edit` → **allow all roles**. Inspector gets full access to contractors, locations, pay items tabs. Only the Details tab (project name, dates, etc.) is gated by `canManageProjects` within the screen itself.
+
+### Project Card Edit Button (BUG-008 + MF-6)
+
+**CRITICAL**: The edit pencil `IconButton` on project cards (`project_list_screen.dart:740`) is currently gated by `canWrite`. It must **NOT** be replaced with `canManageProjects` — that would block inspectors from reaching the contractor/location/pay-item tabs entirely. Replace with `canEditFieldData` (true for all roles). Inspectors need to tap into the edit screen to do their field work.
+
+### Archive Button on Project Cards (BUG-009)
+
+The archive toggle `IconButton` (`project_list_screen.dart:755-774`) must be gated by `canManageProjects`. For inspector, the button is hidden/disabled. Add `canManageProjects` check inside `toggleActive()` method as a defense-in-depth guard.
 
 ### Dashboard (BUG-011)
 
@@ -86,11 +111,14 @@ Two categories:
 
 ### `canEditProject` (BUG-012)
 
-Delete dead code getter entirely. The two new getters replace it.
+Delete dead code getter entirely before adding new getters. Currently at `auth_provider.dart:212`, never called anywhere in the codebase.
 
-### `toggleActive` (BUG-009)
+### Details Tab Read-Only for Inspector
 
-Add `canManageProjects` check inside `toggleActive()` method. Archive button gated by `canManageProjects` instead of `canWrite`.
+On `ProjectSetupScreen` Details tab, when `!canManageProjects`:
+- Form fields render read-only
+- Save button hidden
+- Show banner: "Project details are managed by admins and engineers" (not generic "View-only mode")
 
 ---
 
@@ -105,33 +133,60 @@ Current:  if (orchestrator.isSupabaseOnline) → sync
 Fixed:    await orchestrator.checkDnsReachability() → if (orchestrator.isSupabaseOnline) → sync
 ```
 
-**Global offline indicator**: Add a small connectivity status widget (dot or icon) to the app's scaffold or bottom nav bar. Reads `isSupabaseOnline` from `SyncOrchestrator` via provider. Shows when offline, disappears when online. Not intrusive — just informational.
+**Also fix these stale-flag readers**:
+- `_checkNetwork()` at `project_list_screen.dart:89-91` — must call `checkDnsReachability()` instead of just reading `isSupabaseOnline`
+- `_showRemovalDialog` at `project_list_screen.dart:509` — must refresh before gating `syncAndRemove`
 
-Also fix `_checkNetwork()` and `_showRemovalDialog` which read the stale flag without refreshing.
+**Global offline indicator**: Add to existing `ScaffoldWithNavBar` banner area at `app_router.dart:657-700`. The `banners` list already uses `Consumer2<SyncProvider, AppConfigProvider>` — add a connectivity condition here. Small dot or icon, not intrusive.
 
-### BUG-005: Fresh Inspector Deadlock
+### BUG-005 + BUG-002: Fresh Inspector Deadlock & synced_projects Race (Same Root Cause)
 
-**Change**: Set `project_assignments` adapter to `ScopeType.direct` so it always pulls regardless of `synced_projects` state.
+**NOTE**: `project_assignments` adapter is already `ScopeType.direct` (set in prior session at `project_assignment_adapter.dart:17`). The original BUG-005 diagnosis was incorrect.
 
-Flow after fix:
-1. Fresh inspector device — `synced_projects` empty
-2. `_pull()` runs → `project_assignments` pulls (direct scope, no skip)
-3. `onPullComplete` fires → auto-enrolls assigned projects into `synced_projects`
-4. Next sync cycle → `_loadSyncedProjectIds()` returns non-empty → all 15 project-scoped tables pull normally
+**Real root cause**: The orphan cleaner in `_loadSyncedProjectIds()` (`sync_engine.dart:1312-1327`) runs at the top of `_pull()` and deletes `synced_projects` entries for projects not yet in the local `projects` table. On a fresh device, this purges newly enrolled entries before the `projects` adapter has run.
+
+**Additionally**: `onPullComplete` is already awaited (`sync_engine.dart:1270`), not fire-and-forget as originally stated. The race is that `_syncedProjectIds` is loaded once at the top of `_pull()` and not reloaded after `project_assignments` enrollment.
+
+**Two fixes**:
+
+1. **Reload after assignment enrollment**: Add a `_syncedProjectIds` reload inside `_pull()` after `project_assignments` adapter completes, mirroring the existing `projects` reload at `sync_engine.dart:1068`:
+```dart
+if (adapter.tableName == 'project_assignments' && count > 0) {
+  await _loadSyncedProjectIds();
+  Logger.sync('Reloaded synced project IDs after pulling $count assignments');
+}
+```
+
+2. **Orphan cleaner guard**: In `_loadSyncedProjectIds()`, only delete orphan `synced_projects` entries if the `projects` adapter has already run in this cycle. Track with a `bool _projectsAdapterCompleted` flag reset at the start of each `_pull()` call.
+
+**Flow after fix (fresh inspector device)**:
+1. `_pull()` starts → `_loadSyncedProjectIds()` → empty, orphan cleaner skipped (projects adapter hasn't run yet)
+2. `project_assignments` adapter pulls (direct scope) → `onPullComplete` enrolls assigned projects into `synced_projects`
+3. `_loadSyncedProjectIds()` reloads → now has entries
+4. `projects` adapter pulls → project rows arrive
+5. Remaining project-scoped adapters pull normally with populated `_syncedProjectIds`
 
 ### BUG-004: No Auto-Reschedule After Retry Exhaustion
 
-**Change**: After `_syncWithRetry()` exhausts 3 attempts, schedule a delayed retry via `Future.delayed` (e.g., 60 seconds) that calls `checkDnsReachability()` and re-attempts if DNS passes. Cap at 1 background retry to avoid infinite loops. The existing `SyncLifecycleManager` app-resume path already handles longer outages.
+**Change**: After `_syncWithRetry()` exhausts 3 attempts, use a cancellable `Timer` (not `Future.delayed`) stored as `Timer? _backgroundRetryTimer` on `SyncOrchestrator`. Timer fires after 60 seconds, calls `checkDnsReachability()`, and re-attempts if DNS passes. Cap at 1 retry.
 
-Changes are already safe in `change_log` (`processed=0`, `markFailed` preserves them). This just closes the gap between "retries exhausted" and "user happens to resume app."
+**Cancellation**: Cancel the timer at the start of `syncLocalAgencyProjects()` to prevent overlap with manual refresh. This avoids the UX issue of a stale background retry firing after the user has already manually recovered.
 
-### BUG-002: synced_projects Race Conditions
+```dart
+Timer? _backgroundRetryTimer;
 
-Two fixes:
+// In _syncWithRetry() after exhaustion:
+_backgroundRetryTimer?.cancel();
+_backgroundRetryTimer = Timer(const Duration(seconds: 60), () async {
+  await checkDnsReachability();
+  if (_isOnline) await syncLocalAgencyProjects();
+});
 
-1. **`onPullComplete` ordering**: Move the auto-enrollment from a fire-and-forget async callback to an awaited step within the sync cycle itself, after `project_assignments` adapter completes but before `fetchRemoteProjects` reads `synced_projects`. This eliminates the race where `fetchRemoteProjects` reads before enrollment commits.
+// In syncLocalAgencyProjects():
+_backgroundRetryTimer?.cancel();
+```
 
-2. **Orphan cleaner guard**: In `_loadSyncedProjectIds()`, only delete orphan `synced_projects` entries if the `projects` adapter has already run in this cycle. If projects haven't been pulled yet, a "missing" project row may simply be arriving later in the same cycle.
+**Alternative considered**: Rely solely on `SyncLifecycleManager` app-resume path. Rejected because it doesn't cover the case where the user stays on-screen.
 
 ---
 
@@ -141,10 +196,10 @@ Two fixes:
 
 **Change**: In `_handleRemoveFromDevice` (project_list_screen.dart), after calling `lifecycleService.removeFromDevice()`:
 
-1. Call `projectProvider.clearSelectedProject(projectId)` — clears `_selectedProject` if it matches the removed ID (same pattern as `deleteProject` at provider line 512-514)
+1. Guard externally before clearing: `if (projectProvider.selectedProject?.id == projectId) projectProvider.clearSelectedProject()` — `clearSelectedProject()` takes no parameters (confirmed at `project_provider.dart:365`)
 2. Call `settingsProvider.clearIfMatches(projectId)` — clears persisted `last_project_<userId>` from SharedPreferences
 
-Both calls already exist in the `deleteProject` path. The fix is adding them to the `removeFromDevice` path.
+Both calls already exist in the `deleteProject` path. The fix is adding them to the `removeFromDevice` path with the correct signatures.
 
 **Dashboard guard**: Add a null/staleness check in `project_dashboard_screen.dart` — if `selectedProject` is non-null but its ID doesn't exist in `projectProvider.projects`, treat it as null and show the "no project selected" state. Belt-and-suspenders against any other path that forgets to clear.
 
@@ -174,21 +229,49 @@ The project card remains visible — inspector can see name, status, etc. Just c
 
 Add a "My Projects" filter chip to the Company tab that filters to `isAssigned == true`. Defaults to showing all.
 
-### BUG-015: RLS INSERT Policy Fix
+### BUG-015: RLS Migration
 
-**New migration**: Replace the `company_projects_insert` policy:
+**New migration** with three changes:
 
+1. **Tighten INSERT policy**:
 ```sql
-DROP POLICY "company_projects_insert" ON projects;
+DROP POLICY IF EXISTS "company_projects_insert" ON projects;
 CREATE POLICY "company_projects_insert" ON projects
   FOR INSERT TO authenticated
   WITH CHECK (
     company_id = get_my_company_id()
-    AND (is_admin() OR is_engineer())
+    AND is_admin_or_engineer()
   );
 ```
+**NOTE**: Use existing `is_admin_or_engineer()` function (from `20260319100000_create_project_assignments.sql`). Do NOT use `is_admin() OR is_engineer()` — those don't exist as separate functions.
 
-Also drop the dead `is_viewer()` function in the same migration.
+2. **Tighten UPDATE policy** (MF-3 — inspector can currently UPDATE `is_active`, `name`, `start_date`, etc.):
+```sql
+DROP POLICY IF EXISTS "company_projects_update" ON projects;
+CREATE POLICY "company_projects_update" ON projects
+  FOR UPDATE TO authenticated
+  USING (
+    company_id = get_my_company_id()
+    AND is_admin_or_engineer()
+  )
+  WITH CHECK (
+    company_id = get_my_company_id()
+    AND is_admin_or_engineer()
+  );
+```
+Inspectors should NOT be able to UPDATE the `projects` table at all. All inspector field work happens on child tables (locations, contractors, entries, etc.), not the `projects` row itself.
+
+3. **Replace `is_viewer()` body** (do NOT drop the function):
+```sql
+CREATE OR REPLACE FUNCTION is_viewer()
+RETURNS BOOLEAN AS $$
+  SELECT FALSE;
+$$ LANGUAGE sql SECURITY DEFINER STABLE;
+
+COMMENT ON FUNCTION is_viewer() IS 'DEPRECATED: Viewer role removed in 20260317. Always returns FALSE. 70+ policy clauses still reference this function. Batch cleanup deferred.';
+```
+
+**Policies on other tables** (`user_certifications`, `storage.objects`, `daily_entries`, `locations`, `contractors`, etc.) all reference `is_viewer()` with `AND NOT is_viewer()`. Since the function now explicitly returns `FALSE`, these clauses evaluate to `AND TRUE` — correct behavior (all non-viewer roles can write, and no viewers exist). These can be batch-cleaned in a future migration.
 
 ---
 
@@ -196,15 +279,19 @@ Also drop the dead `is_viewer()` function in the same migration.
 
 | Scenario | Handling |
 |----------|----------|
-| Inspector deep-links to `/project/new` | Router redirects to `/projects` |
-| Inspector on Details tab of project edit | Fields render read-only, Save button hidden |
+| Inspector deep-links to `/project/new` | Top-level GoRouter redirect sends to `/projects` |
+| Inspector on Details tab of project edit | Fields render read-only, Save hidden, banner shown |
+| Inspector taps edit pencil on project card | Allowed — opens setup screen where they can edit field data tabs |
 | Inspector taps archive on project card | Button not rendered (gated by `canManageProjects`) |
 | Network drops mid-sync, recovers 30s later | Next pull-to-refresh re-checks DNS, sync resumes |
 | Fresh inspector device, zero assignments | `project_assignments` pulls (direct scope), `onPullComplete` finds nothing to enroll, empty state shown. No deadlock. |
+| Fresh inspector device, has assignments | `project_assignments` pulls → enrollment → `_syncedProjectIds` reloaded → child tables pull in same cycle |
 | Inspector assigned to project mid-session | Next sync pulls assignment, auto-enrolls, data arrives on following cycle |
-| `removeFromDevice` on last remaining project | `_selectedProject` cleared, dashboard shows "no project selected" |
+| `removeFromDevice` on last remaining project | `_selectedProject` cleared (if matching), dashboard shows "no project selected" |
 | Inspector tries to download unassigned project | Download action disabled, tooltip explains |
-| Orphan cleaner runs before projects adapter | Guard prevents deletion — waits until projects adapter has completed |
+| Orphan cleaner runs before projects adapter | Guard prevents deletion — `_projectsAdapterCompleted` flag is false |
+| Background retry timer fires after manual refresh | Timer cancelled at start of `syncLocalAgencyProjects()` |
+| Inspector tries to UPDATE projects row via sync engine | RLS UPDATE policy blocks with `is_admin_or_engineer()` check |
 
 ---
 
@@ -214,18 +301,25 @@ Also drop the dead `is_viewer()` function in the same migration.
 |------|-----------|----------|
 | `canManageProjects` returns false for inspector | Unit | HIGH |
 | `canEditFieldData` returns true for all roles | Unit | HIGH |
-| Router redirects inspector from `/project/new` | Widget | HIGH |
+| Router redirects inspector from `/project/new` (top-level redirect) | Widget | HIGH |
 | Archive button hidden for inspector | Widget | HIGH |
+| Edit button **enabled** for inspector (reaches field data tabs) | Widget | HIGH |
 | `toggleActive` rejects inspector role | Unit | HIGH |
-| Download disabled for unassigned projects | Widget | HIGH |
+| Download disabled for unassigned projects (inspector) | Widget | HIGH |
 | `_refresh()` calls `checkDnsReachability()` | Unit | HIGH |
-| `project_assignments` pulls with empty `synced_projects` | Unit | HIGH |
+| `_syncedProjectIds` reloaded after `project_assignments` pull | Unit | HIGH |
 | `_selectedProject` cleared after removeFromDevice | Unit | MEDIUM |
 | Dashboard staleness guard | Widget | MEDIUM |
 | Tap target size >= 48dp | Widget | MEDIUM |
 | RLS INSERT policy blocks inspector | Integration (Supabase) | MEDIUM |
+| RLS UPDATE policy blocks inspector | Integration (Supabase) | MEDIUM |
 | Orphan cleaner guard respects adapter ordering | Unit | MEDIUM |
+| Background retry timer cancelled on manual sync | Unit | MEDIUM |
+| `_checkNetwork()` calls `checkDnsReachability()` | Unit | MEDIUM |
 | Offline indicator shows/hides correctly | Widget | LOW |
+| Inspector can reach contractor/location tabs from edit button | Widget | LOW |
+| `BaseListProvider` injection uses `canEditFieldData` | Unit | LOW |
+| Zero remaining `canWrite` references in `lib/` (grep check) | CI | LOW |
 
 ---
 
@@ -235,8 +329,9 @@ Also drop the dead `is_viewer()` function in the same migration.
 
 | Policy | Current | After |
 |--------|---------|-------|
-| `company_projects_insert` | `NOT is_viewer()` (always true) | `is_admin() OR is_engineer()` |
-| `is_viewer()` function | Exists, always returns false | Remove in same migration |
+| `company_projects_insert` | `NOT is_viewer()` (always true) | `is_admin_or_engineer()` |
+| `company_projects_update` | `NOT is_viewer()` + `deleted_at IS NULL` (inspector can update any field) | `is_admin_or_engineer()` |
+| `is_viewer()` function | Returns `SELECT role = 'viewer'` (always false) | Replaced with `SELECT FALSE` + deprecation comment. NOT dropped. |
 
 ### Defense-in-Depth Layers
 
@@ -245,14 +340,16 @@ Also drop the dead `is_viewer()` function in the same migration.
 | **Router redirect** | Blocks inspector from project create screen |
 | **UI gates** (`canManageProjects`) | Hides archive button, create FAB, project details Save |
 | **Provider guards** | `toggleActive()`, `deleteProject()` reject unauthorized roles |
-| **RLS policies** | Server blocks INSERT even if all client guards bypassed |
+| **RLS INSERT policy** | Server blocks project creation by inspector |
+| **RLS UPDATE policy** | Server blocks project field changes (is_active, name, dates) by inspector |
 
-### No New Attack Surfaces
+### Sync Engine Consideration (SC-5)
 
-- No new tables or columns
-- No new RLS policies beyond tightening the INSERT
-- `canEditFieldData` is true for all roles (same as current `canWrite` behavior for field data) — no regression
-- `canManageProjects` is strictly more restrictive than current state
+The sync engine `change_log` has no client-side role filter. If an inspector's local SQLite somehow contains a project UPDATE in `change_log`, the sync engine will push it to Supabase where the RLS UPDATE policy will now reject it. This is acceptable — the server-side guard is the correct enforcement point. A client-side guard in the sync engine would be a nice-to-have optimization to reduce unnecessary API calls, but is not required for security.
+
+### Remaining `is_viewer()` References
+
+~70-96 policy clauses across 8 migration files still reference `is_viewer()`. With the function body replaced to `SELECT FALSE`, all `AND NOT is_viewer()` clauses evaluate to `AND TRUE` — correct behavior. Batch cleanup of these clauses is deferred to a future migration to avoid blast radius risk.
 
 ---
 
@@ -261,23 +358,25 @@ Also drop the dead `is_viewer()` function in the same migration.
 ### Schema Migration
 
 One new Supabase migration:
-- Drop + recreate `company_projects_insert` policy with `is_admin() OR is_engineer()`
-- Drop `is_viewer()` function
+- Drop + recreate `company_projects_insert` policy with `is_admin_or_engineer()`
+- Drop + recreate `company_projects_update` policy with `is_admin_or_engineer()`
+- Replace `is_viewer()` function body with `SELECT FALSE` + deprecation comment
 
 ### Code Cleanup
 
 | Item | Action |
 |------|--------|
+| `AuthProvider.canEditProject` | Remove first (dead code, BUG-012) — before adding new getters |
 | `UserRole.canWrite` | Remove getter entirely |
 | `UserProfile.canWrite` | Remove (delegates to role) |
 | `AuthProvider.canWrite` | Remove |
-| `AuthProvider.canEditProject` | Remove (dead code, BUG-012) |
-| `is_viewer()` SQL function | Drop in migration |
-| 102 `canWrite` call sites | Replace with `canManageProjects` (~15) or `canEditFieldData` (~87) |
-| `ViewOnlyBanner` widget | Repurpose — shows when `!canManageProjects` on Details tab |
+| `BaseListProvider.canWrite` injection | Update 10 sites in `main.dart:782-895` to use `canEditFieldData` |
+| ~139 `canWrite` occurrences | Replace with `canManageProjects` (~15) or `canEditFieldData` (~87+) |
+| `ViewOnlyBanner` widget | Rewire for Details tab: "Project details are managed by admins and engineers" |
+| Post-migration grep | Verify zero remaining `canWrite` references in `lib/` |
 
 ### No Backward Compatibility Needed
 
 - `canWrite` is only used internally (not persisted, not in API responses)
-- Removing it is a compile-time break — all 102 sites must be updated before build succeeds
+- Removing it is a compile-time break — all sites must be updated before build succeeds
 - No feature flags needed — this is a bug fix, not a gradual rollout
