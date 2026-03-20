@@ -4,6 +4,12 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ---
 
+### Session 602 (2026-03-20)
+**Work**: Expanded test registry from 14 to 104 flows (96 automated + 8 manual). 4 parallel exploration agents mapped all 37 routes, 17 synced tables, 3 roles, all dialogs/forms. Organized into 13 tiers with full dependency chain.
+**Decisions**: 8 flows marked MANUAL. Separate inspector session. Sync verification tier runs after data creation tiers.
+
+---
+
 ## March 2026
 
 ### Session 600 (2026-03-19)
