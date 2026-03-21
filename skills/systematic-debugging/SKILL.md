@@ -30,12 +30,14 @@ Every fix must be preceded by understanding WHY the bug exists. Guessing wastes 
 
 **Ask the user before starting:**
 
-> "Quick mode (direct investigation, no server needed) or Deep mode (log server + background research agent)?"
+> "Quick mode (direct investigation) or Deep mode (adds background research agent for parallel analysis)?"
+>
+> Both modes launch the driver for autonomous reproduction and log collection.
 
 | Mode | Use When | Setup |
 |------|----------|-------|
-| Quick | Clear repro, no race conditions, obvious error | None |
-| Deep | Intermittent bug, state corruption, async timing, unknown origin | Start debug server, launch research agent |
+| Quick | Clear repro, no race conditions, obvious error | Driver + debug server (via start-driver.ps1) |
+| Deep | Intermittent bug, state corruption, async timing, unknown origin | Driver + debug server + research agent |
 
 **Deep mode setup** (do before Phase 1):
 1. Load reference files (see below)
@@ -47,6 +49,7 @@ Every fix must be preceded by understanding WHY the bug exists. Guessing wastes 
 - `@.claude/skills/systematic-debugging/references/codebase-tracing-paths.md`
 - `@.claude/skills/systematic-debugging/references/defects-integration.md`
 - `@.claude/skills/systematic-debugging/references/debug-session-management.md`
+- `@.claude/skills/systematic-debugging/references/driver-integration.md`
 
 ---
 
@@ -155,29 +158,78 @@ Logger.sync('SyncEngine.push', data: {'table': tableName, 'operation': op});
 
 These are KEPT after the session (they fill genuine coverage gaps).
 
-### 3.3 Rebuild app
+### 3.3 Proceed to Phase 3.5
 
-Deep mode (Android):
-```
-pwsh -Command "flutter run -d <device> --dart-define=DEBUG_SERVER=true"
+Instrumentation is complete. Phase 3.5 (LAUNCH DRIVER) will build and launch the app with the driver entrypoint and `DEBUG_SERVER=true` flag.
+
+**Do NOT manually run `flutter run` here** -- `start-driver.ps1` handles the build, launch, and readiness polling in one step.
+
+---
+
+## Phase 3.5: LAUNCH DRIVER
+
+**Goal**: Launch the app with driver and debug server, log in with test credentials.
+
+### 3.5.1 Determine platform
+
+Ask the user: "Windows or Android?" (or infer from context if already established).
+
+### 3.5.2 Launch driver environment
+
+```bash
+pwsh -File tools/start-driver.ps1 -Platform windows  # or android
 ```
 
-Windows:
-```
-pwsh -Command "flutter run -d windows --dart-define=DEBUG_SERVER=true"
+This script handles:
+- Starting the debug server (port 3947) if not already running
+- Building and launching the app with `--target=lib/main_driver.dart --dart-define=DEBUG_SERVER=true`
+- ADB reverse ports for Android (3947 + 4948)
+- Polling readiness until both servers respond
+
+### 3.5.3 Login with test credentials
+
+Read `.claude/test-credentials.secret` for the appropriate account (default: `admin` unless the bug requires `inspector`).
+
+Execute the login sequence:
+
+```bash
+curl -s -X POST http://127.0.0.1:4948/driver/tap -H "Content-Type: application/json" -d '{"key": "login_email_field"}'
+curl -s -X POST http://127.0.0.1:4948/driver/text -H "Content-Type: application/json" -d '{"key": "login_email_field", "text": "<email>"}'
+curl -s -X POST http://127.0.0.1:4948/driver/tap -H "Content-Type: application/json" -d '{"key": "login_password_field"}'
+curl -s -X POST http://127.0.0.1:4948/driver/text -H "Content-Type: application/json" -d '{"key": "login_password_field", "text": "<password>"}'
+curl -s -X POST http://127.0.0.1:4948/driver/tap -H "Content-Type: application/json" -d '{"key": "login_sign_in_button"}'
+curl -s -X POST http://127.0.0.1:4948/driver/wait -H "Content-Type: application/json" -d '{"key": "dashboard_screen", "timeoutMs": 15000}'
 ```
 
-**Do NOT use `--dart-define=DEBUG_SERVER=true` in release builds.**
+### 3.5.4 Verify readiness
+
+Confirm both servers are healthy:
+```bash
+curl -s http://127.0.0.1:3947/health           # debug server
+curl -s "http://127.0.0.1:4948/driver/find?key=dashboard_screen"  # driver + app (200 with {"exists": true})
+```
+
+### 3.5.5 Fallback
+
+If the driver is unreachable after 3 retries (5s intervals):
+1. Inform the user: "Driver server not responding. Falling back to manual reproduction."
+2. Skip to Phase 4 in manual mode (original behavior: user taps through the app)
+3. Phase 7 verification also falls back to manual
+
+**Clear logs before proceeding:**
+```bash
+curl -X POST http://127.0.0.1:3947/clear
+```
 
 ---
 
 ## Phase 4: REPRODUCE
 
-**Goal**: Get clean, reliable reproduction with logs flowing.
+**Goal**: Reproduce the bug autonomously via driver, with log evidence flowing.
 
 ### 4.1 User interview
 
-Ask the user these five questions before they reproduce:
+Ask the user these five questions to understand the bug:
 
 1. What exact steps trigger the bug?
 2. How often does it happen (always, intermittent, first-launch only)?
@@ -185,24 +237,72 @@ Ask the user these five questions before they reproduce:
 4. When did this last work correctly?
 5. What changed since it last worked (commits, data, permissions)?
 
-### 4.2 ADB health check (Android only)
+### 4.2 Write repro-steps.json
+
+Based on the user's description, write a `repro-steps.json` file to the debug session folder (`.claude/debug-sessions/`). See `driver-integration.md` for the JSON format.
+
+Map the user's natural language steps to driver actions:
+- "Tap the settings icon" -> `{"action": "tap", "key": "settings_nav_button"}`
+- "Enter my email" -> `{"action": "text", "key": "login_email_field", "text": "{{admin_email}}"}`
+- "Wait for the dashboard to load" -> `{"action": "wait", "key": "dashboard_screen", "timeoutMs": 10000}`
+- "Scroll down to the sync section" -> `{"action": "scroll-to-key", "scrollable": "settings_screen", "target": "settings_sync_tile", "maxScrolls": 10}`
+
+Use `/driver/tree?keysOnly=true` to discover the correct keys if unsure.
+
+Include assertions that map to the hypothesis markers added in Phase 3.
+
+**Post-generation credential check:** After writing `repro-steps.json`, grep the file for any values from `test-credentials.secret` (emails, passwords, UUIDs). If any raw credential values are found, replace them with the corresponding `{{placeholder}}` tokens (e.g., `{{admin_email}}`, `{{admin_password}}`). Credentials must never be hardcoded in the JSON file.
+
+### 4.3 Execute repro steps via driver
+
+Execute each step in `repro-steps.json` sequentially using curl commands:
 
 ```bash
-adb devices
-adb reverse tcp:3947 tcp:3947
+# Example: execute a tap step
+curl -s -X POST http://127.0.0.1:4948/driver/tap -H "Content-Type: application/json" -d '{"key": "settings_nav_button"}'
 ```
 
-Confirm device is listed and port forwarding is active.
+After each step, briefly check for errors:
+```bash
+curl -s "http://127.0.0.1:3947/logs?category=error&last=5"
+```
 
-### 4.3 Guide reproduction
+If a step returns 404 (widget not found): dump tree, identify correct key, update repro-steps.json, and retry.
 
-Have the user follow the exact steps. Watch for any app crash output in the terminal. Confirm log entries are flowing to the server:
+### 4.4 Check hypothesis markers
+
+After all steps execute, check each hypothesis marker:
 
 ```bash
-curl "http://127.0.0.1:3947/logs?last=5"
+curl -s "http://127.0.0.1:3947/logs?hypothesis=H001&last=100"
+curl -s "http://127.0.0.1:3947/logs?hypothesis=H002&last=100"
 ```
 
-If no entries appear: the app is not reaching the server. Check ADB forwarding, DEBUG_SERVER flag, and server status.
+Record which markers fired, with what values, and which did not fire.
+
+### 4.5 Present evidence to user
+
+Show the user:
+- Which repro steps executed successfully
+- Which hypothesis markers fired (with key data values)
+- Which markers did NOT fire (indicating the code path was not reached)
+- Any errors logged during reproduction
+
+**Credential scrubbing:** When presenting hypothesis evidence, apply Phase 9.3 scrubbing rules -- truncate UUIDs to first 8 characters, redact emails to `u***@***.com`, and redact personal names. Never display raw credential values from test-credentials.secret in output.
+
+This evidence feeds directly into Phase 5 (Evidence Analysis).
+
+### 4.6 Fallback: manual reproduction
+
+If the driver is not running (Phase 3.5 fallback was triggered) or a step fails with connection refused:
+
+1. Present the repro-steps.json to the user as a guide
+2. Ask them to manually follow the steps
+3. Monitor logs via debug server as they reproduce:
+   ```bash
+   curl "http://127.0.0.1:3947/logs?last=5"
+   ```
+4. If no log entries appear: check ADB forwarding, DEBUG_SERVER flag, and server status
 
 ---
 
@@ -301,35 +401,79 @@ User options:
 
 ## Phase 7: FIX
 
-**Goal**: Implement the approved fix and verify it resolves the bug.
+**Goal**: Implement the approved fix and verify it resolves the bug autonomously.
 
 ### 7.1 Implement fix
 
 Apply the approved changes. One change at a time.
 
-### 7.2 Clear logs
+### 7.2 Hot-restart the app
+
+Apply changes without a full rebuild:
+
+```bash
+curl -s -X POST http://127.0.0.1:4948/driver/hot-restart
+```
+
+If hot-restart fails (500 response), fall back to full relaunch:
+```bash
+pwsh -File tools/stop-driver.ps1
+pwsh -File tools/start-driver.ps1 -Platform <platform>
+```
+
+After restart, re-login using the test credentials (same procedure as Phase 3.5.3).
+
+### 7.3 Clear logs
 
 ```bash
 curl -X POST http://127.0.0.1:3947/clear
 ```
 
-### 7.3 Verify fix
+### 7.4 Re-execute repro steps
 
-Have the user reproduce the original steps. Confirm:
-- Bug no longer occurs
-- Hypothesis markers show the new correct flow
-- No new errors in error category
+Re-run the same `repro-steps.json` from Phase 4.2 via driver curl commands (same as Phase 4.3).
+
+### 7.5 Assert fix via hypothesis markers
+
+Check each assertion from `repro-steps.json`:
+
+- **`hypothesis_fired`**: The marker should now show CORRECT values (contrast with pre-fix values from Phase 4.4)
+- **`hypothesis_not_fired`**: A previously-firing marker should now be silent (if the fix prevents the bad path)
+- **`no_errors`**: Zero error-category entries since log clear
 
 ```bash
-curl "http://127.0.0.1:3947/logs?category=error&last=20"
+curl -s "http://127.0.0.1:3947/logs?hypothesis=H001&last=100"
+curl -s "http://127.0.0.1:3947/logs?category=error&last=20"
 ```
 
-### 7.4 Check for regressions
+Present a before/after comparison to the user:
+
+```
+VERIFICATION RESULTS
+
+Marker | Before Fix          | After Fix           | Status
+H001   | pendingCount=3      | pendingCount=3      | SAME (expected)
+H002   | never fired         | fired, pushed=true  | FIXED
+errors | FK constraint fail  | (none)              | FIXED
+```
+
+### 7.6 Check for regressions
 
 Run targeted tests for the affected feature:
 ```bash
 pwsh -Command "flutter test test/features/{feature}/"
 ```
+
+### 7.7 Present verification results
+
+Show the user the full before/after comparison and test results. Confirm the fix is accepted before proceeding to Phase 8.
+
+### 7.8 Fallback: manual verification
+
+If the driver is not available:
+1. Ask the user to reproduce the original steps after the fix
+2. Monitor logs via debug server
+3. Confirm the bug no longer occurs via log evidence
 
 ---
 
@@ -409,6 +553,16 @@ Mode: Quick / Deep
 
 Check `.claude/debug-sessions/` for session logs older than 30 days. List any found and ask user to confirm deletion.
 
+### 9.5 Stop driver
+
+Kill the app process (but leave the debug server running so the user can review logs):
+
+```bash
+pwsh -File tools/stop-driver.ps1
+```
+
+NOTE: Do NOT use `-IncludeDebugServer` unless the user explicitly asks. They may want to browse logs after the session.
+
 ---
 
 ## Phase 10: DEFECT LOG
@@ -477,10 +631,11 @@ These thought patterns mean you're off-track:
 | 1 TRIAGE | Clean baseline | Present findings |
 | 2 COVERAGE CHECK | Map Logger coverage | Present coverage map |
 | 3 INSTRUMENT GAPS | Add hypothesis markers | Auth restriction enforced |
-| 4 REPRODUCE | Get clean repro | User confirms repro |
+| 3.5 LAUNCH DRIVER | Start app + driver, login | Driver ready or manual fallback |
+| 4 REPRODUCE | Autonomous repro via driver | Evidence presented to user |
 | 5 EVIDENCE ANALYSIS | Read log data | Identify failure point |
-| 6 ROOT CAUSE REPORT | Present findings | USER GATE — wait for approval |
-| 7 FIX | Implement approved fix | Verify + regression check |
+| 6 ROOT CAUSE REPORT | Present findings | USER GATE -- wait for approval |
+| 7 FIX | Implement fix, hot-restart, re-verify | Before/after comparison shown |
 | 8 INSTRUMENTATION REVIEW | Keep vs remove decision | User confirms keeps |
-| 9 CLEANUP | Remove ALL hypothesis() | Global search must return zero |
-| 10 DEFECT LOG | Record new patterns | — |
+| 9 CLEANUP | Remove markers, stop driver | Global search must return zero |
+| 10 DEFECT LOG | Record new patterns | -- |

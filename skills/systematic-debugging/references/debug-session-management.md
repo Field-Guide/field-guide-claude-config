@@ -54,6 +54,39 @@ curl http://127.0.0.1:3947/health
 # Expected: {"status":"ok","entries":0,"maxEntries":30000,"memoryMB":N,"uptimeSeconds":N}
 ```
 
+### Driver server (autonomous reproduction)
+
+The driver server (port 4948) enables Claude to tap widgets, enter text, and navigate the app without user intervention. It is started automatically by `start-driver.ps1`.
+
+**Launch both servers + app in one command:**
+```bash
+pwsh -File tools/start-driver.ps1 -Platform windows   # or android
+```
+
+This script:
+1. Starts the debug server (port 3947) if not already running
+2. Launches the app with `--target=lib/main_driver.dart --dart-define=DEBUG_SERVER=true`
+3. Sets up ADB reverse ports for Android (both 3947 and 4948)
+4. Polls readiness until both servers respond
+
+**Verify driver is running:**
+```bash
+curl -s "http://127.0.0.1:4948/driver/ready"
+# 200 with {"ready": true, "screen": "/current-route"} means driver is up
+```
+
+**Stop the app (keeps debug server):**
+```bash
+pwsh -File tools/stop-driver.ps1
+```
+
+**Stop everything (app + debug server):**
+```bash
+pwsh -File tools/stop-driver.ps1 -IncludeDebugServer
+```
+
+See `driver-integration.md` for full API reference, login procedures, and repro-steps JSON format.
+
 ---
 
 ## Session Lifecycle
@@ -61,7 +94,7 @@ curl http://127.0.0.1:3947/health
 ```
 START
   └─> Choose mode (Quick / Deep)
-  └─> If Deep: start server, launch research agent
+  └─> If Deep: launch research agent
   └─> POST /clear to reset log buffer
 
 TRIAGE (Phase 1)
@@ -75,9 +108,19 @@ INSTRUMENT (Phase 3)
   └─> Add hypothesis markers H001, H002...
   └─> Fill permanent gaps
 
+LAUNCH DRIVER (Phase 3.5)
+  └─> pwsh -File tools/start-driver.ps1 (starts debug server + app + driver)
+  └─> Poll readiness (script handles this)
+  └─> Login via test credentials from .claude/test-credentials.secret
+  └─> Fallback: if driver unreachable after 3 retries, switch to manual
+
 REPRODUCE (Phase 4)
-  └─> Interview user
-  └─> Guide reproduction steps
+  └─> Interview user (5 questions)
+  └─> Write repro-steps.json from user description
+  └─> Execute repro steps via driver HTTP calls
+  └─> Check hypothesis markers on debug server
+  └─> Present evidence to user
+  └─> Fallback: manual guidance if driver unavailable
 
 ANALYZE (Phase 5)
   └─> curl logs with hypothesis + category filters
@@ -89,13 +132,18 @@ ROOT CAUSE REPORT (Phase 6)
 
 FIX (Phase 7)
   └─> Implement approved fix
-  └─> POST /clear, re-verify
+  └─> Hot-restart via POST /driver/hot-restart
+  └─> POST /clear, re-execute repro-steps.json
+  └─> Assert hypothesis markers show correct behavior
+  └─> Run flutter test for regressions
+  └─> Fallback: full relaunch if hot-restart fails
 
 CLEANUP (Phase 9)
   └─> Remove ALL hypothesis() markers
   └─> Global search — must return zero
   └─> Write session log
   └─> Prune 30-day retention
+  └─> Stop driver: pwsh -File tools/stop-driver.ps1
 
 DEFECT LOG (Phase 10)
   └─> Record new patterns to defect file
@@ -204,3 +252,15 @@ Wait for explicit confirmation before deleting. Do NOT auto-delete.
 | `curl http://127.0.0.1:3947/categories` | List active categories |
 | `curl -X POST http://127.0.0.1:3947/clear` | Clear buffer |
 | `adb reverse tcp:3947 tcp:3947` | Android port forwarding |
+
+### Driver Server
+
+See `driver-integration.md` for the full driver API reference, login procedures, and repro-steps JSON format.
+
+**Launch/stop commands:**
+
+| Command | Purpose |
+|---------|---------|
+| `pwsh -File tools/start-driver.ps1 -Platform windows` | Start driver environment |
+| `pwsh -File tools/stop-driver.ps1` | Stop app (keep debug server) |
+| `pwsh -File tools/stop-driver.ps1 -IncludeDebugServer` | Stop app + debug server |
