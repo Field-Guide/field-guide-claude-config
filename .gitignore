@@ -4,3 +4,4 @@ test-results/*/*.xml
 test-results/*/*.log
 state/implement-checkpoint.json
 debug-sessions/
+*.secret

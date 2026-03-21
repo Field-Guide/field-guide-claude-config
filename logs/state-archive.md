@@ -4,6 +4,16 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ---
 
+### Session 615 (2026-03-21)
+**Work**: Deep debug of remaining E2E failures. 4 parallel investigation agents + 7 hypothesis markers verified via debug server on admin + inspector accounts. Discovered security bug (entry ownership). 3 opus-level fix maps. Debug session MD written.
+**Decisions**: SQLite data must NOT be wiped on sign-out. In-memory provider cache IS safe to clear. Inspector = own entries only.
+**Next**: Systematic debug implementation of 5 fixes. Verify. Remove markers. Commit.
+
+### Session 613 (2026-03-21)
+**Work**: Deep debug of sync delete-conflict chain. 3 research agents + 1 background debug agent. 5 hypothesis markers instrumented. Root cause confirmed live.
+**Decisions**: Fix A (writeback) approved. Fix B (result tracking) approved.
+**Next**: Resume systematic-debugging Phase 7. Implement fixes. Verify. Cleanup markers. PR.
+
 ### Session 605 (2026-03-20)
 **Work**: Full writing-plans pipeline: CodeMunch dependency graph (22 files), opus plan-writer, parallel adversarial review (code-review REJECT + security APPROVE w/ conditions). Fixed 3 CRITICAL + 6 HIGH + 4 MEDIUM findings in plan v2. 15 path corrections.
 **Decisions**: Error reset targets change_log (not entity tables). Bug 10 trusts RLS (no .like filter). RPC allowlist required. Eager checkConfig on login.

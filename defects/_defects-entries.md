@@ -35,4 +35,11 @@ Archive: .claude/logs/defects-archive.md
 **Screenshot**: `.claude/test-results/2026-03-03-1834-run/screenshots/wave3_submit_step6_review_screen.png`
 **Ref**: `entry_review_screen.dart:241` (`_canMarkReady` checks `getMissingFields()`)
 
+### [DATA] 2026-03-21: Todo hard-delete bypasses soft-delete infrastructure
+**Pattern**: `TodoItemLocalDatasource.deleteTodo()` called `database.delete()` directly instead of inheriting `GenericLocalDatasource.delete()→softDelete()`. Deleted todos vanished permanently, never appearing in Trash.
+**Prevention**: Custom delete methods in datasource subclasses must call `softDelete()` or `super.delete()`, never raw `database.delete()`. Grep for `database.delete(` in datasource files during reviews.
+**Ref**: `lib/features/todos/data/datasources/local/todo_item_local_datasource.dart:136-161`
+
+<!-- RESOLVED 2026-03-21 S619: [SECURITY] Inspectors can edit other users' entries — Fixed: canEditEntry() now denies ALL non-creators. Null createdByUserId = read-only. Ref: auth_provider.dart:192-196 -->
+
 <!-- Add defects above this line -->
