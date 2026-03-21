@@ -51,7 +51,7 @@
 | T17 | Add Contractor to Entry | entry_contractors | tap(entry_card) → tap(contractors_section_add) → tap(select_contractor_prime) → tap(contractor_entry_save) | -Table entry_contractors -CountOnly | sync,db | UNTESTED | - | Depends: T08,T15 |
 | T18 | Add Personnel Count | entry_personnel_counts | tap(personnel_add) → text(personnel_count,"5") → tap(personnel_save) | -Table entry_personnel_counts -CountOnly | sync,db | UNTESTED | - | Depends: T17 |
 | T19 | Add Equipment Usage | entry_equipment | tap(equipment_usage_add) → tap(select_equipment_excavator) → tap(equipment_usage_save) | -Table entry_equipment -CountOnly | sync,db | UNTESTED | - | Depends: T10,T15 |
-| T20 | Log Quantity | entry_quantities | tap(quantities_section_add) → tap(select_bid_item) → text(quantity_value,"10.5") → text(quantity_notes,"E2E qty note") → tap(quantity_save) | -Table entry_quantities -CountOnly | sync,db | UNTESTED | - | Depends: T11,T15 |
+| T20 | Log Quantity | entry_quantities | tap(quantities_section_add) → tap(select_bid_item) → text(quantity_value,"10.5") → text(quantity_notes,"E2E qty note") → tap(quantity_save) | -Table entry_quantities -CountOnly | sync,db | PASS | 2026-03-21 | Bid item autocomplete keys working |
 | T21 | Use Quantity Calculator (HMA) | entry_quantities | tap(quantities_section_add) → tap(calculator_launch) → text(calc_width,"20") → text(calc_length,"100") → text(calc_depth,"4") → text(calc_density,"145") → tap(calculate_btn) → tap(use_result) | -Table entry_quantities -CountOnly | sync,db | UNTESTED | - | Depends: T11,T15 |
 | T22 | Attach Photo (inject-photo) | photos | tap(photos_section_add) → inject-photo(test.jpg) → text(photo_caption,"E2E test photo") → tap(photo_save) → wait(photo_thumbnail) | -Table photos -CountOnly | sync,photo | UNTESTED | - | Depends: T15 |
 | T23 | Attach Second Photo | photos | tap(photos_section_add) → inject-photo(test2.jpg) → text(photo_caption,"E2E photo 2") → tap(photo_save) → wait(photo_thumbnail) | -Table photos -Filter "project_id=eq.{projectId}" | sync,photo | UNTESTED | - | Depends: T15; needed for gallery tests |
@@ -62,8 +62,8 @@
 
 | ID | Flow | Table(s) | Driver Steps | Verify-Sync | Verify-Logs | Status | Last Run | Notes |
 |----|------|----------|--------------|-------------|-------------|--------|----------|-------|
-| T24 | Edit Entry Inline (Location) | daily_entries | tap(entry_card) → tap(location_chip) → tap(location_select_b) → wait(location_updated) | -Table daily_entries -Filter "id=eq.{entryId}" | sync,db | UNTESTED | - | Depends: T07,T15; changes location A→B |
-| T25 | Edit Entry Inline (Weather) | daily_entries | tap(entry_card) → tap(weather_chip) → tap(weather_cloudy) → wait(weather_updated) | -Table daily_entries -Filter "id=eq.{entryId}" | sync,db | UNTESTED | - | Depends: T15 |
+| T24 | Edit Entry Inline (Location) | daily_entries | tap(entry_card) → tap(location_chip) → tap(location_select_b) → wait(location_updated) | -Table daily_entries -Filter "id=eq.{entryId}" | sync,db | PASS | 2026-03-21 | Location dropdown keys working |
+| T25 | Edit Entry Inline (Weather) | daily_entries | tap(entry_card) → tap(weather_chip) → tap(weather_cloudy) → wait(weather_updated) | -Table daily_entries -Filter "id=eq.{entryId}" | sync,db | PASS | 2026-03-21 | Weather dropdown keys working |
 | T26 | Create Second Entry (Day 2) | daily_entries | tap(calendar_nav) → tap(calendar_next_day) → tap(add_entry_fab) → tap(location_dropdown) → tap(location_select_a) → text(activities,"Day 2 activities") → tap(save_draft) | -Table daily_entries -Filter "project_id=eq.{projectId}" | sync,db | UNTESTED | - | Depends: T06; creates entry on different date |
 | T27 | Review Drafts → Mark Ready | daily_entries | tap(dashboard_nav) → tap(review_drafts_card) → tap(select_all) → tap(review_selected) → tap(mark_ready) → tap(mark_ready) → wait(review_summary) | -Table daily_entries -Filter "status=eq.draft" | sync,db | UNTESTED | - | Depends: T15,T26 |
 | T28 | Submit Entries (Batch) | daily_entries | tap(submit_entries_btn) → tap(submit_confirm) → wait(dashboard_screen) | -Table daily_entries -Filter "status=eq.submitted" | sync,db | UNTESTED | - | Depends: T27 |
@@ -82,7 +82,7 @@
 | T34 | Delete Todo | todo_items | tap(todo_delete_icon) → tap(delete_confirm) | -Table todo_items -Filter "deleted_at=not.is.null" | sync,db | UNTESTED | - | Depends: T31 |
 | T35 | Create Form Response (0582B) | form_responses | tap(toolbox_nav) → tap(forms_tile) → tap(new_0582b_btn) → wait(mdot_hub_screen) | -Table form_responses -CountOnly | sync,db | UNTESTED | - | Depends: T05 |
 | T36 | Fill Form Fields | form_responses | text(form_structure_name,"E2E Structure") → text(form_test_density,"128.5") → text(form_test_moisture,"6.2") → tap(form_save) | -Table form_responses -Filter "id=eq.{responseId}" | sync,db | UNTESTED | - | Depends: T35 |
-| T37 | Submit Form | form_responses | tap(form_submit_btn) → tap(submit_confirm) → wait(form_submitted_status) | -Table form_responses -Filter "status=eq.submitted" | sync,db | UNTESTED | - | Depends: T36 |
+| T37 | Submit Form | form_responses | tap(form_submit_btn) → tap(submit_confirm) → wait(form_submitted_status) | -Table form_responses -Filter "status=eq.submitted" | sync,db | MANUAL | - | Section-by-section submit, no global submit button |
 | T38 | Calculator — HMA | calculation_history | tap(toolbox_nav) → tap(calculator_tile) → tap(hma_tab) → text(calc_width,"20") → text(calc_length,"100") → text(calc_depth,"4") → text(calc_density,"145") → tap(calculate_btn) → wait(result_card) → screenshot | -Table calculation_history -CountOnly | db | UNTESTED | - | Depends: T01 |
 | T39 | Calculator — Concrete | calculation_history | tap(concrete_tab) → text(calc_width,"10") → text(calc_length,"50") → text(calc_depth,"6") → tap(calculate_btn) → wait(result_card) → screenshot | -Table calculation_history -CountOnly | db | UNTESTED | - | Depends: T01 |
 | T40 | Gallery — Browse & Filter | N/A | tap(toolbox_nav) → tap(gallery_tile) → wait(gallery_grid) → tap(filter_btn) → tap(filter_today) → wait(gallery_filtered) → tap(clear_filters) → screenshot | N/A | nav | UNTESTED | - | Depends: T22; needs photos to exist |
@@ -99,10 +99,10 @@
 
 | ID | Flow | Table(s) | Driver Steps | Verify-Sync | Verify-Logs | Status | Last Run | Notes |
 |----|------|----------|--------------|-------------|-------------|--------|----------|-------|
-| T44 | Edit Profile | user_profiles | tap(settings_nav) → tap(edit_profile_tile) → text(display_name,"E2E Test Admin") → text(cert_number,"CERT-001") → text(phone,"5551234567") → text(initials,"ETA") → tap(save_profile) | -Table user_profiles -Filter "id=eq.{userId}" | sync,db | UNTESTED | - | Depends: T01 |
+| T44 | Edit Profile | user_profiles | tap(settings_nav) → tap(edit_profile_tile) → text(display_name,"E2E Test Admin") → text(cert_number,"CERT-001") → text(phone,"5551234567") → text(initials,"ETA") → tap(save_profile) | -Table user_profiles -Filter "id=eq.{userId}" | sync,db | PASS | 2026-03-21 | Profile name field + save button accessible |
 | T45 | Change Theme | N/A | tap(settings_nav) → tap(theme_toggle) → screenshot → tap(theme_toggle) → screenshot | N/A | ui | UNTESTED | - | Depends: T01; visual verification via screenshot |
-| T46 | Edit Gauge Number | N/A (local pref) | tap(settings_nav) → tap(gauge_number_tile) → text(gauge_number_field,"12345") → tap(gauge_save) → screenshot | N/A | db | UNTESTED | - | Depends: T01 |
-| T47 | Edit Initials | N/A (local pref) | tap(settings_nav) → tap(initials_tile) → text(initials_field,"TST") → tap(initials_save) → screenshot | N/A | db | UNTESTED | - | Depends: T01 |
+| T46 | Edit Gauge Number | N/A (local pref) | tap(settings_nav) → tap(gauge_number_tile) → text(gauge_number_field,"12345") → tap(gauge_save) → screenshot | N/A | db | PASS | 2026-03-21 | Dialog keys accessible on fresh launch |
+| T47 | Edit Initials | N/A (local pref) | tap(settings_nav) → tap(initials_tile) → text(initials_field,"TST") → tap(initials_save) → screenshot | N/A | db | PASS | 2026-03-21 | Dialog keys accessible on fresh launch |
 | T48 | Toggle Auto-Load Last Project | N/A (local pref) | tap(settings_nav) → tap(auto_load_toggle) → screenshot | N/A | ui | UNTESTED | - | Depends: T01 |
 | T49 | View Sync Dashboard | N/A | tap(settings_nav) → tap(sync_dashboard_tile) → wait(sync_dashboard_screen) → screenshot | N/A | sync | UNTESTED | - | Depends: T01 |
 | T50 | Trigger Manual Sync | sync_metadata | tap(sync_now_btn) → wait(sync_complete) → screenshot | N/A | sync | UNTESTED | - | Depends: T49 |
@@ -118,8 +118,8 @@
 | T53 | Open Admin Dashboard | N/A | tap(settings_nav) → tap(admin_dashboard_tile) → wait(admin_dashboard_screen) → screenshot | N/A | nav | UNTESTED | - | Depends: T01 (admin) |
 | T54 | View Team Members | user_profiles | tap(team_member_card) → wait(member_detail_sheet) → screenshot | N/A | db | UNTESTED | - | Depends: T53 |
 | T55 | Change Member Role | user_profiles | tap(team_member_card) → tap(role_dropdown) → tap(role_engineer) → tap(role_save_confirm) → screenshot | -Table user_profiles -Filter "id=eq.{memberId}" | sync,db | UNTESTED | - | Depends: T53; changes inspector→engineer |
-| T56 | Approve Join Request | company_join_requests | tap(pending_request_card) → tap(approve_role_inspector) → tap(approve_confirm) → screenshot | -Table user_profiles -Filter "status=eq.approved" | sync,auth | MANUAL | - | Requires a pending join request to exist |
-| T57 | Reject Join Request | company_join_requests | tap(pending_request_card) → tap(reject_btn) → tap(reject_confirm) → screenshot | -Table company_join_requests -Filter "status=eq.rejected" | sync,auth | MANUAL | - | Requires a pending join request |
+| T56 | Approve Join Request | company_join_requests | tap(pending_request_card) → tap(approve_role_inspector) → tap(approve_confirm) → screenshot | -Table user_profiles -Filter "status=eq.approved" | sync,auth | MANUAL | - | Requires a pending join request + second account |
+| T57 | Reject Join Request | company_join_requests | tap(pending_request_card) → tap(reject_btn) → tap(reject_confirm) → screenshot | -Table company_join_requests -Filter "status=eq.rejected" | sync,auth | MANUAL | - | Requires a pending join request + second account |
 | T58 | Archive Project | projects | tap(projects_nav) → tap(archive_btn) → wait(project_archived) → tap(archived_tab) → screenshot | -Table projects -Filter "is_active=eq.false" | sync,db | UNTESTED | - | Depends: T05 |
 
 ## Tier 8: Edit & Update Mutations (T59-T67)
@@ -192,8 +192,8 @@
 | T92 | Dashboard → Entries List | N/A | tap(dashboard_nav) → tap(entries_stat_card) → wait(entries_list_screen) → screenshot | N/A | nav | UNTESTED | - | Depends: T15 |
 | T93 | Dashboard → Quantities | N/A | tap(dashboard_nav) → tap(payitems_stat_card) → wait(quantities_screen) → screenshot | N/A | nav | UNTESTED | - | Depends: T11 |
 | T94 | Dashboard → Toolbox | N/A | tap(dashboard_nav) → tap(toolbox_stat_card) → wait(toolbox_screen) → screenshot | N/A | nav | UNTESTED | - | Depends: T01 |
-| T95 | Quantities → Bid Item Detail | N/A | tap(quantities_screen) → tap(bid_item_card) → wait(bid_item_detail_sheet) → screenshot | N/A | nav | UNTESTED | - | Depends: T11 |
-| T96 | Gallery → Photo Viewer | N/A | tap(toolbox_nav) → tap(gallery_tile) → tap(photo_thumbnail) → wait(photo_viewer) → screenshot | N/A | nav | UNTESTED | - | Depends: T22 |
+| T95 | Quantities → Bid Item Detail | N/A | tap(quantities_screen) → tap(bid_item_card) → wait(bid_item_detail_sheet) → screenshot | N/A | nav | PASS | 2026-03-21 | BUG-17 fix verified — 2 pay items after re-login |
+| T96 | Gallery → Photo Viewer | N/A | tap(toolbox_nav) → tap(gallery_tile) → tap(photo_thumbnail) → wait(photo_viewer) → screenshot | N/A | nav | PASS | 2026-03-21 | BUG-17 fix verified — 2 photos in gallery after re-login |
 
 ## Manual-Only Flows (M01-M08)
 
@@ -209,6 +209,9 @@
 | M06 | Offline Entry → Reconnect Sync | Requires ADB airplane mode toggle | Check entry synced after reconnect | MANUAL | - | Full: airplane on → create entry → airplane off → sync |
 | M07 | Download Remote Project | Requires remote-only project | Check synced_projects locally | MANUAL | - | Full: company tab → tap remote → download → verify |
 | M08 | Deactivate/Reactivate Member | Requires second active member | Check user_profiles status | MANUAL | - | Admin: member sheet → deactivate → reactivate |
+| M09 | Submit Form (Section-by-Section) | 0582B uses proctor/test section sends, no global submit | Check form_responses status | MANUAL | - | Was T37 — no single submit button to automate |
+| M10 | Approve Join Request | Requires pending join request from second account | Check user_profiles approval | MANUAL | - | Was T56 — no pending requests exist for automation |
+| M11 | Reject Join Request | Requires pending join request from second account | Check company_join_requests rejection | MANUAL | - | Was T57 — no pending requests exist for automation |
 
 ---
 
@@ -229,8 +232,8 @@
 | Tier 10 | T78-T84 | 7 | Sync Verification |
 | Tier 11 | T85-T91 | 7 | Role & Permission Verification |
 | Tier 12 | T92-T96 | 5 | Navigation & Dashboard |
-| Manual | M01-M08 | 8 | Manual-Only Flows |
-| **Total** | | **104** | **96 automated + 8 manual** |
+| Manual | M01-M11 | 11 | Manual-Only Flows |
+| **Total** | | **104** | **93 automated + 11 manual** |
 
 ## Dependency Chain (Execution Order)
 
