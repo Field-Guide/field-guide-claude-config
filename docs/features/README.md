@@ -1,6 +1,6 @@
 # Feature Documentation
 
-This folder contains overviews and architecture documentation for all 13 features of the Construction Inspector App.
+This folder contains overviews and architecture documentation for all 17 features of the Construction Inspector App.
 
 ## Structure
 

@@ -46,11 +46,12 @@ The duplicate-check query in `ProjectRepository.create()` uses `project.companyI
 **Prevention**: After the initial `loadProjectsByCompany(initialCompanyId)` call, add an `authProvider.addListener` that re-runs `loadProjectsByCompany(newCompanyId)` when `companyId` changes from null to a real value. Use a closure-captured `lastLoadedCompanyId` variable to avoid redundant reloads on unrelated auth events.
 **Fix**: `lib/main.dart` — `loadAndRestore` helper + `onAuthChanged` listener in `ProjectProvider.create` block.
 
-### [DATA] 2026-03-03: PRAGMA foreign_keys never enabled — ON DELETE CASCADE is dead code
+<!-- RESOLVED: PRAGMA foreign_keys now enabled — fixed, PRAGMA foreign_keys=ON added to onConfigure callback in database_service.dart:61, CASCADE deletes now fire -->
+<!-- ### [DATA] 2026-03-03: PRAGMA foreign_keys never enabled — ON DELETE CASCADE is dead code
 **Pattern**: All schema tables define `FOREIGN KEY ... ON DELETE CASCADE` (e.g. `daily_entries → projects`, `bid_items → projects`), but `PRAGMA foreign_keys = ON` is never set in `database_service.dart`. SQLite requires this pragma to enforce FKs. As a result, deleting a project via `ProjectRepository.delete()` leaves ALL child rows (bid_items, daily_entries, locations, contractors, entry_quantities, etc.) as orphaned records. The project row is deleted but child data leaks indefinitely.
 **Prevention**: Add `PRAGMA foreign_keys = ON` in the `onConfigure` callback (already used for WAL mode). Since it must be set on every connection, `onConfigure` is the correct location.
 **Fix**: In `database_service.dart:57` `onConfigure` block, add `await db.rawQuery('PRAGMA foreign_keys=ON')` alongside the WAL pragma.
-**Ref**: @lib/core/database/database_service.dart:56-62, @lib/features/projects/data/datasources/local/project_local_datasource.dart:112
+**Ref**: @lib/core/database/database_service.dart:56-62, @lib/features/projects/data/datasources/local/project_local_datasource.dart:112 -->
 
 ### [SYNC] 2026-03-03: SQLite missing UNIQUE constraint on project_number — sync race condition
 **Status**: OPEN — BLOCKER-24

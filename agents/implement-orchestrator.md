@@ -86,7 +86,7 @@ When you need to run `flutter analyze`, `flutter test`, or `flutter build`, disp
 
 ### Checkpoint-Writer Agent (updates checkpoint JSON)
 
-- `subagent_type: general-purpose`, `model: haiku`
+- `subagent_type: general-purpose`, `model: sonnet`
 - Prompt: "Read `<checkpoint path>`, then apply these updates: [describe changes]. Write the updated JSON back to `<checkpoint path>`."
 - Use this for ALL checkpoint updates. You cannot write files yourself.
 - **NOTE**: Implementer agents also update the checkpoint directly per-substep. The checkpoint-writer is used for phase-level finalization (Step 5) and review results.
@@ -184,7 +184,7 @@ If findings -> dispatch fixer -> dispatch build-runner -> re-dispatch both revie
 
 ### Step 5: Dispatch Checkpoint-Writer (final phase checkpoint)
 
-Dispatch a checkpoint-writer agent (haiku) with:
+Dispatch a checkpoint-writer agent (sonnet) with:
 - Path: `<checkpoint path>`
 - Instructions: "Read the checkpoint. Set phase [N] status to 'done'. Verify all substeps are marked 'done' in phases[N].substeps. Set its reviews to: completeness={status:'pass', ...}, code_review={status:'pass', ...}, security={status:'pass', ...}. Add these files to modified_files: [list]. Write the updated JSON."
 

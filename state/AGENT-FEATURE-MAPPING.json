@@ -231,7 +231,7 @@
 
   "findings": {
     "gaps": [
-      "9 of 13 features (contractors, dashboard, entries, locations, photos, projects, quantities, settings, toolbox, weather) have no dedicated specialist -- they share frontend-flutter-specialist-agent and backend-data-layer-agent as their primary agents split by layer.",
+      "9 of 17 features (contractors, dashboard, entries, locations, photos, projects, quantities, settings, toolbox, weather) have no dedicated specialist -- they share frontend-flutter-specialist-agent and backend-data-layer-agent as their primary agents split by layer.",
       "The 'dashboard' feature has no data_agent supporting entry in the routing rules; it aggregates from multiple features, which could create ambiguity about who owns cross-feature queries.",
       "No agent explicitly owns lib/core/ (router, theme, config) outside of database. Core infrastructure changes have no dedicated owner.",
       "No agent explicitly owns lib/services/ (cross-cutting services like photo_service, image_service, permission_service).",

@@ -191,7 +191,7 @@ cd android
 
 ### Flutter Analyze
 ```bash
-flutter analyze
+pwsh -Command "flutter analyze"
 # 18 issues found (pre-existing, not related to platform changes)
 # No new errors introduced
 ```
@@ -228,12 +228,12 @@ flutter analyze
 
 1. **Test Execution**: Run full Patrol test suite to validate improvements
    ```bash
-   flutter test integration_test/
+   pwsh -Command "flutter test integration_test/"
    ```
 
 2. **Memory Monitoring**: Monitor heap usage during tests
    ```bash
-   flutter test integration_test/ --verbose
+   pwsh -Command "flutter test integration_test/ --verbose"
    ```
 
 3. **CI/CD**: Update CI pipeline to use new SDK versions

@@ -83,40 +83,40 @@ You are a Supabase and PostgreSQL expert with deep knowledge of cloud database a
 
 ```bash
 # Login to Supabase
-pwsh -Command "supabase login"
+pwsh -Command "npx supabase login"
 
 # Link to existing project
-pwsh -Command "supabase link --project-ref vsqvkxvvmnnhdajtgblj"
+pwsh -Command "npx supabase link --project-ref vsqvkxvvmnnhdajtgblj"
 
 # Check project status
-pwsh -Command "supabase status"
+pwsh -Command "npx supabase status"
 
 # List all migrations
-pwsh -Command "supabase migration list"
+pwsh -Command "npx supabase migration list"
 
 # Create new migration
-pwsh -Command "supabase migration new <migration_name>"
+pwsh -Command "npx supabase migration new <migration_name>"
 
 # Apply migrations to remote
-pwsh -Command "supabase db push"
+pwsh -Command "npx supabase db push"
 
 # Pull schema from remote
-pwsh -Command "supabase db pull"
+pwsh -Command "npx supabase db pull"
 
 # Generate TypeScript types
-pwsh -Command "supabase gen types typescript --project-id vsqvkxvvmnnhdajtgblj"
+pwsh -Command "npx supabase gen types typescript --project-id vsqvkxvvmnnhdajtgblj"
 
 # Reset local database
-pwsh -Command "supabase db reset"
+pwsh -Command "npx supabase db reset"
 
 # View database diff
-pwsh -Command "supabase db diff"
+pwsh -Command "npx supabase db diff"
 
 # Start local Supabase (for development)
-pwsh -Command "supabase start"
+pwsh -Command "npx supabase start"
 
 # Stop local Supabase
-pwsh -Command "supabase stop"
+pwsh -Command "npx supabase stop"
 ```
 
 ## Common Tasks
@@ -158,13 +158,13 @@ Configure buckets, policies, file organization, cleanup orphaned files.
 
 ```bash
 # View Supabase logs
-pwsh -Command "supabase logs --project-ref vsqvkxvvmnnhdajtgblj"
+pwsh -Command "npx supabase logs --project-ref vsqvkxvvmnnhdajtgblj"
 
 # Check database connection
-pwsh -Command "supabase db lint"
+pwsh -Command "npx supabase db lint"
 
 # Verify schema
-pwsh -Command "supabase db diff --schema public"
+pwsh -Command "npx supabase db diff --schema public"
 ```
 
 ## Testing

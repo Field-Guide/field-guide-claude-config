@@ -6,7 +6,7 @@
 | plans/ | Implementation plans (active in root, completed in completed/) |
 | prds/ | Product Requirements Documents |
 | specs/ | Design specifications from brainstorming skill |
-| agents/ | Agent definitions (9 agents, all at root level) |
+| agents/ | Agent definitions (10 agents, all at root level) |
 | skills/ | Skill definitions loaded on-demand |
 | rules/ | Domain rules with `paths:` frontmatter for lazy loading |
 | docs/ | Feature overviews + architecture docs (lazy-loaded by agents) |

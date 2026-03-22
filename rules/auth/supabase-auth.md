@@ -149,16 +149,16 @@ String _parseAuthError(String message) {
 
 ## Logging
 ```dart
-debugPrint('AUTH: User signed in: ${user?.email}');
+Logger.auth('AUTH: User signed in: ${user?.email}');
 // NEVER log passwords or tokens
 ```
 
 ## Debugging
 ```dart
 // Check current session
-debugPrint('Session: ${Supabase.instance.client.auth.currentSession}');
+Logger.auth('Session: ${Supabase.instance.client.auth.currentSession}');
 // Check user
-debugPrint('User: ${Supabase.instance.client.auth.currentUser?.email}');
+Logger.auth('User: ${Supabase.instance.client.auth.currentUser?.email}');
 ```
 
 ## Pull Request Template

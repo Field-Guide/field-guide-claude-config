@@ -9,10 +9,10 @@ paths:
 
 ## Common Commands
 ```bash
-flutter run -d windows          # Run on Windows
-flutter run                     # Run on connected device
-flutter analyze                 # Check for issues
-flutter test                    # Test all
+pwsh -Command "flutter run -d windows"          # Run on Windows
+pwsh -Command "flutter run"                     # Run on connected device
+pwsh -Command "flutter analyze"                 # Check for issues
+pwsh -Command "flutter test"                    # Test all
 ```
 
 ## Code Style
@@ -104,7 +104,7 @@ try {
 
 ## Logging
 ```dart
-debugPrint('INFO: $message');  // Development only
+Logger.ui('INFO: $message');  // Development only
 ```
 
 ## Pull Request Template

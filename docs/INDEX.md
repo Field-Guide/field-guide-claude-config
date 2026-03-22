@@ -11,7 +11,7 @@ The `.claude/docs/` folder is now organized into two main sections:
 
 ### 📁 `features/` - Feature Documentation (26 files)
 
-Complete documentation for all 13 features. Each feature has:
+Complete documentation for all 17 features. Each feature has:
 - **`feature-{name}-overview.md`** - Quick reference (purpose, capabilities, data model, sync strategy)
 - **`feature-{name}-architecture.md`** - Technical deep-dive (patterns, implementation details)
 
@@ -108,7 +108,7 @@ specialization:
 
 ## Related Resources
 
-- [PRDs](../prds/) - Product requirement documents (13 features)
+- [PRDs](../prds/) - Product requirement documents (17 features)
 - [Architecture Decisions](../architecture-decisions/) - Constraints per feature
 - [Agents](../agents/) - Agent definitions with frontmatter
 - [Rules](../rules/) - Architecture & domain rules

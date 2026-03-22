@@ -79,11 +79,12 @@ Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
 - State: `.claude/autoload/_state.md` | Defects: `.claude/defects/_defects-{feature}.md` (max 5 per feature)
 - Git: Feature branches only, never commit to main. `gh pr create` / `gh pr merge --squash`
 - Planning pipeline: `brainstorming` (spec) → `writing-plans` (plan) → `implement` (execute)
+- **Sizing guide:** XS (single-file mechanical) = no skill needed | S (up to 3 files, known pattern) = skip brainstorming + writing-plans | M+ = full pipeline. Security-sensitive changes (auth, RLS, sync, data exposure) always require full pipeline regardless of size.
 
 ## Pointers (on-demand, NOT auto-loaded)
 | What | Where |
 |------|-------|
-| Agents (9 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
+| Agents (10 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
 | Skills (10 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
 | Directory structure | `.claude/docs/directory-reference.md` |
 | Platform requirements | `.claude/rules/platform-standards.md` |

@@ -9,9 +9,9 @@ paths:
 
 ## Common Commands
 ```bash
-flutter test test/features/projects/        # Test specific feature
-flutter test test/features/                 # Test all features
-flutter test test/                          # Run all tests
+pwsh -Command "flutter test test/features/projects/"        # Test specific feature
+pwsh -Command "flutter test test/features/"                 # Test all features
+pwsh -Command "flutter test test/"                          # Run all tests
 npx supabase db diff                        # Check schema changes
 npx supabase migration new name             # Create migration
 # Database location (Windows): %LOCALAPPDATA%\construction_inspector\construction_inspector.db
@@ -57,7 +57,7 @@ lib/features/projects/
         └── project_card.dart
 ```
 
-**13 Features** (all follow same pattern):
+**17 Features** (all follow same pattern):
 auth, contractors, dashboard, entries, locations, pdf, photos, projects, quantities, settings, sync, toolbox, weather
 
 ### Database Schema Organization
@@ -247,7 +247,7 @@ class RepositoryResult<T> {
 
 ## Logging
 ```dart
-debugPrint('DB: Query executed in ${sw.elapsed}');
+Logger.db('DB: Query executed in ${sw.elapsed}');
 ```
 
 ## Pull Request Template

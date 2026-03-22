@@ -177,7 +177,7 @@ final fieldIndex = form.fields.indexOf(form.fields
     .cast<PdfField?>()
     .firstWhere((f) => f?.name == fieldName, orElse: () => null));
 if (fieldIndex == -1) {
-  debugPrint('[PDF] Field not found: $fieldName');
+  Logger.pdf('[PDF] Field not found: $fieldName');
   return;
 }
 ```
@@ -198,12 +198,12 @@ if (fieldIndex == -1) {
 // List all form fields
 for (var i = 0; i < form.fields.count; i++) {
   final field = form.fields[i];
-  debugPrint('Field $i: ${field.name} (${field.runtimeType})');
+  Logger.pdf('Field $i: ${field.name} (${field.runtimeType})');
 }
 
 // Print field mapping issues
 if (unmappedFields.isNotEmpty) {
-  debugPrint('[PDF] Unmapped fields: $unmappedFields');
+  Logger.pdf('[PDF] Unmapped fields: $unmappedFields');
 }
 ```
 

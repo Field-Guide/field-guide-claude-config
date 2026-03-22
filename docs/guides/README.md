@@ -46,5 +46,5 @@ Agents load relevant implementation guides based on their specialization:
 ## Related Resources
 
 - [Feature Documentation](../features/) - Feature overviews and architecture
-- [Product Requirements](../../prds/) - PRDs for all 13 features
+- [Product Requirements](../../prds/) - PRDs for all 17 features
 - [Architecture Decisions](../../architecture-decisions/) - Constraints and patterns per feature

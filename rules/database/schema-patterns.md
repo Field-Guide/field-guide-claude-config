@@ -198,17 +198,17 @@ static const int _databaseVersion = 21;  // Was 20
 final tables = await db.rawQuery(
   "SELECT name FROM sqlite_master WHERE type='table'"
 );
-debugPrint('Tables: $tables');
+Logger.db('Tables: $tables');
 
 // Show table schema
 final schema = await db.rawQuery("PRAGMA table_info(projects)");
-debugPrint('Schema: $schema');
+Logger.db('Schema: $schema');
 
 // Check indexes
 final indexes = await db.rawQuery(
   "SELECT name, tbl_name FROM sqlite_master WHERE type='index'"
 );
-debugPrint('Indexes: $indexes');
+Logger.db('Indexes: $indexes');
 ```
 
 ## Quality Checklist

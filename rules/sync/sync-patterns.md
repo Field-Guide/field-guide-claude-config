@@ -3,6 +3,8 @@ paths:
   - "lib/features/sync/**/*.dart"
 ---
 
+<!-- TODO: Remove [BRANCH: feat/sync-engine-rewrite] annotations from 5 section headings after branch merges to main -->
+
 # Sync Architecture Diagram
 
 ## Layer Diagram [BRANCH: feat/sync-engine-rewrite]
