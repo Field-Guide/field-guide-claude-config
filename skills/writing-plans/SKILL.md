@@ -8,6 +8,21 @@ user-invocable: true
 
 **Announce at start:** "I'm using the writing-plans skill to create an implementation plan."
 
+## Spec as Source of Truth
+
+The spec represents the user's approved intent, scope, and vision. It is the product of collaborative brainstorming and captures decisions the user has explicitly made.
+
+**Reviews verify the plan, not the spec.** Adversarial reviewers should:
+- Challenge whether the plan correctly implements the spec's intent
+- Find gaps, holes, or better implementation approaches in the plan
+- Verify file paths, symbols, and dependencies against actual codebase
+- Security reviewer: find security flaws in the planned implementation
+
+**Reviews do NOT:**
+- Override the spec's scope or goals
+- Reject features the user explicitly approved in the spec
+- Add requirements not in the spec
+
 ## Architecture
 
 Subagents CANNOT use MCP tools or spawn sub-subagents. Therefore the main agent (you) drives the entire workflow, delegating only the plan-writing and adversarial reviews to subagents.

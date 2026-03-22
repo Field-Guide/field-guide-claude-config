@@ -10,10 +10,10 @@ user-invocable: true
 
 Help turn ideas into fully formed design specs through natural collaborative dialogue.
 
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in validated sections and get user approval. After approval, run an adversarial review, address findings, and hand off to the writing-plans skill.
+Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in validated sections and get user approval. After approval, write the spec and offer to hand off to the writing-plans skill.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity.
+Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it. This applies to EVERY project regardless of perceived simplicity. Exception: XS/S-sized tasks per CLAUDE.md sizing guide may skip brainstorming when the user confirms scope inline.
 </HARD-GATE>
 
 ## Anti-Pattern: "This Is Too Simple To Need A Design"
@@ -29,10 +29,7 @@ You MUST complete these items in order:
 3. **Propose 2-3 approaches** — with trade-offs and your recommendation
 4. **Present spec sections** — scaled to complexity, get user approval after each section
 5. **Write spec document** — save to `.claude/specs/YYYY-MM-DD-<topic>-spec.md`
-6. **Run adversarial review** — orchestrate multi-agent deep review of the spec
-7. **Address findings** — fix MUST-FIX items, update spec
-8. **Present to user** — show review results + updated spec for final approval
-9. **Hand off to writing-plans** — offer to invoke writing-plans skill with spec path
+6. **Hand off to writing-plans** — offer to invoke writing-plans skill with spec path
 
 ## Process Flow
 
@@ -47,16 +44,10 @@ Present spec in sections → User approves each?
     ↓ yes                          ↓ no
 Write spec to .claude/specs/     Revise section
     ↓
-Adversarial Review (orchestrator dispatches agents)
-    ↓
-Address MUST-FIX findings, update spec
-    ↓
-Present review + updated spec to user → Approved?
-    ↓ yes                                 ↓ no
-Offer to invoke writing-plans          Revise further
+Offer to invoke writing-plans
 ```
 
-**The terminal state is offering to invoke writing-plans.** Do NOT invoke any other implementation skill.
+**The terminal state is offering to invoke writing-plans.** See HARD-GATE above — no implementation actions until design is approved.
 
 ---
 
@@ -155,81 +146,11 @@ When the spec is complete and user has approved all sections:
 
 ---
 
-## Adversarial Review
+## Terminal State
 
-After the spec is saved, run an adversarial review. This is the most important review in the pipeline because it validates the core ideas before any plan or code is written.
+After the spec is written and user has approved all sections:
 
-### Review Orchestration
-
-Dispatch agents to perform a thorough adversarial review:
-
-**Code Review Agent** (`code-review-agent`, model: claude-opus-4-6):
-- Completeness: Does the spec cover all requirements? Missing edge cases?
-- Architecture: Does this integrate well with existing patterns? Are there simpler approaches?
-- Devil's advocate: What if this step fails? What about race conditions? What about offline mode? What about large datasets?
-- Technical debt: Will this introduce debt? Over-engineering?
-
-**Security Agent** (`security-agent`, model: claude-opus-4-6):
-- Security implications: Auth gaps? Data exposure? RLS policy needs?
-- Threat modeling: What could go wrong from a security perspective?
-- OWASP compliance: Any mobile top 10 concerns?
-
-Both agents also:
-- Research the codebase for pattern compliance
-- Suggest alternative approaches that achieve the same or better results
-- Challenge every assumption creatively
-
-### Review Output
-
-Save to `.claude/adversarial_reviews/YYYY-MM-DD-<topic>/review.md`:
-
-```markdown
-# Adversarial Review: [Topic]
-
-**Spec**: `.claude/specs/YYYY-MM-DD-<topic>-spec.md`
-**Date**: YYYY-MM-DD
-**Reviewers**: code-review-agent, security-agent
-
-## Holes Found
-[Issues where the spec is incomplete or inconsistent]
-
-## Alternative Approaches
-[Better ways to achieve the same result, with reasoning]
-
-## Codebase Pattern Compliance
-[Where the spec follows or deviates from existing patterns]
-
-## Security Implications
-[Auth, data exposure, RLS, OWASP concerns]
-
-## Recommendations
-
-### MUST-FIX (spec is broken without this)
-- [Item with rationale and suggested resolution]
-
-### SHOULD-CONSIDER (better approach exists)
-- [Item with rationale and alternative]
-
-### NICE-TO-HAVE (optimization opportunity)
-- [Item with rationale]
-```
-
-### Handling Findings
-
-1. Address all **MUST-FIX** items — update the spec
-2. Present **SHOULD-CONSIDER** items to the user for decision
-3. Note **NICE-TO-HAVE** items in the spec for the writing-plans skill
-4. Update the spec file with all changes
-5. Present the review summary + updated spec to the user
-
----
-
-## Handoff to Writing-Plans
-
-After the user approves the reviewed spec:
-
-**"Spec complete and reviewed. Saved to `.claude/specs/YYYY-MM-DD-<topic>-spec.md`.**
-**Adversarial review saved to `.claude/adversarial_reviews/YYYY-MM-DD-<topic>/review.md`.**
+**"Spec complete. Saved to `.claude/specs/YYYY-MM-DD-<topic>-spec.md`.**
 
 **Ready to create the implementation plan? I'll invoke the writing-plans skill to:**
 1. Index the codebase with CodeMunch
@@ -266,5 +187,4 @@ When designing for this app, always consider:
 | Assume requirements | Builds wrong thing | Ask first, build second |
 | Monolithic design | Hard to validate | Break into sections, validate each |
 | Skip to solution | Misses context | Understand before exploring |
-| "Too simple" skip | Unexamined assumptions | Every project gets a spec |
-| Skip adversarial review | Misses holes in spec | Always run review after spec |
+| "Too simple" skip | Unexamined assumptions | Every project gets a spec (XS/S tasks may skip when user confirms scope inline per CLAUDE.md sizing guide; security-sensitive changes always use full pipeline) |

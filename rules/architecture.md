@@ -129,6 +129,10 @@ Future<void> _doSomething() async {
 | `firstWhere` without `orElse` | Throws on empty | Use `.where(...).firstOrNull` |
 | Save in `dispose()` | Context deactivated | Use `WidgetsBindingObserver.didChangeAppLifecycleState` |
 | `.first` on empty list | Throws exception | Check `.isEmpty` or use `.firstOrNull` |
+| `catch (_)` without logging | Silently swallows errors, makes debugging impossible | Add `Logger.<category>()` call |
+| `debugPrint` in production code | Not captured by logging system, no filtering/routing | Use `Logger.<category>()` |
+| Raw SQL in presentation layer | Violates separation of concerns, untestable | Move to repository/datasource layer |
+| `db.delete()` without soft-delete check | Bypasses trash/recovery system | Use `SoftDeleteService` or repository delete |
 
 ## Offline-First Pattern
 
