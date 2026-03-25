@@ -100,6 +100,7 @@ After the plan-writer returns, spawn BOTH review agents in a SINGLE message:
    - Read the spec at `.claude/specs/YYYY-MM-DD-<name>-spec.md`
    - Does the plan cover EVERY spec requirement?
    - Are file paths correct? DRY/YAGNI? Test quality?
+   - **Ground truth verification** (see dedicated section below)
    - What's missing? What if a step fails?
    - Return APPROVE or REJECT with specific findings.
 
@@ -259,6 +260,31 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 
 ---
 
+## Ground Truth Verification
+
+**Every string literal in plan code must be verified against the actual codebase.** Plans that pass internal consistency checks (spec ↔ plan ↔ review) but use assumed names instead of real ones will fail at runtime. This applies to ALL plan code — not just tests.
+
+The code-review-agent MUST cross-reference these categories against their source of truth:
+
+| Category | Source of Truth | Examples |
+|----------|----------------|----------|
+| Route paths | `lib/core/router/app_router.dart` | `/project/new` not `/projects/create` |
+| Widget keys | `lib/shared/testing_keys/*.dart` | `project_save_button` not `save_project_button` |
+| DB column names | `lib/core/database/database_service.dart`, schema files | `name` not `project_name` |
+| DB table names | `lib/core/database/database_service.dart` | `daily_entries` not `entries` |
+| Model field names | `lib/features/**/data/models/*.dart` | `isActive` not `status` |
+| Provider/service APIs | Actual class method signatures | `syncLocalAgencyProjects()` not `pushAndPull()` |
+| RPC function names | `supabase/migrations/*.sql` | Must exist before calling |
+| Enum values | Model files where enums are defined | `ContractorType.general` not `'prime'` |
+| Environment variables | `.env`, `.env.test` | Key names must match exactly |
+| File paths in code | `Glob`/`Grep` to confirm existence | No assumed paths |
+
+**Process**: For every code block in the plan, extract all string literals and identifiers that reference codebase artifacts. Look each one up in the actual source. Flag any that don't match with a CRITICAL finding — these will cause runtime failures that no amount of review will catch otherwise.
+
+**Why this exists**: The sync verification system (S628-S631) passed 14 review sweeps but every scenario failed on first run because routes, key names, and API signatures were assumed rather than verified against the codebase.
+
+---
+
 ## Anti-Patterns
 
 | Anti-Pattern | Why It's Wrong | Do This Instead |
@@ -273,6 +299,7 @@ Every code block in the plan MUST include annotations where logic isn't self-evi
 | No agent assignments | Wrong agent gets work | Route by file pattern |
 | No cleanup phase | Leaves dead code | Always include cleanup |
 | Sequential adversarial review | Wastes time | Always dispatch both in parallel |
+| Assumed names in plan code | Passes review, fails at runtime — every time | Ground truth verification: cross-reference ALL literals against actual codebase (see section above) |
 | Telling plan-writer to "read files" | It can Read but lacks MCP context | Paste all needed source in prompt |
 
 ---

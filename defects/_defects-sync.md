@@ -5,7 +5,17 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
-_No active defects._
+### [BUG] 2026-03-24: Sync engine crashes on server-side hard-deleted records
+**Pattern**: When records exist in local SQLite but have been hard-deleted from Supabase (not soft-deleted), the sync engine fails and puts the app into a permanent "offline" state. App requires Settings > Clear Data to recover. Discovered when test cleanup hard-deleted SYNCTEST-* projects from Supabase — the phone app that had synced them could no longer sync at all.
+**Root cause**: Sync engine doesn't handle the case where local records reference server records that no longer exist. Likely the push path tries to push a change for a record the server rejects, or the pull path encounters an inconsistency it can't resolve.
+**Impact**: Any server-side hard-delete (admin purge, data migration, etc.) can brick the app for affected users.
+**Fix needed**: Sync engine must detect orphaned local records (exist locally but not on server) and purge them gracefully instead of crashing. Consider adding an orphan-detection pass to the pull cycle.
+**Ref**: Discovered in S635 during sync verification testing.
+
+### [CONFIG] 2026-03-23: Sync verification scenarios use assumed names instead of actual codebase values
+**Pattern**: All 94 L2/L3 scenarios hardcode route paths (`/projects/create`), widget keys (`save_project_button`), and API names that don't exist in the app. Passed 14 review sweeps because reviews checked internal consistency (spec ↔ plan) but never cross-referenced against live code (`app_router.dart`, `testing_keys/*.dart`).
+**Prevention**: Ground Truth Verification added to writing-plans skill. Every string literal in plan code must be looked up against the actual source of truth before approval.
+**Ref**: `tools/debug-server/scenarios/L2/*.js`, `.claude/skills/writing-plans/skill.md`
 
 ## Recently Fixed (Session 614)
 

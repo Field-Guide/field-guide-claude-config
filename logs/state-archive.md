@@ -6,6 +6,51 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 636 (2026-03-24)
+**Work**: Full brainstorming → writing-plans pipeline for sync test redesign + hard-delete fix. Spec approved. Plan written (8 phases, 97 files). Code review REJECTED (8 CRIT) → fixer applied all 14 fixes. Security APPROVED.
+**Decisions**: Shared TestContext, scenarios soft-delete own records, Fix A/B/C for sync engine.
+
+### Session 635 (2026-03-24)
+**Work**: Ran L2 tests — all 84 fail. 6 systemic blockers mapped. User feedback: need shared-project design. Cleaned 21 orphans.
+**Decisions**: Scrap per-scenario projects. Redesign around shared TestContext.
+
+### Session 634 (2026-03-24)
+**Work**: Implemented ground-truth fixes for all 94 sync verification scenarios. 4 orchestrator launches, 7 phases, 67 files modified. All reviews PASS.
+
+### Session 632 (2026-03-23)
+**Work**: Attempted first run of sync verification system. Fixed infra (`.env.test`, `get_server_time` RPC). All 94 scenarios fail due to assumed route/key names. Added Ground Truth Verification to writing-plans skill.
+**Decisions**: Ground truth verification is mandatory for all future plans.
+**Next**: Fix all 94 scenarios with correct codebase names, re-run tests.
+
+### Session 630 (2026-03-23)
+**Work**: Ran review passes 3 and 4 on sync verification plan (code + security, parallel Opus). Fixed all findings inline via fixer agents: C10-C12 (schema columns, trigger case, Future<Database>), H7-H11 (batch test, retry threshold, L3 multi-device rewrite, driver params, variations table), M1-M13 (ports, S2-S5 semantics, verify imports, find/navigate/authenticateAs), SEC-002-015 (PostgREST injection, table allowlist, ReDoS, cleanup retry, .env.test, auth token). Both reviews now APPROVE WITH CONDITIONS (implementer-actionable only).
+**Decisions**: Plan code must match actual codebase exactly — cross-referenced all schema files. Variations table required complete rewrite for 16 tables. authenticateAs/resetAuth added to SupabaseVerifier for RLS testing.
+**Next**: /implement the sync verification plan.
+
+## March 2026
+
+### Session 629 (2026-03-23)
+**Work**: Incorporated v1 review findings (12 blocks) into sync verification plan. Ran review pass 2 (code + security). Code review found 5 new Critical (C5-C9: wrong types, column names, API signatures). Fixed all directly in plan code (~50 edits). Also fixed SEC-001 (.env.test), all Medium issues (M1-M6), and added SEC-002/003 findings.
+**Decisions**: Plan code samples must compile — verified against actual codebase APIs. `verify()` not `assert()` in JS. `.env.test` separate from root `.env`.
+**Next**: Review pass 3 for test coverage gaps, then /implement.
+
+## March 2026
+
+### Session 628 (2026-03-22)
+**Work**: /writing-plans on sync verification spec. CodeMunch indexing + dependency graph. Plan v1 written (2800 lines) → REJECTED by adversarial review (4C, 6H). Plan v2 re-launched with all findings. Security review passed with conditions (2H, 4M).
+**Decisions**: Plan must match spec exactly — L1 test names/risks, L3 multi-device scenarios, S1-S5 naming, SYNCTEST- prefix, per-role JWT auth, /driver/remove-from-device endpoint, shared secret auth, column name validation.
+**Next**: Verify plan v2, re-run reviews, then /implement.
+
+### Session 627 (2026-03-22)
+**Work**: Deep sync system research (4 Opus agents). Brainstormed + spec'd three-layer sync verification system: L1 unit tests, L2 driver E2E (80 flows across 16 tables), L3 multi-device cross-role (10 scenarios). Debug server becomes orchestrator + Supabase verifier.
+**Decisions**: Debug server owns verification. All 16 tables × 5 scenarios. ADB airplane mode for offline. Remove 9 obsolete flows + Verify-Sync column. Merge deferred until tests exist.
+**Next**: /writing-plans on spec, then /implement.
+
+### Session 626 (2026-03-22)
+**Work**: Committed all S614-S625 changes (6 app + 3 config commits). Executed /implement on workflow improvements plan — all 8 phases complete across 5 orchestrator launches with 0 handoffs. Fixed pre-commit hook blockers (moved raw SQL from sync dashboard to SyncOrchestrator). Total: 11 app + 8 config commits pushed.
+**Decisions**: Isolate logger guards and display formatter catch(_) are acceptable patterns (not bugs). sync_dashboard raw SQL moved to orchestrator for consistency.
+**Next**: Merge branch to main. Full E2E retest.
+
 ### Session 625 (2026-03-22)
 **Work**: Deep debug of 6 E2E bugs. Fixed T74/T77 (dialog keys), T91 (driver navigate endpoint). Updated T16/T62/T63 test flows (tap-to-edit). Moved T21/T67 to Manual. All 6 verified PASS via driver. Target: 91/91 automated (100%).
 **Decisions**: T21/T67 removed from automated flows (features not wired). Tap-to-edit is correct behavior, not a bug.

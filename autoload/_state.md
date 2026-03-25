@@ -1,50 +1,71 @@
 # Session State
 
-**Last Updated**: 2026-03-23 | **Session**: 630
+**Last Updated**: 2026-03-25 | **Session**: 641
 
 ## Current Phase
-- **Phase**: Writing-plans — plan fully reviewed (4 passes), all code fixed inline. Ready for `/implement`.
-- **Status**: Code review v4: APPROVE WITH CONDITIONS (0 Critical, 1 High, 3 Medium, 2 Low — all implementer-actionable). Security review v4: APPROVE WITH CONDITIONS (0 Critical, 0 High, 1 Medium, 1 Low). Plan is implementable.
+- **Phase**: Sync & Data Integrity Verification — plan complete, ready for /implement
+- **Status**: Writing-plans complete. Plan written (5 phases, ~15 sub-phases, 2260 lines). Code review REJECTED → all 3 CRITICAL + 5 HIGH + 6 missing requirements fixed. Security APPROVED with 2 conditions (both applied).
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (630)
+### What Was Done This Session (641)
 
-1. **Review pass 3** (code-review + security, parallel Opus agents):
-   - Code review v3: REJECT — 3 new Critical (C10: wrong SQL column names in all Phase 1 INSERTs, C11: uppercase trigger ops, C12: Future<Database> without await), 4 High, 4 Medium
-   - Security review v3: APPROVE WITH CONDITIONS — 0 Critical, 2 High still open in code, 2 new Medium (SEC-013 .env.test gitignore, SEC-014 assert→verify)
-2. **Fixer agent (Opus)** rewrote all v3 findings inline:
-   - C10: All INSERTs fixed to actual schema columns (`name`, `is_active`, `created_by_user_id`, `date`, `created_at`, `type`)
-   - C11: All trigger assertions → lowercase
-   - C12: All driver endpoints → `final db = await databaseService!.database;`
-   - H7-H10: Batch test flatten, retry threshold 5, L3 multi-device rewrite, `request` not `req`
-   - M1-M9: Port unified 4948, S2-S5 semantics rewritten, `verify` not `assert`
-   - SEC-002/003/006/007/013/015: All fixed in actual code blocks
-3. **Review pass 4** (code-review + security, parallel Opus agents):
-   - Code review v4: APPROVE WITH CONDITIONS — 0 Critical, 1 High (H11 variations table columns), 3 Medium (M11 find POST→GET, M12 navigate body key, M13 authenticateAs missing)
-   - Security review v4: APPROVE WITH CONDITIONS — 0 Critical, 0 High, 1 Medium (NEW-001 = M13), 1 Low
-4. **Fixer agent (Opus)** rewrote all v4 findings inline:
-   - H11: Variations table rewritten — all 16 tables have correct columns from actual schema
-   - M11: `find()` → GET with query param
-   - M12: `navigate()` → `{ path: route }`
-   - M13: Full `authenticateAs(role)` + `resetAuth()` added to SupabaseVerifier
-   - L5: `project_name` → `name` in conflict test maps
-   - L6: Dynamic http/https protocol detection
-   - NEW-002: URL encoding on getLocalRecord/getChangeLog
+1. **Full writing-plans pipeline** — CodeMunch indexed 6008 symbols, traced all affected files
+2. **Dependency graph** saved to `.claude/dependency_graphs/2026-03-25-sync-data-integrity-verification/`
+3. **Plan written** (opus) — 5 phases: UI additions (Dart), JS infrastructure, flow scenarios, update/delete/PDF, cleanup
+4. **Code review** (opus) — REJECTED with 3 CRIT, 5 HIGH, 4 MEDIUM, 6 missing requirements
+5. **Security review** (sonnet) — APPROVED with 2 conditions (SEC-002 name length cap, SEC-004 .gitignore fix)
+6. **Fixer agent** (opus) — applied all CRITICAL/HIGH fixes + missing requirements + security conditions
+
+### Key Decisions Made
+
+1. **copyWith nullability**: Use `.trim()` not `null` for empty descriptions — avoids model changes
+2. **PDF verification**: Use `pdftk dump_data_fields_utf8` NOT `pdf-parse` — pdf-parse can't read AcroForm fields
+3. **Sweep coverage**: Two-pass sweep — named tables by VRF- prefix, then child tables by collected project IDs
+4. **L2/L3 deprecation**: Move to `deprecated/` folder, NOT delete — safety net until integrity suite proven
+5. **personnel_types cascade**: Skip in cascade check if company-scoped (no project_id match)
 
 ### What Needs to Happen Next
 
-**Next Session (S631):**
-1. `/implement` the sync verification plan — all reviews passed, plan is ready
-2. Still pending: merge `feat/sync-engine-rewrite` to main (deferred until sync tests exist)
-
-**Still Pending:**
-- BLOCKER-28: SQLite encryption (sqlcipher) — production readiness
-- BLOCKER-23: Flutter Keys not propagating to Android resource-id
+1. **Run `/implement`** with plan path `.claude/plans/2026-03-25-sync-data-integrity-verification.md`
+2. **Build + deploy** driver APK to S21+, Windows driver app on port 4949
+3. **Run full integrity suite** — `node tools/debug-server/run-tests.js --suite=integrity --devices=dual`
 
 ## Uncommitted Changes
 
-None — all work is in .claude/ (config repo).
+### Dart files (production code):
+- `lib/features/sync/engine/sync_engine.dart` — Fix A (idempotent delete), Fix B callsite (purgeOrphans), Fix C (transient error default), LWW push guard, fetchServerUpdatedAt, _shouldSkipLwwPush, upsertRemote extraction, skippedPush counter
+- `lib/features/sync/application/sync_orchestrator.dart` — Fix C (transient error default), skippedPush mapping
+- `lib/features/sync/engine/integrity_checker.dart` — Fix B (purgeOrphans method)
+- `lib/features/sync/engine/change_tracker.dart` — getPendingRecordIds
+- `lib/features/sync/domain/sync_types.dart` — SyncResult.skippedPush field
+- `lib/features/sync/presentation/providers/sync_provider.dart` — LWW skip notification
+- `lib/features/projects/data/services/project_lifecycle_service.dart` — **PRODUCTION BUG FIX**: `daily_entry_id` → `entry_id`, `inspector_forms` moved to `_directChildTables`
+- `lib/features/projects/presentation/screens/project_list_screen.dart` — pre-existing test fix
+- `lib/shared/testing_keys/entries_keys.dart`, `testing_keys.dart`, `navigation_keys.dart` — widget key verification
+- `lib/features/entries/presentation/screens/entry_editor_screen.dart` — widget keys
+- `lib/core/driver/driver_server.dart` — expanded create-record allowlist to all 17 synced tables
+
+### Dart files (tests):
+- `test/features/sync/engine/sync_engine_delete_test.dart` — 12 delete tests
+- `test/features/sync/engine/sync_engine_lww_test.dart` — 5 LWW tests (NEW)
+- `test/features/sync/engine/sync_engine_test.dart` — updated for shared helpers
+- `test/helpers/sync/sync_engine_test_helpers.dart` — shared test helpers (NEW)
+- `test/helpers/sync/sync_test_helpers.dart` — shared test helpers (NEW)
+- `test/features/projects/presentation/screens/project_list_screen_test.dart` — pre-existing test fix
+
+### JS files (test infrastructure):
+- `tools/debug-server/scenario-helpers.js` — TestContext, 8 factories, runConflictPhase sleep fix, updateRecord auto-stamp
+- `tools/debug-server/device-orchestrator.js` — updateRecord(), removeLocalRecord()
+- `tools/debug-server/supabase-verifier.js` — sweep, setupSharedFixture, teardownFixture
+- `tools/debug-server/run-tests.js` — CLI flags, lifecycle, RLS pre-check
+- `tools/debug-server/test-runner.js` — S5 re-sync logic, context threading
+- 58+ L2 scenario files rewritten (to be replaced by new UI-driven flows)
+- 10 L3 scenario files rewritten
+- Various scenario-specific fixes
+
+### Other:
+- `supabase/migrations/20260323000000_add_get_server_time_rpc.sql` (from prior session)
 
 ## Blockers
 
@@ -62,30 +83,30 @@ None — all work is in .claude/ (config repo).
 
 ## Recent Sessions
 
-### Session 630 (2026-03-23)
-**Work**: Ran review passes 3 and 4 on sync verification plan (code + security, parallel Opus). Fixed all findings inline via fixer agents: C10-C12 (schema columns, trigger case, Future<Database>), H7-H11 (batch test, retry threshold, L3 multi-device rewrite, driver params, variations table), M1-M13 (ports, S2-S5 semantics, verify imports, find/navigate/authenticateAs), SEC-002-015 (PostgREST injection, table allowlist, ReDoS, cleanup retry, .env.test, auth token). Both reviews now APPROVE WITH CONDITIONS (implementer-actionable only).
-**Decisions**: Plan code must match actual codebase exactly — cross-referenced all schema files. Variations table required complete rewrite for 16 tables. authenticateAs/resetAuth added to SupabaseVerifier for RLS testing.
-**Next**: /implement the sync verification plan.
+### Session 641 (2026-03-25)
+**Work**: Full writing-plans pipeline for sync data integrity verification. CodeMunch indexed, dependency graph built, plan written (5 phases, 2260 lines). Code review REJECTED (3 CRIT, 5 HIGH) → fixer applied all fixes + 6 missing requirements. Security APPROVED with 2 conditions (applied).
+**Decisions**: Use pdftk not pdf-parse for AcroForm fields. Two-pass sweep for child tables. Move L2/L3 to deprecated/ not delete. Use .trim() for copyWith nullability.
+**Next**: /implement → build + deploy → run integrity suite.
 
-### Session 629 (2026-03-23)
-**Work**: Incorporated v1 review findings (12 blocks) into sync verification plan. Ran review pass 2 (code + security). Code review found 5 new Critical (C5-C9: wrong types, column names, API signatures). Fixed all directly in plan code (~50 edits). Also fixed SEC-001 (.env.test), all Medium issues (M1-M6), and added SEC-002/003 findings.
-**Decisions**: Plan code samples must compile — verified against actual codebase APIs. `verify()` not `assert()` in JS. `.env.test` separate from root `.env`.
-**Next**: Review pass 3 for test coverage gaps, then /implement.
+### Session 640 (2026-03-25)
+**Work**: Full brainstorming for sync & data integrity verification. 6 research agents (opus) audited all 17 sync tables, UI paths, RLS policies, PDF field mappings, remote-delete notification. Wrote comprehensive spec covering sync verification (6 UI-driven flows), PDF export verification (IDR + 0582B), and UI additions (location/equipment edit, calc history delete, deletion notification banner).
+**Decisions**: Scrap 84 L2 scenarios + S4 conflicts. Two real devices (S21+ admin, Windows inspector). Single chained run. VRF- prefix test data. Second project for unassignment test.
+**Next**: /writing-plans → /implement → build + deploy → run full integrity suite.
 
-### Session 628 (2026-03-22)
-**Work**: /writing-plans on sync verification spec. CodeMunch indexing + dependency graph. Plan v1 written (2800 lines) → REJECTED by adversarial review (4C, 6H). Plan v2 re-launched with all findings. Security review passed with conditions (2H, 4M).
-**Decisions**: Plan must match spec exactly — L1 test names/risks, L3 multi-device scenarios, S1-S5 naming, SYNCTEST- prefix, per-role JWT auth, /driver/remove-from-device endpoint, shared secret auth, column name validation.
-**Next**: Verify plan v2, re-run reviews, then /implement.
+### Session 639 (2026-03-25)
+**Work**: Implemented Category B plan (22 JS files, 7 phases, 3 orchestrator launches). Built driver APK, deployed to S21+. Ran full L2: 7/84 (regression from 11/84). Debug research agent identified sync pull=0 root cause: `seedAndSync` does 1 sync round but project-scoped adapters need 2 (first round enrolls projects, second pulls child tables).
+**Decisions**: None — diagnostic session. Root cause identified but not fixed.
+**Next**: Fix seedAndSync double-sync, fix projects-S4/S5 assigned_by, re-run L2.
 
-### Session 627 (2026-03-22)
-**Work**: Deep sync system research (4 Opus agents). Brainstormed + spec'd three-layer sync verification system: L1 unit tests, L2 driver E2E (80 flows across 16 tables), L3 multi-device cross-role (10 scenarios). Debug server becomes orchestrator + Supabase verifier.
-**Decisions**: Debug server owns verification. All 16 tables × 5 scenarios. ADB airplane mode for offline. Remove 9 obsolete flows + Verify-Sync column. Merge deferred until tests exist.
-**Next**: /writing-plans on spec, then /implement.
+### Session 638 (2026-03-25)
+**Work**: Full brainstorming → writing-plans pipeline for L2 Category B conversion. 3 opus research agents mapped 20 Category B files + one-off issues. Spec approved. Plan written (7 phases, 22 files). Both reviews APPROVE.
+**Decisions**: All S4 create scenario-local records. projects-S4/S5 gets scenario-local project + try/finally cleanup. Valid 1x1 JPEG for photos-S1.
+**Next**: /implement the plan, re-run full L2 (target 84/84), commit everything.
 
-### Session 626 (2026-03-22)
-**Work**: Committed all S614-S625 changes (6 app + 3 config commits). Executed /implement on workflow improvements plan — all 8 phases complete across 5 orchestrator launches with 0 handoffs. Fixed pre-commit hook blockers (moved raw SQL from sync dashboard to SyncOrchestrator). Total: 11 app + 8 config commits pushed.
-**Decisions**: Isolate logger guards and display formatter catch(_) are acceptable patterns (not bugs). sync_dashboard raw SQL moved to orchestrator for consistency.
-**Next**: Merge branch to main. Full E2E retest.
+### Session 637 (2026-03-25)
+**Work**: Massive implementation session. Executed sync test redesign plan (8 phases, ~97 files) — all 7 code phases DONE. Smoke test revealed no LWW on push. Built + implemented LWW push guard (5 phases). Found + fixed production bug in ProjectLifecycleService. Full L2: 11/84.
+**Decisions**: LWW push guard: pre-fetch server updated_at, skip if server newer. Soft-delete excluded from LWW.
+**Next**: Convert Category B files, fix photos-S1/project-assignments-S5.
 
 ## Active Debug Session
 
@@ -93,20 +114,54 @@ None active.
 
 ## Test Results
 
-- **Target pass rate**: 100% (91/91 automated flows)
-- **Previously failing**: T16, T62, T63, T74, T77 — all FIXED
-- **Previously skipped**: T21, T67 → MANUAL; T91 → FIXED
-- **Needs retest**: Full E2E run post-implementation to verify no regressions
-- **Sync verification**: Plan fully reviewed (4 passes), all code fixed. Ready for /implement.
+### Flutter Unit Tests
+- **Sync engine**: 288/288 passing (delete tests + LWW tests)
+- **project_list_screen_test**: Fixed (missing mock stub + production code gates)
+- **Full suite**: Needs retest after all changes
+
+### Sync Verification
+- **Old L2 system**: DEPRECATED — 84 direct-injection scenarios scrapped
+- **New integrity suite**: Not yet built — spec complete, awaiting plan + implementation
 
 ## Reference
-- **Sync Verification Spec**: `.claude/specs/2026-03-22-sync-verification-system-spec.md`
-- **Sync Verification Plan**: `.claude/plans/2026-03-22-sync-verification-system.md`
-- **Sync Verification Dep Graph**: `.claude/dependency_graphs/2026-03-22-sync-verification-system/analysis.md`
-- **Code Review v4**: `.claude/code-reviews/2026-03-23-sync-verification-plan-v4-code-review.md`
-- **Security Review v4**: `.claude/code-reviews/2026-03-23-sync-verification-plan-v4-security-review.md`
-- **Workflow Improvements Spec**: `.claude/specs/2026-03-22-workflow-improvements-spec.md`
-- **Workflow Improvements Plan**: `.claude/plans/2026-03-22-workflow-improvements.md`
-- **Implementation Checkpoint**: `.claude/state/implement-checkpoint.json`
+- **Data Integrity Verification Spec (APPROVED)**: `.claude/specs/2026-03-25-sync-data-integrity-verification-spec.md`
+- **Data Integrity Verification Plan (READY)**: `.claude/plans/2026-03-25-sync-data-integrity-verification.md`
+- **Plan Review**: `.claude/code-reviews/2026-03-25-sync-data-integrity-verification-plan-review.md`
+- **Dependency Graph**: `.claude/dependency_graphs/2026-03-25-sync-data-integrity-verification/`
+- **Category B Conversion Spec**: `.claude/specs/2026-03-25-l2-category-b-conversion-spec.md`
+- **Category B Conversion Plan**: `.claude/plans/2026-03-25-l2-category-b-conversion.md`
+- **Redesign Plan (EXECUTED)**: `.claude/plans/2026-03-24-sync-test-redesign-and-delete-fix.md`
+- **LWW Plan (EXECUTED)**: `.claude/plans/2026-03-24-lww-push-guard-and-test-fixes.md`
 - **Test Registry**: `.claude/test-flows/registry.md`
 - **Defects**: `.claude/defects/_defects-{feature}.md`
+
+## Architecture Notes for Next Session
+
+### New integrity suite structure:
+```
+run-tests.js --suite=integrity --devices=dual
+  → Login both devices (admin on S21+:4948, inspector on Windows:4949)
+  → F1: Project Setup (7 tables) — create via UI → sync → verify push → pull to Windows
+  → F2: Daily Entry (5 tables) — create via UI → sync → verify → pull
+  → F3: Photos (1 table + storage) — inject-photo-direct → sync → verify
+  → F4: Forms (2 tables) — fill 0582B via UI → sync → verify
+  → F5: Todos (1 table) — create via UI → sync → verify
+  → F6: Calculator (1 table) — calculate + save → sync → verify
+  → Update Phase — update all updatable tables via UI → sync → verify
+  → PDF Export — IDR + 0582B → adb pull → field-value verification
+  → Delete Phase — cascade delete → verify all child tables → notification banner
+  → Unassignment — 2nd project → unassign inspector → verify removal
+  → Cleanup Sweep — safety net hard-delete of VRF- prefixed records
+```
+
+### UI additions needed (Workstream C):
+- C1: Location edit button (`location_edit_button_<id>`)
+- C2: Equipment edit button (`equipment_edit_button_<id>`)
+- C3: Calculation history delete button (`calculation_history_delete_button_<id>`)
+- C4: Wire `DeletionNotificationBanner` into `ProjectListScreen` (widget exists, just not placed)
+
+### DeletionNotificationBanner status:
+- Widget: `lib/features/sync/presentation/widgets/deletion_notification_banner.dart` — COMPLETE
+- Trigger: `sync_engine.dart:1547-1552` `_createDeletionNotification()` — WORKS (creates `deletion_notifications` row)
+- Problem: Banner not placed in any widget tree. Inspector sees nothing when project deleted.
+- Fix: Add to `ProjectListScreen` body alongside `ProjectImportBanner`
