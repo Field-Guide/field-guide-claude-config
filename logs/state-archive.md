@@ -6,6 +6,15 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 643 (2026-03-25)
+**Work**: Attempted JS integrity suite run — failed (widget timing, ADB hangs, data collisions). Pivoted: 3 opus research agents mapped full system. Brainstorming approved spec for Claude-driven sync verification (S01-S10). Dart: DRIVER_PORT dart-define for dual-device.
+**Decisions**: Scrap JS-driven approach. Claude-driven curl flows like /test skill. Delete old JS infra. Keep cleanup-only utility. Post-run sweep = test failure if leftovers found.
+
+### Session 642 (2026-03-25)
+**Work**: Executed /implement for sync data integrity verification plan (5 phases, 4 orchestrator launches). Two integration review sweeps (code + completeness). All CRITICAL/HIGH/MEDIUM findings fixed across 2 fixer rounds. Calculator per-tab keys, shared widget extraction, ScaffoldMessenger fix, PDF field verification expanded (IDR 18 fields, 0582B 6 fields).
+**Decisions**: Per-tab calculator keys. DeletionNotificationBanner raw SQL left as TODO. sweepVrfRecordsByPrefix rename.
+**Next**: Build + deploy → run integrity suite → commit.
+
 ### Session 640 (2026-03-25)
 **Work**: Full brainstorming for sync & data integrity verification. 6 research agents (opus) audited all 17 sync tables, UI paths, RLS policies, PDF field mappings, remote-delete notification. Wrote comprehensive spec covering sync verification (6 UI-driven flows), PDF export verification (IDR + 0582B), and UI additions (location/equipment edit, calc history delete, deletion notification banner).
 **Decisions**: Scrap 84 L2 scenarios + S4 conflicts. Two real devices (S21+ admin, Windows inspector). Single chained run. VRF- prefix test data. Second project for unassignment test.

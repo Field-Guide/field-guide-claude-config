@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [FLUTTER] 2026-03-26: DropdownButtonFormField setState in onChanged causes value drift (BUG-2)
+**Pattern**: `DropdownButtonFormField` with `initialValue:` + `setState` in `onChanged` causes the `FormFieldState` internal value to drift from the external state variable. The `setState` rebuild doesn't re-read `initialValue` (consumed once at creation), causing saved value to differ from displayed selection.
+**Prevention**: Never call `setState` in `DropdownButtonFormField.onChanged` when using `initialValue:`. Let `FormFieldState` manage display; only update the backing variable (no `setState`).
+**Ref**: @lib/features/projects/presentation/widgets/bid_item_dialog.dart:100
+
 ### [DATA] 2026-02-20: Item Number sort uses string comparison instead of numeric
 **Pattern**: Quantities list "Sort by Item Number" produces lexicographic order (#1, #10, #100, #2) instead of numeric (#1, #2, #3..., #10..., #100). Item numbers stored/compared as strings.
 **Prevention**: Use `int.tryParse()` or numeric comparator when sorting by item number. Never sort numeric IDs as raw strings.

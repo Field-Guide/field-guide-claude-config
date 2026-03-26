@@ -5,6 +5,16 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-26: Schema divergence — project_assignments missing audit/soft-delete columns
+**Pattern**: `project_assignments` was created without `created_by_user_id`, `deleted_at`, `deleted_by` — the only table out of 17 missing these. Sync engine stamps `created_by_user_id` unconditionally on ALL payloads, causing PGRST204 rejection. Also `entry_personnel_counts` missing `created_at` on Supabase. Schema verifier missing entries for infrastructure tables.
+**Prevention**: When adding a new synced table, cross-reference against the standard column template (created_by_user_id, deleted_at, deleted_by, created_at, updated_at). Add to schema_verifier.dart expectedSchema. Add to purge_soft_deleted_records(). Run column-level audit before first sync test.
+**Ref**: @.claude/plans/2026-03-26-schema-divergence-fix.md
+
+### [CONFIG] 2026-03-26: Projects SELECT RLS policy too broad — inspector sees all company projects (BUG-4, SECURITY)
+**Pattern**: Original `company_projects_select` policy only checked `company_id = get_my_company_id()`, granting every company member SELECT on all company projects. Inspector could pull projects they weren't assigned to. The `20260319200000_tighten_project_rls.sql` migration tightened INSERT/UPDATE/DELETE but deliberately skipped SELECT.
+**Prevention**: When writing RLS policies for role-gated resources, always include an assignment/membership check for non-admin roles on SELECT. Don't assume SELECT is safe just because write policies are locked down.
+**Ref**: @supabase/migrations/20260326000000_tighten_project_select_rls.sql
+
 ### [FLUTTER] 2026-03-25: DeletionNotificationBanner raw SQL in presentation layer
 **Pattern**: Widget directly calls `db.query()` and `db.update()` against `deletion_notifications` table — violates architecture rule (no raw SQL in presentation).
 **Prevention**: Always route DB access through a repository. Pre-existing tech debt — flagged with TODO, not introduced by integrity verification plan.

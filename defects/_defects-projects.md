@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [DATA] 2026-03-26: ProjectAssignmentProvider creator auto-add defeats hasChanges (BUG-3)
+**Pattern**: `loadForProject()` auto-adds creator to `_assignedUserIds` then snapshots to `_originalAssignedUserIds`. On new projects (no DB records), both sets match → `hasChanges == false` → `save()` never called → creator assignment record never written to `project_assignments`.
+**Prevention**: Always snapshot `_originalAssignedUserIds` from DB state BEFORE any in-memory mutations. The diff between DB state and current state is what `hasChanges` should reflect.
+**Ref**: @lib/features/projects/presentation/providers/project_assignment_provider.dart:82-86
+
 ### [FLUTTER] 2026-03-18: canWrite=true for inspector — root cause of 10 permission gaps — BUG-008 (Session 591)
 **Pattern**: `UserRole.canWrite` returns `true` for ALL roles including inspector. This property gates 102 call sites across 24 files (edit pencil, archive toggle, add location/contractor/pay item buttons). Inspector has full write access everywhere. Additionally, no route guards on `/project/new` or `/project/:id/edit` (BUG-007), and dashboard Contractors card deep-links into unguarded edit screen (BUG-011).
 **Prevention**: Replace `canWrite` with granular permissions (`canEditProject`, `canArchiveProject`, `canManageSetup`). Add route guards in `app_router.dart` redirect function. Gate setup screen tabs behind role checks.

@@ -3,7 +3,7 @@
   "name": "Sync Engine",
   "status": "in_progress",
   "description": "Bidirectional offline-first sync between SQLite and Supabase with last-write-wins conflict resolution and soft-delete awareness",
-  "current_phase": "S592: E2E sync verification spec complete (42 flows, 17 tables). flutter_driver + debug server hybrid. New /sync/status endpoint on debug server. Needs /writing-plans → /implement.",
+  "current_phase": "S648: All 5 S01 bugs fixed (BUG-2 dropdown, BUG-3 assignment, BUG-4 RLS SELECT, BUG-5 personnel types). RLS migration ready to push. Needs rebuild + S01-S10 retest.",
   "docs": {
     "overview": "docs/features/feature-sync-overview.md",
     "architecture": "docs/features/feature-sync-architecture.md",
@@ -39,6 +39,6 @@
   },
   "metrics": {
     "test_coverage_percentage": 92,
-    "last_updated": "2026-03-19T00:00:00Z"
+    "last_updated": "2026-03-26T00:00:00Z"
   }
 }
