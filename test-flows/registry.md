@@ -153,17 +153,23 @@
 | T76 | Delete Remote Project (Admin) | projects | tap(projects_nav) → tap(company_tab) → long_press(remote_project_card) → tap(delete_remote) → tap(delete_confirm) | sync,db | MANUAL | - | Requires remote-only project visible to admin |
 | T77 | Permanently Delete from Trash | varies | tap(settings_nav) → tap(trash_tile) → tap(delete_forever_btn) → tap(delete_confirm) → screenshot | db | UNTESTED | - | Depends: T68 or T30 (needs trashed item) |
 
-## Sync Verification System
+## Sync Verification — Claude-Driven (S01-S10)
 
-> Sync correctness is verified by the debug server system (`tools/debug-server/`), not by driver flows.
-> Use `node tools/debug-server/run-tests.js` to run Layer 2 (per-table push/pull/conflict) and Layer 3 (cross-cutting) scenarios.
->
-> **Layer 1** — Unit tests: `pwsh -Command "flutter test test/features/sync/engine/"`
-> **Layer 2** — Per-table scenarios: `node tools/debug-server/run-tests.js --layer L2`
-> **Layer 3** — Cross-cutting scenarios: `node tools/debug-server/run-tests.js --layer L3`
->
-> See `tools/debug-server/` for scenario files and verifier modules.
-> Results are reported via `GET /test-status` on the debug server (port 3947).
+> Dual-device sync verification. Claude drives admin (port 4948) and inspector (port 4949), verifies data via Supabase REST API.
+> Reference: `.claude/test-flows/sync-verification-guide.md`
+
+| ID | Flow | Table(s) | Driver Steps | Verify-Logs | Status | Last Run | Notes |
+|----|------|----------|--------------|-------------|--------|----------|-------|
+| S01 | Project Setup | projects, project_assignments, locations, contractors, equipment, bid_items, personnel_types | Admin: create project + sub-entities + assignment → sync → Inspector: sync x2 → verify locally | sync,db | UNTESTED | - | Creates 2 projects (main + unassign test); captures all entity IDs |
+| S02 | Daily Entry | daily_entries, entry_contractors, entry_equipment, entry_personnel_counts, entry_quantities | Admin: create full entry → sync → Inspector: sync x2 → verify locally | sync,db | UNTESTED | - | Depends: S01 |
+| S03 | Photos | photos | Admin: inject-photo-direct → sync → Inspector: sync x2 → verify locally | sync,photo | UNTESTED | - | Depends: S02; COMPACTION PAUSE after |
+| S04 | Forms | inspector_forms, form_responses | Admin: create 0582B response → sync → Inspector: sync x2 → verify locally | sync,db | UNTESTED | - | Depends: S02 |
+| S05 | Todos | todo_items | Admin: create todo → sync → Inspector: sync x2 → verify locally | sync,db | UNTESTED | - | Depends: S01 |
+| S06 | Calculator | calculation_history | Admin: HMA calculation → save → sync → Inspector: sync x2 → verify locally | sync,db | UNTESTED | - | Depends: S01; COMPACTION PAUSE after |
+| S07 | Update All | All updatable tables | Admin: update project, location, contractor, equipment, bid_item, personnel_type, entry fields, photo, form, todo, calculator → sync → Inspector: verify | sync,db | UNTESTED | - | Depends: S01-S06 |
+| S08 | PDF Export | N/A (output artifact) | Admin: export IDR + 0582B PDFs → ADB pull → pdftk verify fields | pdf | UNTESTED | - | Depends: S07; ADB timeout → FAIL S08, continue to S09 |
+| S09 | Delete Cascade | All child tables of project 1 | Admin: two-step delete → sync → Supabase: verify 14 child tables soft-deleted → Inspector: deletion banner → verify gone | sync,db | UNTESTED | - | Depends: S07; COMPACTION PAUSE after |
+| S10 | Unassignment + Cleanup | project_assignments, projects | Admin: unassign inspector from project 2 → sync → Inspector: verify project 2 removed → Admin: delete project 2 → post-run VRF sweep | sync,db | UNTESTED | - | Depends: S01 |
 
 ## Tier 11: Role & Permission Verification (T85-T91)
 
@@ -222,15 +228,15 @@
 | Tier 3 | T24-T30 | 7 | Entry Lifecycle |
 | Tier 4 | T31-T40 | 10 | Toolbox |
 | Tier 5 | T41-T43 | 3 | PDF & Export |
-| Tier 6 | T44-T52 | 8 | Settings & Profile (T50 removed — sync verification via debug server) |
+| Tier 6 | T44-T52 | 8 | Settings & Profile (T50 removed — replaced by S01-S10 Claude-driven flows) |
 | Tier 7 | T53-T58 | 6 | Admin Operations |
 | Tier 8 | T59-T67 | 9 | Edit & Update Mutations |
 | Tier 9 | T68-T77 | 10 | Delete Operations |
-| Sync | — | — | Sync verification via `tools/debug-server/run-tests.js` (L2/L3 scenarios) |
+| Sync | S01-S10 | 10 | Sync Verification (Claude-driven, dual-device) |
 | Tier 11 | T85-T91 | 7 | Role & Permission Verification |
 | Tier 12 | T92-T96 | 5 | Navigation & Dashboard |
-| Manual | M01-M13 | 12 | Manual-Only Flows (M06 removed — covered by L3 scenario X5) |
-| **Total** | | **95** | **83 automated + 12 manual + sync verification system** |
+| Manual | M01-M13 | 12 | Manual-Only Flows (M06 removed — offline-reconnect covered by S01-S10 sync verification) |
+| **Total** | | **105** | **83 automated + 12 manual + 10 sync verification (Claude-driven)** |
 
 ## Dependency Chain (Execution Order)
 
@@ -263,7 +269,7 @@ T01 (Login Admin)
  │    └── T59 (Edit Project)
  ├── T38 (Calculator HMA) → T39 (Calculator Concrete)
  ├── T40 (Gallery Browse)
- ├── T44-T49, T51-T52 (Settings flows; T50 removed — sync via debug server)
+ ├── T44-T49, T51-T52 (Settings flows; T50 removed — sync via S01-S10)
  ├── T53-T58 (Admin flows)
  ├── T75 (Remove from Device)
  ├── T92-T96 (Navigation verification)
@@ -273,6 +279,14 @@ T04 (Login Inspector) — separate session
  ├── T85-T91 (Permission checks)
  ├── T87 (Inspector Create Entry)
  └── T88 (Inspector Create Todo)
+
+S01 (Project Setup) — dual-device session (admin:4948, inspector:4949)
+ ├── S02 (Daily Entry) → S03 (Photos) [COMPACTION]
+ ├── S04 (Forms)
+ ├── S05 (Todos)
+ ├── S06 (Calculator) [COMPACTION]
+ ├── S07 (Update All) → S08 (PDF Export) → S09 (Delete Cascade) [COMPACTION]
+ └── S10 (Unassignment + Cleanup)
 ```
 
 ## Auto-Update Protocol

@@ -41,7 +41,10 @@ After **EVERY tier**, additionally:
 /test admin                        # T53-T58 (Admin Operations)
 /test edits                        # T59-T67 (Edit Mutations)
 /test deletes                      # T68-T77 (Delete Operations)
-/test sync                         # Sync verification via debug server (run-tests.js)
+/test sync                         # S01-S10 (Claude-driven dual-device)
+/test S01                          # Single sync flow
+/test S01-S03                      # Range of sync flows
+/test sync --resume                # Resume from checkpoint
 /test permissions                  # T85-T91 (Role Verification)
 /test navigation                   # T92-T96 (Nav & Dashboard)
 /test T03                          # Single flow
@@ -65,7 +68,7 @@ settings     → T44-T52
 admin        → T53-T58
 edits        → T59-T67
 deletes      → T68-T77
-sync         → node tools/debug-server/run-tests.js (L2/L3 scenarios)
+sync         → S01-S10 (Claude-driven dual-device verification)
 permissions  → T85-T91
 navigation   → T92-T96
 ```
@@ -284,9 +287,53 @@ Binds to loopback (127.0.0.1) only — no auth required.
 **Tier 7 (T53-T58)** — Admin Operations
 **Tier 8 (T59-T67)** — Edit Mutations: Edit entities from earlier tiers
 **Tier 9 (T68-T77)** — Delete Operations: Delete entities (run last before cleanup)
-**Sync** — Sync Verification via `node tools/debug-server/run-tests.js` (L2/L3 scenarios, not driver flows)
+**Sync (S01-S10)** — Claude-driven dual-device sync verification (admin:4948, inspector:4949)
+  S01 (Project Setup) → S02 (Daily Entry) → S03 (Photos) → S04 (Forms) → S05 (Todos) → S06 (Calculator) → S07 (Update All) → S08 (PDF Export) → S09 (Delete Cascade) → S10 (Unassignment + Cleanup)
 **Tier 11 (T85-T91)** — Role Verification (inspector role)
 **Tier 12 (T92-T96)** — Nav & Dashboard
+
+## Sync Verification (Dual-Device) — S01-S10
+
+Claude drives two devices via HTTP driver endpoints and verifies data in Supabase via REST API.
+
+**Reference guide:** `.claude/test-flows/sync-verification-guide.md`
+
+### Setup
+- Admin device: port 4948 (Android or Windows)
+- Inspector device: port 4949 (second device)
+- Supabase credentials: `tools/debug-server/.env.test` (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+- Test credentials: `.claude/test-credentials.secret`
+
+### Driver Endpoints Used
+All standard endpoints (tap, text, wait, scroll, etc.) plus:
+- `POST /driver/sync` — trigger sync on device
+- `GET /driver/local-record?table=X&id=Y` — verify record exists locally on device
+- `POST /driver/remove-from-device` — remove project from device locally
+- `POST /driver/inject-photo-direct` — inject photo with entry/project association
+
+### Cross-Device Sync Protocol (4-Step)
+After every data mutation:
+1. **Admin sync**: `curl -s -X POST http://127.0.0.1:4948/driver/sync`
+2. **Supabase verify**: curl REST API to confirm data arrived
+3. **Inspector sync** (2 rounds): `curl -s -X POST http://127.0.0.1:4949/driver/sync` x2
+4. **Inspector verify**: `curl -s "http://127.0.0.1:4949/driver/local-record?table=X&id=Y"`
+
+### Supabase Verification Pattern
+```bash
+curl -s "${SUPABASE_URL}/rest/v1/<table>?<filters>" \
+  -H "apikey: ${KEY}" \
+  -H "Authorization: Bearer ${KEY}" \
+  -H "Accept: application/json"
+```
+
+### Per-Run Unique Data Tag
+Every run generates a 5-char alphanumeric tag. All test data uses prefix `VRF-` with this tag embedded in names to avoid collisions.
+
+### Compaction Pauses
+After S03, S06, and S09 — checkpoint written, user prompted to continue.
+
+### Post-Run Sweep
+After S10, query all 17 synced tables for `VRF-*` records. Any remaining = FAIL.
 
 ## Teardown
 
@@ -310,7 +357,7 @@ Add `-IncludeDebugServer` to also kill the debug server.
 - All test projects use "E2E " prefix
 - **CRITICAL**: Always use timestamped project names (e.g., "E2E Test 1711046095") to avoid collisions with prior runs
 - When a prior E2E project already exists, REUSE it instead of creating a new one (tap into it, verify sub-entities)
-- Cleanup: `pwsh -File tools/verify-sync.ps1 -Cleanup -ProjectName "E2E*" -DryRun` (still valid for data cleanup; sync correctness verification is now handled by `node tools/debug-server/run-tests.js`)
+- Cleanup: `pwsh -File tools/verify-sync.ps1 -Cleanup -ProjectName "E2E*" -DryRun` (still valid for data cleanup; sync correctness verification is now Claude-driven — see `/test sync` (S01-S10) or run `node tools/debug-server/run-tests.js --cleanup-only` for data cleanup only)
 
 ## Windows Bash Constraints
 - **NO `jq`** — use `python3 -c "import json..."` for JSON parsing

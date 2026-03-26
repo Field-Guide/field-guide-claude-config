@@ -6,6 +6,21 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 640 (2026-03-25)
+**Work**: Full brainstorming for sync & data integrity verification. 6 research agents (opus) audited all 17 sync tables, UI paths, RLS policies, PDF field mappings, remote-delete notification. Wrote comprehensive spec covering sync verification (6 UI-driven flows), PDF export verification (IDR + 0582B), and UI additions (location/equipment edit, calc history delete, deletion notification banner).
+**Decisions**: Scrap 84 L2 scenarios + S4 conflicts. Two real devices (S21+ admin, Windows inspector). Single chained run. VRF- prefix test data. Second project for unassignment test.
+**Next**: /writing-plans → /implement → build + deploy → run full integrity suite.
+
+### Session 638 (2026-03-25)
+**Work**: Full brainstorming → writing-plans pipeline for L2 Category B conversion. 3 opus research agents mapped 20 Category B files + one-off issues. Spec approved. Plan written (7 phases, 22 files). Both reviews APPROVE.
+**Decisions**: All S4 create scenario-local records. projects-S4/S5 gets scenario-local project + try/finally cleanup. Valid 1x1 JPEG for photos-S1.
+**Next**: /implement the plan, re-run full L2 (target 84/84), commit everything.
+
+### Session 637 (2026-03-25)
+**Work**: Massive implementation session. Executed sync test redesign plan (8 phases, ~97 files) — all 7 code phases DONE. Smoke test revealed no LWW on push. Built + implemented LWW push guard (5 phases). Found + fixed production bug in ProjectLifecycleService. Full L2: 11/84.
+**Decisions**: LWW push guard: pre-fetch server updated_at, skip if server newer. Soft-delete excluded from LWW.
+**Next**: Convert Category B files, fix photos-S1/project-assignments-S5.
+
 ### Session 636 (2026-03-24)
 **Work**: Full brainstorming → writing-plans pipeline for sync test redesign + hard-delete fix. Spec approved. Plan written (8 phases, 97 files). Code review REJECTED (8 CRIT) → fixer applied all 14 fixes. Security APPROVED.
 **Decisions**: Shared TestContext, scenarios soft-delete own records, Fix A/B/C for sync engine.
@@ -1243,3 +1258,8 @@ Phases 0-4: Observability, clustering, header detection, structural keywords, de
 **Work**: Brainstormed universal dart-mcp widget test harness. Made 5 design decisions. Wrote design document with architecture concept, open questions, and success criteria.
 **Decisions**: Compile-time flag selection, test-only entry point, production code untouched, in-memory mock strategy.
 **Next**: Continue brainstorming open questions, then implement harness.
+
+### Session 639 (2026-03-25)
+**Work**: Implemented Category B plan (22 JS files, 7 phases, 3 orchestrator launches). Built driver APK, deployed to S21+. Ran full L2: 7/84 (regression from 11/84). Debug research agent identified sync pull=0 root cause: `seedAndSync` does 1 sync round but project-scoped adapters need 2 (first round enrolls projects, second pulls child tables).
+**Decisions**: None — diagnostic session. Root cause identified but not fixed.
+**Next**: Fix seedAndSync double-sync, fix projects-S4/S5 assigned_by, re-run L2.

@@ -5,6 +5,11 @@ Archive: .claude/logs/defects-archive.md
 
 ## Active Patterns
 
+### [FLUTTER] 2026-03-25: DeletionNotificationBanner raw SQL in presentation layer
+**Pattern**: Widget directly calls `db.query()` and `db.update()` against `deletion_notifications` table — violates architecture rule (no raw SQL in presentation).
+**Prevention**: Always route DB access through a repository. Pre-existing tech debt — flagged with TODO, not introduced by integrity verification plan.
+**Ref**: @lib/features/sync/presentation/widgets/deletion_notification_banner.dart
+
 ### [BUG] 2026-03-24: Sync engine crashes on server-side hard-deleted records
 **Pattern**: When records exist in local SQLite but have been hard-deleted from Supabase (not soft-deleted), the sync engine fails and puts the app into a permanent "offline" state. App requires Settings > Clear Data to recover. Discovered when test cleanup hard-deleted SYNCTEST-* projects from Supabase — the phone app that had synced them could no longer sync at all.
 **Root cause**: Sync engine doesn't handle the case where local records reference server records that no longer exist. Likely the push path tries to push a change for a record the server rejects, or the pull path encounters an inconsistency it can't resolve.

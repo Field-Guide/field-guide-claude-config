@@ -30,7 +30,7 @@
     ]
   },
   "enableAllProjectMcpServers": true,
+  "outputStyle": "default",
   "spinnerTipsEnabled": true,
-  "prefersReducedMotion": true,
-  "outputStyle": "default"
+  "prefersReducedMotion": true
 }
