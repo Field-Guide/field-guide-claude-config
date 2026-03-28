@@ -1,58 +1,79 @@
 # Session State
 
-**Last Updated**: 2026-03-27 | **Session**: 661
+**Last Updated**: 2026-03-27 | **Session**: 664
 
 ## Current Phase
-- **Phase**: S09 PASS, S10 FAIL (BUG-S01-2). Delete cascade working end-to-end. Assignment unassignment broken.
-- **Status**: 6 fixes deployed (RPC wiring, RLS policies, sync engine). Supabase migrations pushed. Not committed yet.
+- **Phase**: Two implementation plans ready to execute. Sync bugfixes (S663) + Entry wizard unification (S664).
+- **Status**: Both plans written, adversarial-reviewed, all findings addressed. Neither implemented yet. Massive uncommitted backlog.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (661)
+### What Was Done This Session (664)
 
-1. **S09 Delete Cascade — PASS** after 6 fixes:
-   - **`is_approved_engineer()` helper** — missing Supabase function referenced by RPC
-   - **`ProjectProvider.deleteProject()` calls RPC** — was only doing local cascade, never calling Supabase `admin_soft_delete_project`
-   - **`company_projects_select` RLS** — inspector couldn't see soft-deleted projects (assignment also cascade-deleted → project invisible)
-   - **`see_assignments` RLS** — removed `deleted_at IS NULL` so sync can pull assignment tombstones
-   - **`_reconcileSyncedProjects()`** — added `AND deleted_at IS NULL` to stop re-enrolling soft-deleted assignments
-   - **Orphan cleaner** — added `AND deleted_at IS NULL` to evict soft-deleted projects from `synced_projects`
+1. **Brainstormed SV-3 + SV-6** (entry wizard + form seeding) — reframed as full entry wizard unification:
+   - 3 opus agents explored: contractor card UI (typography/spacing chaos), entry wizard create vs edit gap, form seeding gap
+   - User decisions: unified screen (no `_isCreateMode`), adaptive header, "Copy from last entry" on safety card, contractor card token migration, rename "Materials Used" → "Pay Items Used", seed 0582B on fresh install
 
-2. **S10 Unassignment + Cleanup — FAIL (BUG-S01-2)**:
-   - Assignment toggle in `AssignmentsStep` unchecks checkbox visually but **doesn't persist soft-delete to SQLite or create change_log entry**
-   - Supabase assignment row unchanged (same `updated_at` from yesterday)
-   - Pre-existing bug from original `2mthw` run — not a regression
+2. **Wrote spec** — `.claude/specs/2026-03-27-entry-wizard-unification-spec.md`
+   - 7 approved sections: Overview, Data Model, User Flow, UI Components, State Management, Edge Cases, Migration/Cleanup
 
-3. **Supabase migrations pushed**:
-   - `20260327200000_add_is_approved_engineer_helper.sql`
-   - `20260327200001_fix_rls_deletion_propagation.sql`
-   - `20260327200002_temp_restore_test_project.sql` (test data restore, can be cleaned up)
+3. **Built dependency graph** — CodeMunch indexing + symbol tracing
+   - `.claude/dependency_graphs/2026-03-27-entry-wizard-unification/analysis.md`
+   - 13 direct files, 0 dependents, 2 test files, 11 dead code items + 1 file deletion
+
+4. **Wrote implementation plan** — `.claude/plans/2026-03-27-entry-wizard-unification.md`
+   - 6 phases, 10 sub-phases, ~40 steps
+   - Agents: backend-data-layer-agent, frontend-flutter-specialist-agent, qa-testing-agent
+
+5. **Adversarial review round 1 (2 opus agents)**:
+   - Code review: REJECT → fixed 4 CRITICAL + 4 HIGH
+   - Security review: APPROVE with 2 HIGH (overlap with code review, fixed)
+   - Key fixes: RepositoryResult.when() removed, repository access via provider getter, getByDate via repository, db.database pattern, null fields on draft, _isEmptyDraft helper, createdByUserId, form seed name
+
+6. **Adversarial review round 2 (3 opus agents)**:
+   - Spec completeness: APPROVE (97%) — 3 minor gaps fixed
+   - Ground truth verification: 11 PASS, 3 FAIL — all fixed (contractorsById, createForm result, entry! promotion)
+   - Code review v2: APPROVE — all prior fixes verified correct, 3 minors fixed (isDraftEntry for reopened drafts, date formatting, personnel wrap spacing)
 
 ### What Needs to Happen Next
 
-1. **Fix BUG-S01-2**: AssignmentsStep toggle doesn't persist unassignment
-   - Investigate `AssignmentsStep` widget → what happens when checkbox is toggled?
-   - The save button likely doesn't call soft-delete on removed assignments
-   - Need to trace: toggle → save → what writes to SQLite/change_log
-   - Key files: `lib/features/projects/presentation/widgets/assignments_step.dart`, assignment provider
+1. **Implement sync bugfixes plan** — `/implement` on `.claude/plans/2026-03-27-sync-verification-bugfixes.md`
+2. **Re-run S10 + S02** to verify sync bugfixes
+3. **Implement entry wizard plan** — `/implement` on `.claude/plans/2026-03-27-entry-wizard-unification.md`
+4. **Commit** — massive multi-session backlog still uncommitted
+5. **Next round: Brainstorm SV-3 layout differences** (if any remaining after wizard unification)
 
-2. **Re-run S10** after fixing BUG-S01-2
+### What Was Done Last Session (663)
 
-3. **Commit** all changes (massive — see uncommitted changes below)
-
-4. **PDF extraction still freezing** at "finding table structure"
+1. Deep exploration (4 opus agents) → brainstorming → spec → dependency graph → plan → adversarial review. 6 sync bugfixes planned.
+2. Saved deferred context for SV-3 + SV-6 → `.claude/defects/_deferred-sv3-sv6-context.md`
 
 ### Uncommitted Changes
 
-From this session (S661 — delete cascade + sync fixes):
-- `lib/features/projects/presentation/providers/project_provider.dart` — added Supabase RPC call before local cascade
-- `lib/features/sync/engine/sync_engine.dart` — `_reconcileSyncedProjects()` filters `deleted_at IS NULL`, orphan cleaner checks `deleted_at IS NULL`
-- `supabase/migrations/20260327200000_add_is_approved_engineer_helper.sql`
-- `supabase/migrations/20260327200001_fix_rls_deletion_propagation.sql`
-- `supabase/migrations/20260327200002_temp_restore_test_project.sql`
+From this session (S664):
+- `.claude/specs/2026-03-27-entry-wizard-unification-spec.md`
+- `.claude/plans/2026-03-27-entry-wizard-unification.md`
+- `.claude/dependency_graphs/2026-03-27-entry-wizard-unification/analysis.md`
+- `.claude/code-reviews/2026-03-27-entry-wizard-unification-plan-review.md`
+
+From S663 (sync bugfixes):
+- `.claude/specs/2026-03-27-sync-verification-bugfixes-spec.md`
+- `.claude/plans/2026-03-27-sync-verification-bugfixes.md`
+- `.claude/dependency_graphs/2026-03-27-sync-verification-bugfixes/analysis.md`
+- `.claude/code-reviews/2026-03-27-sync-verification-bugfixes-plan-review.md`
+- `.claude/defects/_deferred-sv3-sv6-context.md`
+
+From S662 (bug triage):
+- `.claude/defects/_defects-sync-verification.md`
+- `.claude/skills/brainstorming/skill.md` (zero-ambiguity gate)
+
+From S661 (delete cascade + sync fixes):
+- `lib/features/projects/presentation/providers/project_provider.dart`
+- `lib/features/sync/engine/sync_engine.dart`
+- 3 Supabase migrations
 
 From S660 (permission fix + seeding):
-- `lib/main.dart`, `lib/main_driver.dart` — MANAGE_EXTERNAL_STORAGE removal
+- `lib/main.dart`, `lib/main_driver.dart`
 - `tools/seed-springfield.mjs`, `tools/assign-springfield.mjs`
 
 From S659 (PDF extraction fix):
@@ -82,25 +103,23 @@ From prior sessions:
 
 ## Recent Sessions
 
+### Session 664 (2026-03-27)
+**Work**: Brainstormed entry wizard unification (SV-3 + SV-6 reframed). 3 opus exploration agents → spec → dependency graph → plan → 2 adversarial review rounds (5 opus agents total). All findings fixed.
+**Decisions**: Unified screen (no _isCreateMode). Immediate draft persistence. Adaptive header (expanded → collapsed). "Copy from last entry" fills empty safety fields only. Contractor card migrated to textTheme tokens. "Pay Items Used" rename. 0582B seeded on fresh install.
+**Next**: /implement sync bugfixes → /implement entry wizard → commit.
+
+### Session 663 (2026-03-27)
+**Work**: Deep exploration (4 opus agents) → brainstorming → spec → dependency graph → implementation plan → adversarial review (code + security). 6 bugfixes planned: assignment soft-delete, contractor card collapse, personnel counts sync, equipment sync, inspector project filter, driver photo fallback.
+**Decisions**: Remove sync_control entirely (not narrow the window). Delete dead code (saveAllCountsForEntry, deleteAllForProject, replaceAllForProject). Deterministic IDs for equipment. Wire role at project_list_screen not main.dart. Fix companyProjectsCount badge leak.
+**Next**: /implement → re-run S10 + S02 → commit → brainstorm SV-3 + SV-6.
+
+### Session 662 (2026-03-27)
+**Work**: Bug triage — verified all bugs from 3 sync test reports using 3 opus agents. 9 FIXED, 6 OPEN. Added contractor card collapse + wizard consistency bugs. Updated brainstorming skill with zero-ambiguity gate.
+**Next**: /brainstorming → read bug report → ask questions → spec → /writing-plans → /implement.
+
 ### Session 661 (2026-03-27)
-**Work**: Re-ran S09 and S10 sync verification. Fixed 6 bugs blocking delete cascade propagation: missing `is_approved_engineer()` helper, `deleteProject()` not calling Supabase RPC, two RLS policies hiding tombstones from inspectors, `_reconcileSyncedProjects()` re-enrolling deleted assignments, orphan cleaner not checking `deleted_at`. S09 now PASS. S10 FAIL on pre-existing BUG-S01-2 (assignment toggle doesn't persist).
-**Decisions**: RLS `see_assignments` policy had `deleted_at IS NULL` removed entirely — inspectors can now see their own soft-deleted assignments for sync propagation. Orphan cleaner auto-evicts soft-deleted projects within 2 sync cycles.
+**Work**: Re-ran S09 and S10 sync verification. Fixed 6 bugs blocking delete cascade propagation.
 **Next**: Fix BUG-S01-2 → re-run S10 → commit.
-
-### Session 660 (2026-03-27)
-**Work**: Seeded Springfield project with 131 bid items + M&P from source PDFs. Fixed permission-every-launch bug (MANAGE_EXTERNAL_STORAGE + FilePicker). Created project_assignment for sync enrollment. APK v0.9.0-beta.660.
-**Decisions**: Use OTP auth flow for seeding (enforce_created_by requires auth.uid()). project_assignments required for sync enrollment. Removed MANAGE_EXTERNAL_STORAGE — use app-specific dirs on mobile.
-**Next**: Verify sync pulls bid items → investigate PDF freeze → commit.
-
-### Session 659 (2026-03-27)
-**Work**: Diagnosed + fixed PDF extraction wiring bug. pdfrx fails silently in background isolates. Rewired both helpers to main-thread execution with progress dialog. APK v0.9.0-beta.659 released.
-**Decisions**: Bypass background isolate path entirely. Run pipeline on main thread with blocking progress dialog. Background isolate architecture can be revisited later (render on main, OCR in worker).
-**Next**: User testing → commit → S09-S10 re-run.
-
-### Session 658 (2026-03-27)
-**Work**: /implement delete flow fix (5 phases) + /implement 0582B+IDR (7 phases). Post-implement review sweeps fixed 3 HIGHs. APK v0.9.0-beta.658 released.
-**Decisions**: Extended admin_soft_delete_project RPC for engineers (own projects only). Added auth.uid() guard to cascade trigger. calculation_history added to device removal.
-**Next**: Commit → re-run S09-S10 → S03/S04.
 
 ## Active Debug Session
 
@@ -110,7 +129,7 @@ None active.
 
 ### Flutter Unit Tests
 - **Full suite**: 3141/3141 PASSING (S658 baseline, not re-run this session)
-- **PDF tests**: 911/911 PASSING (verified after fix)
+- **PDF tests**: 911/911 PASSING
 - **Analyze**: PASSING (0 errors, 115 info)
 
 ### Sync Verification (Current Run — tag `2mthw`)
@@ -122,14 +141,18 @@ None active.
 - **S06**: PASS — HMA calc 58 tons synced clean
 - **S07**: PASS — 5/8 entities updated via UI, synced, verified on inspector
 - **S08**: PASS — PDF exported (436KB), ADB pulled
-- **S09**: PASS — RPC + cascade trigger + RLS fix + orphan cleaner. Inspector pulls 21 tombstones, auto-evicts in 2 cycles.
+- **S09**: PASS — RPC + cascade trigger + RLS fix + orphan cleaner
 - **S10**: FAIL — BUG-S01-2: Assignment toggle doesn't persist soft-delete. Pre-existing.
 
 ## Reference
+- **Entry Wizard Spec**: `.claude/specs/2026-03-27-entry-wizard-unification-spec.md`
+- **Entry Wizard Plan (READY)**: `.claude/plans/2026-03-27-entry-wizard-unification.md`
+- **Entry Wizard Review**: `.claude/code-reviews/2026-03-27-entry-wizard-unification-plan-review.md`
+- **Sync Bugfixes Spec**: `.claude/specs/2026-03-27-sync-verification-bugfixes-spec.md`
+- **Sync Bugfixes Plan (READY)**: `.claude/plans/2026-03-27-sync-verification-bugfixes.md`
+- **Sync Bugfixes Review**: `.claude/code-reviews/2026-03-27-sync-verification-bugfixes-plan-review.md`
+- **Deferred Bugs Context**: `.claude/defects/_deferred-sv3-sv6-context.md`
 - **Delete Flow Fix Plan (IMPLEMENTED)**: `.claude/plans/2026-03-26-delete-flow-fix.md`
 - **0582B+IDR Plan (IMPLEMENTED)**: `.claude/plans/2026-03-26-0582b-fixes-and-idr-template.md`
-- **Schema Divergence Fix Plan (APPROVED)**: `.claude/plans/2026-03-26-schema-divergence-fix.md`
-- **Claude-Driven Sync Plan (APPROVED)**: `.claude/plans/2026-03-25-sync-verification-claude-driven.md`
 - **Test Registry**: `.claude/test-flows/registry.md`
 - **Defects**: `.claude/defects/_defects-{feature}.md`
-- **S09/S10 Test Results**: `.claude/test_results/2026-03-27_S09-S10/`

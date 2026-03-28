@@ -60,11 +60,12 @@ Never overwhelm with a list of questions. Each message should advance understand
 ## Core Principles
 
 1. **Ask, don't assume** — Gather requirements before proposing solutions
-2. **Multiple choice > open-ended** — Reduces cognitive load, surfaces options the user might not have considered
-3. **Incremental validation** — Break designs into digestible sections
-4. **YAGNI ruthlessly** — Remove unnecessary features during design. Don't design for hypothetical requirements.
-5. **Document decisions** — Export to `.claude/specs/` for handoff to writing-plans
-6. **Scale to complexity** — Small features get lean specs. Not all sections are required.
+2. **Zero ambiguity gate** — Keep asking questions until there is zero ambiguity in the user's intent, scope, and vision. The entire point of brainstorming is to capture the user's vision. Do not advance to Phase 2 until you can restate the user's intent, scope, and vision back to them and they confirm it is exactly right.
+3. **Multiple choice > open-ended** — Reduces cognitive load, surfaces options the user might not have considered
+4. **Incremental validation** — Break designs into digestible sections
+5. **YAGNI ruthlessly** — Remove unnecessary features during design. Don't design for hypothetical requirements.
+6. **Document decisions** — Export to `.claude/specs/` for handoff to writing-plans
+7. **Scale to complexity** — Small features get lean specs. Not all sections are required.
 
 ---
 
@@ -77,14 +78,30 @@ Never overwhelm with a list of questions. Each message should advance understand
 1. Read existing code/documentation relevant to the feature
 2. Check `.claude/defects/_defects-{feature}.md` for related past issues
 3. Check `.claude/prds/` for any existing PRD on this feature
-4. Ask 3-5 clarifying questions, ONE AT A TIME
+4. Ask clarifying questions ONE AT A TIME until there is zero ambiguity about:
+   - **Intent**: What problem are we solving? What does success look like?
+   - **Scope**: What's in vs. out? What are the boundaries?
+   - **Vision**: How should it feel to use? What's the user's mental model?
 5. Use multiple choice when possible (see reference: question-patterns.md)
+6. **Ambiguity check**: When you believe you understand, restate the user's intent, scope, and vision in your own words and ask: "Is this exactly right, or did I miss something?" Do NOT proceed until they confirm.
 
 **Question Types**:
 - Scope: "Which of these should be included?"
 - Priority: "What's most important to get right first?"
 - Constraints: "Are there any hard requirements?"
 - Context: "What problem is this solving?"
+- Intent: "What does success look like when this is done?"
+- Vision: "How do you picture this working from the user's perspective?"
+
+### Gate: Intent Confirmed
+
+Before entering Phase 2, you MUST:
+1. Summarize the user's intent, scope, and vision in 3-5 bullet points
+2. Ask: "Is this exactly right, or did I miss something?"
+3. If the user corrects anything, ask follow-up questions on the correction until clear
+4. Only proceed to Phase 2 when the user explicitly confirms
+
+This is not optional. The spec captures the user's vision — if you misunderstand the vision, the spec is wrong, the plan is wrong, and the implementation is wrong. Get it right here.
 
 ### Phase 2: Exploring
 
@@ -188,3 +205,4 @@ When designing for this app, always consider:
 | Monolithic design | Hard to validate | Break into sections, validate each |
 | Skip to solution | Misses context | Understand before exploring |
 | "Too simple" skip | Unexamined assumptions | Every project gets a spec (XS/S tasks may skip when user confirms scope inline per CLAUDE.md sizing guide; security-sensitive changes always use full pipeline) |
+| Rush to approaches | Proposing solutions before fully understanding vision | Stay in Phase 1 until zero ambiguity confirmed by user |
