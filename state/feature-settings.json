@@ -1,8 +1,8 @@
 {
   "id": "settings",
   "name": "App Settings & Configuration",
-  "status": "stable",
-  "description": "Device-local settings for theme, language, and notifications. No cloud sync.",
+  "status": "in_progress",
+  "description": "Device-local settings for theme, language, and notifications. No cloud sync. S667: trash screen security fix (role-based filtering).",
 
   "docs": {
     "overview": "docs/features/feature-settings-overview.md",

@@ -4,6 +4,52 @@ Historical defects moved from per-feature defect files. Reference only.
 
 ---
 
+## Sync (archived 2026-03-28 S667)
+
+### [CONFIG] 2026-03-27: RAISE LOG not captured in Supabase Cloud production
+**Pattern**: `cascade_project_soft_delete` and `admin_soft_delete_project` use `RAISE LOG` for audit events. Supabase Cloud's default log level is `WARNING` — `LOG` events are silently discarded in production.
+**Prevention**: Use `RAISE NOTICE` or insert into an `audit_log` table for production-visible audit trails.
+
+### [DATA] 2026-03-26: Schema divergence — project_assignments missing audit/soft-delete columns
+**Pattern**: `project_assignments` was created without `created_by_user_id`, `deleted_at`, `deleted_by`. Sync engine stamps unconditionally causing PGRST204 rejection.
+**Prevention**: Cross-reference standard column template. Add to schema_verifier.
+
+### [CONFIG] 2026-03-26: Projects SELECT RLS policy too broad — inspector sees all company projects
+**Pattern**: SELECT policy only checked company_id, no assignment gate for inspector role.
+**Prevention**: Always include assignment/membership check for non-admin roles on SELECT.
+
+## Sync (archived 2026-03-28)
+
+### [CONFIG] 2026-03-23: Sync verification scenarios use assumed names instead of actual codebase values
+**Pattern**: All 94 L2/L3 scenarios hardcode route paths, widget keys, and API names that don't exist in the app.
+**Prevention**: Ground Truth Verification added to writing-plans skill.
+**Ref**: `tools/debug-server/scenarios/L2/*.js`
+
+### [BUG] 2026-03-24: Sync engine crashes on server-side hard-deleted records
+**Pattern**: When records exist in local SQLite but have been hard-deleted from Supabase, the sync engine fails permanently.
+**Prevention**: Sync engine must detect orphaned local records and purge them gracefully.
+**Ref**: Discovered in S635.
+
+### [FLUTTER] 2026-03-25: DeletionNotificationBanner raw SQL in presentation layer
+**Pattern**: Widget directly calls `db.query()` against `deletion_notifications` table.
+**Prevention**: Always route DB access through a repository.
+**Ref**: @lib/features/sync/presentation/widgets/deletion_notification_banner.dart
+
+---
+
+## Entries
+
+### [DATA] 2026-03-03: Timestamp drift between repository and provider
+**Pattern**: Repository creates `batchTimestamp = DateTime.now().toUtc()` for SQLite writes. Provider creates a second `DateTime.now().toUtc()` for in-memory state. Timestamps differ.
+**Prevention**: Return the timestamp from the repository method and use it in the provider for in-memory updates.
+**Ref**: @lib/features/entries/data/repositories/daily_entry_repository.dart:224
+
+### [DATA] 2026-03-03: Dead code from unused provider methods
+**Pattern**: `undoSubmission()` was implemented in repository + provider but UI called `updateEntry(entry.copyWith(...))` instead. The dedicated method had validation that the raw path bypassed.
+**Prevention**: When adding a dedicated method with validation, wire it into the UI immediately and grep for alternative paths that bypass it.
+
+---
+
 ## PDF
 
 ### [E2E] 2026-03-14: Wave-1 Grid Tuning Must Be Reversible Until Springfield Beats Baseline (Session 566)

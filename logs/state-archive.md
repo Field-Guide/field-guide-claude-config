@@ -6,6 +6,10 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 662 (2026-03-27)
+**Work**: Bug triage — verified all bugs from 3 sync test reports using 3 opus agents. 9 FIXED, 6 OPEN. Added contractor card collapse + wizard consistency bugs. Updated brainstorming skill with zero-ambiguity gate.
+**Next**: /brainstorming → read bug report → ask questions → spec → /writing-plans → /implement.
+
 ### Session 656 (2026-03-26)
 **Work**: Continued /test sync S07-S09. S09 FAIL — no UI path for cloud cascade delete. Launched 3 exploration agents. Found critical gaps. User approved 5 fixes.
 **Decisions**: Wire up Path C. Add Supabase cascade trigger. Fix daily_entries RLS. Fix fetchRemoteProjects reappearance.
