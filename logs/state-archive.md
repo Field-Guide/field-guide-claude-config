@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 669 (2026-03-28)
+**Work**: Verified 10 S668 bugs (4 confirmed, 3 dismissed, 3 skipped). Fixed all 4. 3175 tests pass.
+**Decisions**: S09 root cause was unconditional change_log wipe — gated on rpcSucceeded flag.
+**Next**: Commit → retest.
+
 ### Session 668 (2026-03-28)
 **Work**: Completed S07-S10 sync verification. S09 FAIL. S10 PASS. 10 bugs documented.
 
