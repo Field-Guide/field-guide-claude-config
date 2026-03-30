@@ -3,8 +3,8 @@
 **Last Updated**: 2026-03-30 | **Session**: 677
 
 ## Current Phase
-- **Phase**: Pre-Release Hardening IMPLEMENTED. 7 app commits. 5 review/fix sweeps — clean.
-- **Status**: 3457/3457 tests passing. 0 analyze errors. Ready for next plan.
+- **Phase**: Pre-Release Hardening IMPLEMENTED. Codebase cleanup needed.
+- **Status**: 3457/3457 tests passing. 0 analyze errors. Sentry + Aptabase keys configured.
 
 ## HOT CONTEXT - Resume Here
 
@@ -28,14 +28,20 @@
    - R4: 1 MEDIUM found and fixed (driver Analytics.disable)
    - R5: CLEAN across all 3 reviewers
 3. **7 logical commits** to app repo
-4. **Note**: `.env.example` blocked by pre-commit hook — needs manual commit by user
+4. **Sentry + Aptabase credentials** added to `.env`
 
 ### What Needs to Happen Next
 
-1. **Push Supabase migrations** — `npx supabase db push` (2 new migrations)
-2. **Commit .env.example manually** — hook blocks Claude from committing .env files
-3. **Resume 0582B + IDR fixes** — paused for forms infrastructure
-4. **Consider sqlcipher** — privacy policy now accurately states no encryption at rest
+1. **CODEBASE CLEANUP (user priority for next session)**:
+   - Use CodeMunch to map ALL dead code, dead imports, deprecated code
+   - Remove unnecessary junk accumulated from recent massive implementations
+   - Thorough audit and cleanse of the entire codebase
+2. **CLAUDE DIRECTORY UPDATE (user priority for next session)**:
+   - Update architecture docs, file paths, features, PRDs
+   - Almost everything in .claude/ is outdated after recent implementations
+   - Update references, documentation, directory structure docs
+3. **Push Supabase migrations** — `npx supabase db push` (2 new migrations)
+4. **Resume 0582B + IDR fixes** — paused for forms infrastructure
 
 ### What Was Done Last Session (676)
 3-agent opus review sweep (0C/0H/8M), fixed 4 MEDIUMs, 5 app commits, Supabase UUID→TEXT FK fix, 2 migrations pushed, 3 claude config commits.
@@ -66,23 +72,20 @@
 ## Recent Sessions
 
 ### Session 677 (2026-03-30)
-**Work**: Implemented Pre-Release Hardening (12 phases). 6 orchestrator launches. 5 review/fix sweeps (R1: 5C+7H, R2: 2M, R3: 1H, R4: 1M, R5: clean). 7 app commits.
-**Decisions**: Use Flutter LicenseRegistry instead of oss_licenses_flutter (fewer deps). Privacy policy corrected to not claim encryption at rest. Both entrypoints get full consent lifecycle parity.
-**Next**: Push Supabase migrations → commit .env.example manually → 0582B+IDR.
+**Work**: Implemented Pre-Release Hardening (12 phases). 6 orchestrator launches. 5 review/fix sweeps (R1: 5C+7H, R2: 2M, R3: 1H, R4: 1M, R5: clean). 7 app commits. Sentry+Aptabase keys configured.
+**Decisions**: Use Flutter LicenseRegistry instead of oss_licenses_flutter. Privacy policy corrected to not claim encryption at rest. Both entrypoints get full consent lifecycle parity.
+**Next**: Codebase cleanup (dead code, imports, deprecated) + .claude/ directory update.
 
 ### Session 676 (2026-03-29)
 **Work**: 3-agent opus review sweep (0C/0H/8M), fixed 4 MEDIUMs, 5 app commits, Supabase UUID→TEXT FK fix, 2 migrations pushed, 3 claude config commits.
-**Decisions**: Use TEXT not UUID for app table PKs/FKs in Supabase (matches existing schema). Skip EmptyStateWidget migration (needs broader design system adoption).
+**Decisions**: Use TEXT not UUID for app table PKs/FKs in Supabase. Skip EmptyStateWidget migration.
 **Next**: /implement clean architecture → pre-release hardening → 0582B+IDR.
 
 ### Session 675 (2026-03-29)
 **Work**: Implemented both Forms Infrastructure (12 phases) + UI Refactor V2 (12 phases). 20 orchestrator launches, 8 review sweeps, 4 fixer cycles. 334 files changed total.
-**Decisions**: Stay on feat/sync-engine-rewrite for both plans. Single commits per plan. Weather colors documented as context-free deviation. Raw Supabase moved from settings_screen to AuthProvider.
-**Next**: Review/fix sweep loop until clean → logical commits → commit both repos.
 
 ### Session 674 (2026-03-29)
 **Work**: Clean Architecture Refactor plan complete. 8 phases, 3981 lines. 3 review rounds, all approve.
-**Next**: /implement clean architecture → forms → pre-release hardening.
 
 ## Active Debug Session
 
