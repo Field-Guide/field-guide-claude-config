@@ -1,98 +1,124 @@
 # Toolbox Constraints
 
-**Feature**: Inspector Toolbox (Utilities & Quick Reference)
-**Scope**: All code in `lib/features/toolbox/` and utility form generation
+**Feature**: Toolbox (Hub) + Calculator, Forms, Gallery, Todos (Sub-features)
+**Scope**: `lib/features/toolbox/` (hub only), `lib/features/calculator/`, `lib/features/forms/`, `lib/features/gallery/`, `lib/features/todos/`
+
+---
+
+## Architecture: Hub + Independent Features
+
+Toolbox is a **navigation hub only**. It contains no business logic, no data layer, and no domain layer.
+
+### Routing Model
+
+`ToolboxHomeScreen` is a grid launcher that routes to four independent features:
+
+| Card | Target Feature | Feature Directory |
+|------|---------------|-------------------|
+| Forms | Forms list/viewer | `lib/features/forms/` |
+| Calculator | Construction calculator | `lib/features/calculator/` |
+| Gallery | Photo gallery | `lib/features/gallery/` |
+| To-Do's | Task management | `lib/features/todos/` |
+
+Each sub-feature is a **full feature directory** under `lib/features/` with its own `data/`, `domain/`, `presentation/`, and `di/` layers. Toolbox itself has only `presentation/` (the hub screen) and a barrel export.
 
 ---
 
 ## Hard Rules (Violations = Reject)
 
-### Complex Forms via Builder Pattern
-- ✗ No hardcoding UI widgets in screens
-- ✓ All toolbox forms built via builder pattern: Form definition → Widget rendering
-- ✓ Form definition: JSON schema (type, label, validation, options)
-- ✗ No conditional field logic in widgets (move to form definition)
+### Registry-Based Form Model
 
-**Why**: Builder pattern allows dynamic form generation and form reuse.
+Forms use a **registry pattern** — not JSON-schema builders. Each form type registers its screen, PDF filler, calculator, and validator through typed registries.
 
-### Auto-Fill Engine
-- ✗ No manual typing for repeated fields (e.g., inspector name appears 100 times in forms)
-- ✓ Form engine includes auto-fill: Previously-entered values suggested as user types
-- ✓ Auto-fill data stored in SQLite (toolbox_autofill table, per user)
-- ✗ No auto-filling sensitive data (passwords, credentials)
+| Registry | Purpose | Location |
+|----------|---------|----------|
+| `FormScreenRegistry` | Maps form type to its screen widget builder | `lib/features/forms/data/registries/form_screen_registry.dart` |
+| `FormPdfFillerRegistry` | Maps form type to its PDF template filler | `lib/features/forms/data/registries/form_pdf_filler_registry.dart` |
+| `FormCalculatorRegistry` | Maps form type to its calculation engine | `lib/features/forms/data/registries/form_calculator_registry.dart` |
+| `FormValidatorRegistry` | Maps form type to its validation rules | `lib/features/forms/data/registries/form_validator_registry.dart` |
+| `FormQuickActionRegistry` | Maps form type to quick-action shortcuts | `lib/features/forms/data/registries/form_quick_action_registry.dart` |
+| `FormInitialDataFactory` | Creates default field values per form type | `lib/features/forms/data/registries/form_initial_data_factory.dart` |
 
-**Why**: Improves inspector UX and reduces data entry errors.
+**Adding a new form type** requires:
+1. Create the form-specific screen widget, calculator, PDF filler, and validator
+2. Create a registrations file (e.g., `mdot_0582b_registrations.dart`) that registers all components
+3. Wire registrations into `builtin_form_config.dart`
+
+- No hardcoded form-type switch statements in shared code
+- No JSON schema definitions for form structure
+- Each form type owns its own UI, validation, calculation, and PDF logic
+
+### Auto-Fill via Service (Not Dedicated Table)
+
+- Auto-fill is handled by `AutoFillService` in `lib/features/forms/data/services/auto_fill_service.dart`
+- There is no `toolbox_autofill` table — auto-fill queries historical form responses
+- No auto-filling sensitive data (passwords, credentials)
 
 ### Form Validation
-- ✓ All forms validated client-side before submission
-- ✓ Validation rules defined in form schema (required, regex, numeric range, etc.)
-- ✓ User sees validation errors immediately (no server roundtrip)
-- ✗ No submitting invalid forms
 
-**Why**: Instant feedback improves UX; reduces invalid submissions.
+- All forms validated client-side before submission
+- Validation rules are **per-form-type** via `FormValidatorRegistry`, not generic schema rules
+- User sees validation errors immediately (no server roundtrip)
+- No submitting invalid forms
 
 ### Persistence
-The toolbox features (calculator, forms, gallery, todos) use persistent SQLite storage
-with full CRUD operations and cloud sync support. Each sub-feature has its own table(s)
-managed through the standard repository/datasource pattern.
+
+Each sub-feature uses persistent SQLite storage with full CRUD operations and cloud sync support:
+- **Forms**: `inspector_forms`, `form_responses`, `form_exports` tables
+- **Calculator**: `calculation_history` table
+- **Gallery**: Uses `photos` table (shared with photos feature)
+- **Todos**: `todo_items` table
+
+All follow the standard repository/datasource pattern with sync via `change_log` triggers.
 
 ---
 
 ## Soft Guidelines (Violations = Discuss)
 
 ### Performance Targets
-- Form load (100 fields): < 500ms
+
+- Form load: < 500ms
 - Form validation: < 100ms per field
-- Auto-fill suggestion: < 200ms (search 1000 historical values)
-- Form rendering: 60fps scroll
+- Auto-fill suggestion: < 200ms
+- Form/list rendering: 60fps scroll
 
-### Form Library
-- Recommend: Use provider for form state management
-- Recommend: Generic FormBuilder widget to minimize boilerplate
-- Recommend: Form schema validation in data layer (not widgets)
+### Form State Management
 
-### Auto-Fill Limits
-- Recommend: Keep top 10 suggestions per field
-- Recommend: Age-out suggestions older than 1 year
-- Limit: Max 1,000 auto-fill entries per user (warn if exceeded)
+- Use `ChangeNotifier` providers for form state (standard app pattern)
+- Form state hashing via `FormStateHasher` for dirty-checking
+- `FormPdfService` for PDF export orchestration
 
 ### Test Coverage
-- Target: >= 85% for form builder and validation logic
-- Lower for individual form UIs (builder handles rendering)
+
+- Target: >= 85% for registry logic, validators, and calculators
+- Lower threshold acceptable for form-specific UI screens (registry handles wiring)
 
 ---
 
 ## Integration Points
 
 - **Depends on**:
-  - `settings` (theme applied to forms)
-  - Optionally: any feature (forms can export results to feature-specific data)
+  - `settings` (theme applied to all sub-feature screens)
+  - `photos` (gallery shares photo infrastructure)
+  - `pdf` (forms export to PDF via `FormPdfService`)
+  - `projects` (forms scoped to active project)
 
 - **Required by**:
-  - None directly (standalone utility feature)
-
----
-
-## Performance Targets
-
-- Form load (100 fields): < 500ms
-- Validation per field: < 100ms
-- Auto-fill suggestions: < 200ms
-- Scroll 60fps
+  - `toolbox` hub (navigation only, no data dependency)
 
 ---
 
 ## Testing Requirements
 
-- >= 85% test coverage for form builder + validation logic
-- Unit tests: Form schema parsing, validation rules, auto-fill matching
-- Widget tests: FormBuilder renders fields correctly, validation displays errors
-- Integration tests: Build 3+ complex forms with 50+ fields, auto-fill suggestions work
-- Edge cases: Invalid schema (missing required fields), validation regex errors, auto-fill with special characters
+- Unit tests: Registry lookups, validators, calculators, auto-fill matching
+- Widget tests: Form screens render fields correctly, validation displays errors
+- Integration tests: Full form lifecycle (create, fill, validate, export PDF)
+- Edge cases: Unregistered form type lookups, validator edge cases, calculator precision
 
 ---
 
 ## Reference
 
-- **Architecture**: `docs/features/feature-toolbox-architecture.md`
+- **Registrations example**: `lib/features/forms/data/registries/mdot_0582b_registrations.dart`
+- **Builtin form config**: `lib/features/forms/data/registries/builtin_form_config.dart`
 - **Shared Rules**: `architecture-decisions/data-validation-rules.md`

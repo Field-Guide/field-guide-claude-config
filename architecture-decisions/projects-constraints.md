@@ -16,31 +16,34 @@
 
 **Why**: Multi-project support requires strict project isolation; prevents data leakage.
 
-### MDOT vs Local Agency Modes
-- ✓ Project has mode: MDOT or LOCAL_AGENCY (enum, set at creation, immutable)
+### ProjectMode Enum (`localAgency` / `mdot`)
+- ✓ Project has mode: `localAgency` or `mdot` (Dart enum, set at creation, immutable)
 - ✗ No changing mode after project created
+- ✗ ProjectMode is NOT a lifecycle state — it determines which fields/workflows apply
 - ✓ Mode gates which fields are required/visible:
-  - MDOT: Requires bid schedule, route number, funding source (M-roads specific)
-  - LOCAL_AGENCY: Requires general contractor, engineer contact, budget (general public works)
+  - `mdot`: Requires bid schedule, route number, funding source (M-roads specific)
+  - `localAgency`: Requires general contractor, engineer contact, budget (general public works)
 - ✓ Project form shows mode-specific fields only
 
 **Why**: Different workflows for state highway (MDOT) vs. local projects.
 
 ### Project Lifecycle
-- ✓ Project states: PLANNING → ACTIVE → COMPLETE → ARCHIVED (linear progression)
+- ✓ Project states: PLANNING → ACTIVE → SUBMITTED → ARCHIVED (linear progression)
 - ✗ No reverting project state (can't go from ACTIVE back to PLANNING)
 - ✓ Only ACTIVE projects allow entry/photo creation
-- ✓ COMPLETE projects read-only (block all edits)
+- ✓ SUBMITTED projects read-only (block all edits)
 - ✓ ARCHIVED projects hidden by default (filter query)
+- ✗ Lifecycle states are separate from ProjectMode — mode is `localAgency`/`mdot`, not a lifecycle stage
 
 **Why**: Lifecycle prevents accidental modifications to closed projects.
 
-### Required Metadata
-- ✓ Project must include: id, name, mode (MDOT/LOCAL_AGENCY), location, start_date, status, user_id (owner), created_at, updated_at
-- ✓ Mode-specific fields: bid_route (MDOT), general_contractor (LOCAL_AGENCY)
-- ✗ No nullable status or owner (required for audit trail)
+### Required Metadata & Multi-Tenant Scope
+- ✓ Project must include: id, name, mode (`localAgency`/`mdot`), location, start_date, status, created_at, updated_at
+- ✓ Multi-tenant fields: `company_id` (FK, RLS scoping via `get_my_company_id()`), `created_by_user_id` (FK, tracks who created the project)
+- ✓ Mode-specific fields: bid_route (`mdot`), general_contractor (`localAgency`)
+- ✗ No nullable status, company_id, or created_by_user_id (required for audit trail and RLS)
 
-**Why**: Complete project identity; audit trail tracks project ownership.
+**Why**: Complete project identity; `company_id` enables multi-tenant RLS; `created_by_user_id` tracks ownership.
 
 ### Cascade Delete Rules
 - ✓ Deleting project cascades to: entries, photos, contractors, locations, quantities (all scoped entities)
@@ -76,7 +79,7 @@
 ## Integration Points
 
 - **Depends on**:
-  - `auth` (project ownership verified against user_id)
+  - `auth` (project ownership verified against created_by_user_id; company_id from get_my_company_id())
   - `settings` (current_project_id stored in user preferences)
 
 - **Required by**:

@@ -26,11 +26,11 @@
 
 ### Location-Entry Association
 - ✗ No orphan locations (unused across all entries)
-- ✓ Location can reference 0+ entries (many-to-many via entry_locations junction table)
-- ✓ Location can appear in multiple entries
-- ✗ No modifying entry-location associations after entry marked SUBMITTED
+- ✓ DailyEntry has a direct `locationId` FK (nullable) — no junction table
+- ✓ Multiple entries can reference the same location
+- ✗ No modifying entry-location associations after entry status is SUBMITTED
 
-**Why**: Entries tagged with site location for audit trail.
+**Why**: Entries tagged with site location for audit trail. Direct FK is simpler than many-to-many for this use case.
 
 ### Simple CRUD (No Complex Hierarchy)
 - ✗ No nested locations (parent-child relationships)

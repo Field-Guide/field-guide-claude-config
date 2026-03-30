@@ -9,7 +9,7 @@
 
 ### Read-Only Aggregator
 - ✗ No direct edits from dashboard (no buttons to edit entries/photos/contractors)
-- ✓ Dashboard reads from: entries, photos, contractors, projects, quantities repositories
+- ✓ Dashboard reads from: entries, photos, contractors, projects, quantities repositories (via `DashboardStatCard` widgets)
 - ✓ All edit actions navigate to dedicated feature screens (entries screen, projects screen, etc.)
 - ✗ No custom edit widgets on dashboard (preserve separation of concerns)
 

@@ -13,9 +13,24 @@
 - ⚠ Log auth transitions (offline → online, refresh success/fail)
 - ⚠ Performance target: sign-in < 3 seconds (network), sign-out < 500ms (offline-capable)
 
+## Consent Gate
+- Router checks `ConsentProvider` before granting access to protected routes
+- Users must accept Terms of Service / Privacy Policy before proceeding past auth
+
+## Multi-Tenant Company Flow
+- `CompanySetupScreen`: new users create or join a company after sign-up
+- `PendingApprovalScreen`: users awaiting admin approval see a blocking screen
+- Admin approval required before a user can access company data
+- `SwitchCompanyUseCase`: allows users belonging to multiple companies to change active company
+
+## Security Hard Rules (Multi-Tenant)
+- **company_id MUST come from JWT `app_metadata`, NEVER from client payload** — client-supplied company_id enables tenant impersonation
+- **Admin approval status MUST be validated server-side via RLS/functions, not just client-side provider state** — client-only checks can be bypassed
+- **Company switching MUST trigger session refresh to update JWT claims** — stale JWT after switch = wrong tenant context in RLS policies
+
 ## Integration Points
 - **Depends on**: None (foundational)
-- **Required by**: All features (gating auth state via AuthProvider)
+- **Required by**: All features (gating auth state via AuthProvider), ConsentProvider (consent gate)
 
 ## Performance Targets
 - Sign-in (online): < 3 seconds

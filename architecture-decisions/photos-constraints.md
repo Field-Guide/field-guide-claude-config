@@ -16,19 +16,18 @@
 
 **Why**: Inspectors must photograph site conditions regardless of connectivity.
 
-### Sync Status Tracking
-- ✗ No ambiguity about which photos are synced vs. pending
-- ✓ Photo record includes: local_path, sync_status (PENDING, IN_PROGRESS, SYNCED), sync_error (nullable)
-- ✓ UI must display sync status visually (spinner for pending, checkmark for synced, error icon for failures)
-- ✗ No deleting photos while sync_status = IN_PROGRESS
+### Sync via change_log (No Per-Record sync_status)
+- ✗ No per-record `sync_status` column — sync tracking is handled by the `change_log` table (local-only SQLite)
+- ✓ Photo mutations are recorded in `change_log`; the sync engine processes them
+- ✓ UI may show sync progress at the session level, not per-photo
 - ✓ Retry failed syncs with exponential backoff (1s, 2s, 4s, 8s, max 3 attempts)
 
-**Why**: Inspectors know what's safe to delete; prevents partial uploads.
+**Why**: Centralized change_log simplifies sync; per-record status columns are deprecated.
 
 ### File Lifecycle Management
 - ✗ No keeping original high-res photo after upload to Supabase
-- ✓ After successful sync (sync_status = SYNCED): Delete local file from device storage
-- ✓ Metadata (photo record in SQLite) persists (reference to Supabase URL)
+- ✓ After successful sync: Delete local file from device storage
+- ✓ Metadata (photo record in SQLite) persists (reference to `remotePath`)
 - ✗ No re-uploading if local file deleted
 
 **Why**: Conserves device storage; Supabase is source of truth.
@@ -42,11 +41,11 @@
 **Why**: Audit trail clarity; photos must be associated with inspection context.
 
 ### Metadata Requirements
-- ✓ Photo must include: id, entry_id, local_path (until synced), supabase_url (after synced), timestamp (UTC), location (nullable), caption (nullable), sync_status
-- ✗ No optional metadata (all required fields present)
+- ✓ Photo fields: `id`, `entryId`, `projectId`, `filename`, `filePath` (local device path), `remotePath` (Supabase storage path, nullable until synced), `caption` (nullable), `locationId` (nullable FK to locations), `latitude` (nullable), `longitude` (nullable), `capturedAt` (UTC), `createdAt`, `updatedAt`
+- ✗ No per-record `sync_status` — use `change_log` instead
 - ✓ Geolocation optional (user can capture without GPS)
 
-**Why**: Complete audit trail; timestamp proves when photo taken.
+**Why**: Complete audit trail; `capturedAt` proves when photo taken. `projectId` enables project-scoped queries.
 
 ---
 
@@ -94,9 +93,9 @@
 ## Testing Requirements
 
 - >= 85% test coverage for photo workflows
-- Unit tests: Sync status transitions, file lifecycle, metadata validation
-- Integration tests: Capture offline→sync online→verify Supabase URL
-- Contract tests: Entry-photo relationship immutability, sync status state machine
+- Unit tests: File lifecycle, metadata validation, change_log recording
+- Integration tests: Capture offline→sync online→verify remotePath populated
+- Contract tests: Entry-photo relationship immutability, change_log integration
 - Offline scenario: Capture 10 photos, lose network, go online, verify all synced and local files deleted
 
 ---

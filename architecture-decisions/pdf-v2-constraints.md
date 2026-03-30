@@ -8,9 +8,8 @@
 ## Hard Rules (Violations = Reject)
 
 ### No V1 Imports
-- ✗ No imports from `deprecated/` folder in active extraction code
 - ✗ No imports of `DocumentAnalyzer`, `NativeExtractor`, `StructurePreserver`
-- ✗ No reuse of V1 stage logic (copy-pasting patterns from deprecated/ is forbidden)
+- ✗ No reuse of V1 stage logic (copy-pasting patterns from V1 is forbidden)
 - ✓ All V2 code must be novel implementations, not V1 refactored
 
 **Why**: V1 hybrid routing was unreliable. V2 is OCR-only, fundamentally different.

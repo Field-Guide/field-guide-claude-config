@@ -27,18 +27,26 @@
 
 ### Contractor Immutability
 - ✗ No changing contractor.project_id after creation
-- ✓ Name, contact, role, phone can be updated
-- ✓ Deletion soft-deletes (is_deleted flag, not removed from DB) if contractor referenced in past entries
+- ✓ Name, type, contactName, phone can be updated
+- ✓ Deletion soft-deletes (deleted_at/deleted_by columns, not removed from DB) if contractor referenced in past entries
 - ✗ Hard deletion only if no historical reference in entries
 
 **Why**: Audit trail consistency; past entries must reference original contractor data.
 
 ### Required Metadata
-- ✓ Contractor must include: id, project_id, name, role, email, phone, company, created_at, updated_at
-- ✗ No null name/role (required for entry assignment)
-- ✓ Email/phone optional (can be omitted for temporary on-site staff)
+- ✓ Contractor model fields: id, projectId, name, type, contactName, phone, createdAt, updatedAt, createdByUserId
+- ✗ No null name (required for entry assignment)
+- ✓ contactName/phone optional (can be omitted for temporary on-site staff)
 
 **Why**: Complete audit trail; personnel identifiable for future audits.
+
+### Soft-Delete Integration
+- ✓ `deleted_at` / `deleted_by` columns exist in the DB schema for contractors
+- ✗ These columns are NOT exposed in the Contractor Dart model class
+- ✓ Soft-delete filtering is handled at the datasource/query layer (WHERE deleted_at IS NULL)
+- ✓ The model itself remains unaware of soft-delete state
+
+**Why**: Keeps the domain model clean; soft-delete is a persistence concern, not a domain concern.
 
 ---
 

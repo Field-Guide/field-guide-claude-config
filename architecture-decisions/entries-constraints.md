@@ -15,14 +15,13 @@
 
 **Why**: Inspectors work on construction sites with spotty networks; must not block workflow.
 
-### Draft/Complete/Submitted Workflow
-- ✗ No skipping workflow states (can't jump from DRAFT to SUBMITTED without COMPLETE)
-- ✓ Entry states: DRAFT → COMPLETE → SUBMITTED (three states, forward transitions only)
-- ✗ No reverting COMPLETE entries to DRAFT
+### Draft/Submitted Workflow
+- ✓ Entry states: DRAFT → SUBMITTED (two states, forward transition only)
 - ✓ SUBMITTED → DRAFT is allowed via `undoSubmission()` (intentional reversal for correction workflows)
 - ✓ SUBMITTED entries read-only (block all edits in UI)
+- ✗ No additional intermediate states
 
-**Why**: Immutable submitted entries prevent audit log corruption; clear workflow prevents confusion.
+**Why**: Immutable submitted entries prevent audit log corruption; simple two-state workflow prevents confusion.
 
 ### Date-Scoped Queries
 - ✗ No loading "all entries ever" without date filter
@@ -40,9 +39,10 @@
 **Why**: Prevents sync conflicts and audit trail ambiguity.
 
 ### Workflow Metadata
-- ✓ Entry must include: id, project_id, created_at, completed_at (nullable), submitted_at (nullable), status
+- ✓ Entry must include: id, project_id, location_id (FK), created_at, submitted_at (nullable), status
 - ✗ No optional metadata (all fields required for validation)
 - ✓ Timestamps in UTC, server-side generated on sync validation
+- ✓ location_id is a direct FK to locations table (not a junction table)
 
 **Why**: Audit trail consistency; prevents incomplete state tracking.
 
@@ -53,7 +53,7 @@
 ### Performance Targets
 - Load today's entries: < 500ms
 - Create entry: < 100ms (SQLite write only)
-- Transition DRAFT→COMPLETE or COMPLETE→SUBMITTED: < 200ms
+- Transition DRAFT→SUBMITTED: < 200ms
 - Querying 30-day window: < 1 second
 
 ### Bulk Operations
@@ -62,7 +62,7 @@
 
 ### Test Coverage
 - Target: >= 85% for entry workflows
-- Scenarios: Draft creation, state transitions, date filtering, offline sync
+- Scenarios: Draft creation, draft→submitted transition, undo submission, date filtering, offline sync, export
 
 ---
 
@@ -70,15 +70,23 @@
 
 - **Depends on**:
   - `projects` (root entity, entries scoped to projects)
-  - `sync` (queue edits for synchronization)
+  - `locations` (direct FK via location_id, not a junction table)
+  - `sync` (entries synced via change_log, no per-record sync_status)
   - `photos` (entries can attach photos, but photos optional)
   - `contractors` (entries can reference contractor personnel)
   - `quantities` (entries can reference bid items)
+  - `forms` (entries can have form attachments)
 
 - **Required by**:
   - `dashboard` (home screen shows recent entries)
   - `quantities` (variance tracking uses entries as source)
   - `sync` (entries primary data entity to sync)
+  - `pdf` (entry export to PDF)
+
+- **Capabilities**:
+  - Entry export (PDF generation via export use case)
+  - Form attachments (entries can reference form submissions)
+  - Filtering by date range, project, location, and status
 
 ---
 
@@ -94,7 +102,7 @@
 ## Testing Requirements
 
 - >= 85% test coverage for entry workflows
-- Unit tests: Workflow state transitions (valid/invalid), date filtering, immutability
+- Unit tests: Two-state workflow transitions (draft/submitted), undo submission, date filtering, immutability
 - Integration tests: Offline create→sync→verify in Supabase
 - Contract tests: Entry-project relationship immutability, workflow state machine
 - Offline scenario: Create 10 entries offline, go online, verify all synced in correct state

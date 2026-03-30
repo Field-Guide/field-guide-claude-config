@@ -32,13 +32,12 @@
 
 **Why**: Inspectors need to identify overage/shortage items quickly.
 
-### Sync via Entries
-- ✗ No direct sync of quantities to Supabase
-- ✓ Quantities synced indirectly: Entry marks items as observed, quantities updated via entry submission
+### Sync
+- ✓ Quantities sync directly via `bid_item_adapter` and `entry_quantities_adapter`
 - ✓ Entry-quantity association: Entry references N quantities (entry_quantities junction table)
 - ✓ Variance snapshot captured at entry submission (immutable historical record)
 
-**Why**: Quantities are supporting data; entries are primary (who, what, when, where).
+**Why**: Both bid items and entry-quantity associations are synced directly through dedicated sync adapters.
 
 ### Immutability After Entry Submission
 - ✗ No changing actual_quantity after associated entry marked SUBMITTED
@@ -78,7 +77,7 @@
 - **Required by**:
   - `entries` (entry submission captures quantity variance)
   - `dashboard` (high-variance summary)
-  - `sync` (quantities synced indirectly via entries)
+  - `sync` (quantities synced directly via bid_item_adapter and entry_quantities_adapter)
 
 ---
 

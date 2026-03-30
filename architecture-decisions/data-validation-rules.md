@@ -18,6 +18,9 @@
 - [ ] All `?` types (nullable) must have explicit null-handling code
 - [ ] Never assume deserialized data is non-null without validation
 
+### Error Handling Anti-Patterns
+- [ ] **No catch-without-logging**: every `catch` block MUST log the error (via `Logger`), never silently swallow exceptions. Silent catches hide bugs and make debugging impossible.
+
 ### API & Network Boundaries
 - [ ] All external API calls wrapped in try-catch with specific exception types
 - [ ] Network errors reported to UI with user-friendly messaging (SnackBar or ErrorWidget)
