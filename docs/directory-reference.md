@@ -6,7 +6,7 @@
 | plans/ | Implementation plans (active in root, completed in completed/) |
 | prds/ | Product Requirements Documents |
 | specs/ | Design specifications from brainstorming skill |
-| agents/ | Agent definitions (10 agents, all at root level) |
+| agents/ | Agent definitions (10 agents, all at root level) and `*.memory.md` companion files |
 | skills/ | Skill definitions loaded on-demand |
 | rules/ | Domain rules with `paths:` frontmatter for lazy loading |
 | docs/ | Feature overviews + architecture docs (lazy-loaded by agents) |
@@ -26,6 +26,10 @@
 | debug-sessions/ | Session logs from systematic debugging (gitignored, 30-day retention) |
 | outputs/ | Audit output reports |
 | user-notes/ | Raw user notes |
+| context-bundles/ | Pre-built context snapshots for fast agent loading |
+| spikes/ | Experimental / proof-of-concept work (not production code) |
+| projects/ | Per-project memory directories (auto-managed by Claude) |
+| settings.local.json | Local Claude settings override (gitignored) |
 
 ## Project-Level Tools
 | Directory | Purpose |
@@ -35,10 +39,10 @@
 ## Documentation System
 - `.claude/docs/` — Feature overviews + architecture docs (lazy-loaded by agents)
 - `.claude/architecture-decisions/` — Feature-specific constraints + shared rules
-- `.claude/state/` — JSON state files; see `state/feature-{name}.json` per feature
-- Agents load feature docs on demand via `state/feature-{name}.json`
+- `.claude/state/` — JSON state files; primary tracking via FEATURE-MATRIX.json (feature status) and PROJECT-STATE.json (blockers and priorities)
+- Agents load feature docs on demand via FEATURE-MATRIX.json (feature status and doc paths) and PROJECT-STATE.json (blockers and priorities).
 
-**Note**: `calculator`, `forms`, `gallery`, `todos` are sub-features of `toolbox` — covered by `feature-toolbox-overview.md` and `feature-toolbox.json`. They do not have separate state/doc files.
+**Note**: `calculator`, `forms`, `gallery`, and `todos` are full standalone features with their own `lib/features/` directories, data layers, and presentation layers. `toolbox` is a navigation hub that routes to them but does not contain their implementation. Each may have separate doc files under `docs/features/`.
 
 ## Archives (On-Demand — NOT auto-loaded)
 - `.claude/logs/state-archive.md` — Session history

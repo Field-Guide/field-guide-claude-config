@@ -25,7 +25,7 @@ lib/
 
 ## Data Flow
 ```
-Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
+Screen -> Provider -> UseCase -> Repository -> SQLite (local) -> Supabase (sync)
 ```
 
 ## Domain Rules (lazy-loaded via paths: frontmatter)
@@ -85,7 +85,7 @@ Screen -> Provider -> Repository -> SQLite (local) -> Supabase (sync)
 | What | Where |
 |------|-------|
 | Agents (10 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
-| Skills (10 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
+| Skills (11 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
 | Directory structure | `.claude/docs/directory-reference.md` |
 | Platform requirements | `.claude/rules/platform-standards.md` |
 | UI prototyping workflow | `.claude/rules/frontend/ui-prototyping.md` |

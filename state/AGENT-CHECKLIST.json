@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-02-13T00:00:00Z",
+  "generated_at": "2026-03-30T00:00:00Z",
   "description": "Agent pre-flight validation, context loading, and post-work validation templates",
 
   "pre_flight_validation": {
     "description": "Run BEFORE spawning agents. If any check fails, abort and fix environment.",
     "checks": [
       {
-        "name": "write_permissions",
+        "name": "dependency_health",
         "command": "pwsh -Command \"dart pub get 2>&1\" | Select-String -Pattern 'error|Error' | Measure-Object | Select-Object -ExpandProperty Count",
         "expected_output": "0",
         "required": true,
-        "rationale": "Agents must be able to write files and manage dependencies"
+        "rationale": "Pub dependencies resolve without errors"
       },
       {
         "name": "test_runner",
@@ -21,7 +21,7 @@
       },
       {
         "name": "analyzer",
-        "command": "dart analyze --version",
+        "command": "pwsh -Command \"dart analyze --version 2>&1\"",
         "expected_output_contains": "dart",
         "required": true,
         "rationale": "Agents must be able to run linter for code quality"
@@ -92,7 +92,7 @@
       },
       {
         "check": "Analyzer & linting",
-        "command": "dart analyze lib/features/[feature]/ --no-fatal-infos",
+        "command": "pwsh -Command \"dart analyze lib/features/[feature]/ --no-fatal-infos\"",
         "acceptance_criteria": "0 errors, all warnings addressed",
         "rationale": "Code must be analyzable and maintainable"
       },

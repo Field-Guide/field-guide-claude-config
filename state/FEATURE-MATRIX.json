@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-02-13T00:00:00Z",
+  "generated_at": "2026-03-30",
   "app_name": "Construction Inspector App",
-  "total_features": 13,
+  "total_features": 17,
 
   "features": [
     {
@@ -15,7 +15,7 @@
       },
       "constraints": "architecture-decisions/pdf-v2-constraints.md",
       "test_coverage": "87%",
-      "required_by": ["entries", "toolbox"],
+      "required_by": ["entries", "toolbox", "forms"],
       "depends_on": ["photos", "sync"]
     },
 
@@ -71,7 +71,7 @@
       },
       "constraints": "architecture-decisions/photos-constraints.md",
       "test_coverage": "82%",
-      "required_by": ["entries", "pdf", "sync"],
+      "required_by": ["entries", "pdf", "sync", "gallery"],
       "depends_on": ["auth", "sync"]
     },
 
@@ -169,7 +169,7 @@
       },
       "constraints": "architecture-decisions/toolbox-constraints.md",
       "test_coverage": "55%",
-      "required_by": [],
+      "required_by": ["calculator", "forms", "gallery", "todos"],
       "depends_on": ["auth", "pdf"]
     },
 
@@ -185,15 +185,73 @@
       "test_coverage": "72%",
       "required_by": [],
       "depends_on": ["auth", "sync"]
+    },
+
+    {
+      "name": "calculator",
+      "full_name": "Calculator",
+      "status": "implemented",
+      "docs": {
+        "overview": "docs/features/feature-calculator-overview.md",
+        "architecture": "docs/features/feature-calculator-architecture.md"
+      },
+      "constraints": null,
+      "test_coverage": "unknown",
+      "required_by": [],
+      "depends_on": ["toolbox"]
+    },
+
+    {
+      "name": "forms",
+      "full_name": "Forms",
+      "status": "implemented",
+      "docs": {
+        "overview": "docs/features/feature-forms-overview.md",
+        "architecture": "docs/features/feature-forms-architecture.md"
+      },
+      "constraints": "architecture-decisions/forms-constraints.md",
+      "test_coverage": "unknown",
+      "required_by": [],
+      "depends_on": ["toolbox", "pdf"]
+    },
+
+    {
+      "name": "gallery",
+      "full_name": "Gallery",
+      "status": "implemented",
+      "docs": {
+        "overview": "docs/features/feature-gallery-overview.md",
+        "architecture": "docs/features/feature-gallery-architecture.md"
+      },
+      "constraints": null,
+      "test_coverage": "unknown",
+      "required_by": [],
+      "depends_on": ["toolbox", "photos"]
+    },
+
+    {
+      "name": "todos",
+      "full_name": "Todos",
+      "status": "implemented",
+      "docs": {
+        "overview": "docs/features/feature-todos-overview.md",
+        "architecture": "docs/features/feature-todos-architecture.md"
+      },
+      "constraints": null,
+      "test_coverage": "unknown",
+      "required_by": [],
+      "depends_on": ["toolbox"]
     }
   ],
 
   "summary": {
-    "total_features": 13,
+    "total_features": 17,
     "stable": 12,
+    "implemented": 4,
     "in_progress": 1,
     "needs_documentation": 0,
-    "needs_refactoring": 3,
-    "average_test_coverage": 76
+    "needs_refactoring": 0,
+    "average_test_coverage": 76,
+    "average_test_coverage_note": "excludes 4 implemented features with no coverage data"
   }
 }

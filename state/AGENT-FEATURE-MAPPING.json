@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-02-13",
+  "last_updated": "2026-03-30",
   "description": "Maps agents to features and features to agents for the Construction Inspector App. Generated from agent definitions in .claude/agents/.",
 
   "agents": [
@@ -10,7 +10,7 @@
       "phase": "IMPLEMENT",
       "model": "sonnet",
       "primary_features": ["dashboard", "entries", "contractors", "locations", "projects", "quantities", "settings", "toolbox", "weather", "photos"],
-      "supporting_features": ["auth", "pdf", "sync"],
+      "supporting_features": ["auth", "pdf", "sync", "calculator", "forms", "todos", "gallery"],
       "skills": ["interface-design"],
       "tools": ["Read", "Edit", "Write", "Bash", "Glob", "Grep"],
       "disallowed_tools": [],
@@ -23,7 +23,7 @@
       "phase": "IMPLEMENT",
       "model": "sonnet",
       "primary_features": ["contractors", "entries", "locations", "projects", "quantities", "photos", "toolbox", "weather", "settings"],
-      "supporting_features": ["auth", "pdf", "sync", "dashboard"],
+      "supporting_features": ["auth", "pdf", "sync", "dashboard", "forms"],
       "skills": [],
       "tools": ["Read", "Edit", "Write", "Bash", "Glob", "Grep"],
       "disallowed_tools": [],
@@ -62,7 +62,7 @@
       "phase": "IMPLEMENT",
       "model": "sonnet",
       "primary_features": ["pdf"],
-      "supporting_features": ["photos", "entries"],
+      "supporting_features": ["photos", "entries", "forms"],
       "skills": ["pdf-processing"],
       "tools": ["Read", "Edit", "Write", "Bash", "Glob", "Grep"],
       "disallowed_tools": [],
@@ -93,6 +93,45 @@
       "disallowed_tools": [],
       "rules": ["rules/architecture.md", "rules/testing/patrol-testing.md", "architecture-decisions/data-validation-rules.md"],
       "notes": "Cross-cutting testing agent. Owns test/** and integration_test/** directories. Tests all features but does not own any feature's source code. Uses systematic-debugging skill for root cause analysis."
+    },
+    {
+      "name": "debug-research-agent",
+      "description": "Systematic debugging and root-cause research specialist. Use for diagnosing hard-to-reproduce bugs, tracing data flow issues, and building hypotheses.",
+      "phase": "debug",
+      "model": "sonnet",
+      "primary_features": [],
+      "supporting_features": ["sync", "pdf", "entries"],
+      "skills": ["systematic-debugging"],
+      "tools": ["Read", "Grep", "Glob"],
+      "disallowed_tools": [],
+      "rules": ["rules/architecture.md"],
+      "notes": "Cross-cutting debug agent. No feature ownership. Commonly targets sync, pdf, and entries as the most complex debug surfaces."
+    },
+    {
+      "name": "implement-orchestrator",
+      "description": "Orchestrates multi-agent implementation waves. Dispatches specialist agents, tracks phase completion, and coordinates cross-agent integration.",
+      "phase": "implement",
+      "model": "opus",
+      "primary_features": [],
+      "supporting_features": [],
+      "skills": [],
+      "tools": ["Read", "Glob", "Grep", "Agent"],
+      "disallowed_tools": [],
+      "rules": [],
+      "notes": "Orchestrator only — dispatches other agents, does not implement features directly."
+    },
+    {
+      "name": "security-agent",
+      "description": "Security auditor. Reviews auth flows, RLS policies, sync data exposure, and privilege escalation paths. Read-only cross-cutting auditor.",
+      "phase": "review",
+      "model": "opus",
+      "primary_features": [],
+      "supporting_features": ["auth", "sync", "settings"],
+      "skills": [],
+      "tools": ["Read", "Grep", "Glob"],
+      "disallowed_tools": ["Write", "Edit", "Bash"],
+      "rules": ["rules/architecture.md", "rules/auth/supabase-auth.md", "rules/sync/sync-patterns.md", "architecture-decisions/auth-constraints.md", "architecture-decisions/sync-constraints.md"],
+      "notes": "Read-only cross-cutting auditor. Reviews security-sensitive features: auth, sync, and settings. Cannot modify files."
     }
   ],
 
@@ -197,6 +236,39 @@
       "supporting_agents": [],
       "shared_rules": [],
       "notes": "Weather data for daily entries. Relatively simple feature."
+    },
+
+    {
+      "name": "calculator",
+      "primary_agent": "general-purpose",
+      "supporting_agents": ["frontend-flutter-specialist-agent"],
+      "shared_rules": [],
+      "notes": "Standalone calculator feature accessible via toolbox hub. Simple self-contained feature."
+    },
+
+    {
+      "name": "forms",
+      "primary_agent": "general-purpose",
+      "data_agent": "backend-data-layer-agent",
+      "supporting_agents": ["frontend-flutter-specialist-agent", "pdf-agent"],
+      "shared_rules": [],
+      "notes": "Form creation and management accessible via toolbox hub. Exports to PDF via pdf-agent."
+    },
+
+    {
+      "name": "gallery",
+      "primary_agent": "frontend-flutter-specialist-agent",
+      "supporting_agents": ["general-purpose"],
+      "shared_rules": [],
+      "notes": "Photo gallery browsing accessible via toolbox hub. Depends on photos feature."
+    },
+
+    {
+      "name": "todos",
+      "primary_agent": "general-purpose",
+      "supporting_agents": ["frontend-flutter-specialist-agent"],
+      "shared_rules": [],
+      "notes": "Todo list management accessible via toolbox hub. Simple self-contained feature."
     }
   ],
 
@@ -231,7 +303,7 @@
 
   "findings": {
     "gaps": [
-      "9 of 17 features (contractors, dashboard, entries, locations, photos, projects, quantities, settings, toolbox, weather) have no dedicated specialist -- they share frontend-flutter-specialist-agent and backend-data-layer-agent as their primary agents split by layer.",
+      "10 of 17 features (contractors, dashboard, entries, locations, photos, projects, quantities, settings, toolbox, weather) have no dedicated specialist -- they share frontend-flutter-specialist-agent and backend-data-layer-agent as their primary agents split by layer.",
       "The 'dashboard' feature has no data_agent supporting entry in the routing rules; it aggregates from multiple features, which could create ambiguity about who owns cross-feature queries.",
       "No agent explicitly owns lib/core/ (router, theme, config) outside of database. Core infrastructure changes have no dedicated owner.",
       "No agent explicitly owns lib/services/ (cross-cutting services like photo_service, image_service, permission_service).",
