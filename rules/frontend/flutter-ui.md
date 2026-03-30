@@ -40,11 +40,26 @@ class _MyScreenState extends State<MyScreen> {
 ```
 
 ### Theme Colors
-Use `AppTheme` constants:
-- `AppTheme.primaryBlue` - Primary brand
-- `AppTheme.success/warning/error` - Semantic
-- `AppTheme.textPrimary/Secondary` - Text
-- NEVER hardcode Colors.* values
+
+`AppTheme.*` color constants are **deprecated** — they do not adapt across dark/light/high-contrast themes.
+
+Use the correct color lookup pattern based on semantic meaning:
+
+| Color Need | Correct Pattern |
+|------------|----------------|
+| Primary brand color | `Theme.of(context).colorScheme.primary` |
+| Error / destructive | `Theme.of(context).colorScheme.error` |
+| Primary text | `Theme.of(context).colorScheme.onSurface` |
+| Secondary / hint text | `Theme.of(context).colorScheme.onSurfaceVariant` |
+| Success indicators | `FieldGuideColors.of(context).statusSuccess` |
+| Warning indicators | `FieldGuideColors.of(context).statusWarning` |
+| Info indicators | `FieldGuideColors.of(context).statusInfo` |
+| Elevated surface | `FieldGuideColors.of(context).surfaceElevated` |
+| Glass/frosted overlay | `FieldGuideColors.of(context).surfaceGlass` |
+| Tertiary text (hints, timestamps) | `FieldGuideColors.of(context).textTertiary` |
+
+- NEVER hardcode `Colors.*` values
+- NEVER use `AppTheme.*` color constants (deprecated)
 
 ### Navigation
 ```dart
@@ -86,7 +101,6 @@ context.read<Provider>().update();
 - Trailing action/status
 
 ### Forms
-- Use Stepper for multi-step
 - Validate before advancing
 - Show loading during submit
 
@@ -130,63 +144,58 @@ Used in Calendar screen for entry list + report preview:
 ┌─────────────────────────────────────────────────┐
 │ [Calendar Header + Month View]                  │
 ├─────────────────────────────────────────────────┤
-│ Entry List (180px)  │  Report Preview (flex)    │
-│ ┌────────────────┐  │ ┌───────────────────────┐ │
-│ │ ▶ Location A   │  │ │ Weather: Sunny        │ │
-│ │   Draft        │  │ │ Activities: ...       │ │
-│ │                │  │ │ Safety: ...           │ │
-│ │   Location B   │  │ │ [Edit] buttons        │ │
-│ │   Complete     │  │ │                       │ │
-│ └────────────────┘  │ └───────────────────────┘ │
+│ Entry List (horizontal scroll)  │  Report Preview (flex)    │
+│ ┌────────────────┐  ┌──────────┐ │ ┌───────────────────────┐ │
+│ │ ▶ Location A   │  │Location B│ │ │ Weather: Sunny        │ │
+│ │   Draft        │  │ Complete │ │ │ Activities: ...       │ │
+│ │                │  │          │ │ │ Safety: ...           │ │
+│ └────────────────┘  └──────────┘ │ │ [Edit] buttons        │ │
+│                                  │ └───────────────────────┘ │
 └─────────────────────────────────────────────────┘
 ```
 
-Implementation pattern (Reference: `lib/features/entries/presentation/screens/home_screen.dart:395-410`):
+Implementation pattern (Reference: `lib/features/entries/presentation/screens/home_screen.dart` — `_buildEntryList` method):
 - Track `_selectedEntryId` state for highlighting
-- Left panel: Fixed-width `SizedBox` with `ListView.builder`
-- Right panel: `Expanded` widget with scrollable content
+- Entry list: Horizontal `ListView.builder` with fixed-width cards (140px each)
+- Right panel: Scrollable report preview driven by `_selectedEntryId`
 - Selection state updates preview via `setState()`
 - Edit buttons pass section identifier as query parameter
 
-Reference: `lib/features/entries/presentation/screens/home_screen.dart:326-760`
-
 ### Form Organization (Detailed)
 
-Multi-step forms use Flutter's `Stepper` widget with:
-- Step validation before advancing
-- Custom controls builder for navigation buttons
-- Form state preserved across steps
+`EntryEditorScreen` uses a unified single-scroll layout (not a Stepper). All sections are visible at once:
+- Header (location, date, weather) — auto-expands when fields are empty, collapses when set
+- Inline tap-to-edit for each section
+- Draft tracking replaces create/edit mode bifurcation
 
-Reference: `lib/features/entries/presentation/screens/entry_editor_screen.dart:80-95`
+Reference: `lib/features/entries/presentation/screens/entry_editor_screen.dart` — `EntryEditorScreen` class
 
 ### Theming Pattern
 
-Centralized theme with brand colors. Reference: `lib/core/theme/app_theme.dart:1-95`
+Centralized theme with brand colors. Reference: `lib/core/theme/app_theme.dart` and `lib/core/theme/field_guide_colors.dart`
 
 #### Color Naming
 
-- Primary brand colors: `primaryBlue`, `secondaryBlue`
-- Semantic colors: `success`, `warning`, `error`
-- Domain-specific: `sunny`, `rainy`, `overcast` (weather tags)
+- Primary brand colors: resolved via `Theme.of(context).colorScheme.primary`
+- Semantic colors: `statusSuccess`, `statusWarning` via `FieldGuideColors.of(context)`
+- Domain-specific: `sunny`, `rainy`, `overcast` (weather tags — use `AppColors` constants)
 
 #### Theme Usage
 
-Access via `Theme.of(context)` or direct `AppTheme.primaryBlue` for custom widgets.
+Always access via `Theme.of(context).colorScheme.*` or `FieldGuideColors.of(context).*`. Never call `AppTheme.*` color constants directly — they are deprecated and do not adapt to dark/light/high-contrast themes.
 
 ### Clickable Stat Cards Pattern
 
-Dashboard stat cards use `InkWell` wrapper with `onTap` parameter:
+Dashboard stat cards use the `DashboardStatCard` widget (located at `lib/features/dashboard/presentation/widgets/dashboard_stat_card.dart`). It wraps an `InkWell` with an `onTap` parameter:
 
 ```dart
-Widget _buildStatCard(String label, String value, IconData icon, Color color, {VoidCallback? onTap}) {
-  return Card(
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: // ... content
-    ),
-  );
-}
+DashboardStatCard(
+  label: 'Entries',
+  value: '12',
+  icon: Icons.assignment,
+  color: Theme.of(context).colorScheme.primary,
+  onTap: () => _navigateToEntries(),
+)
 ```
 
-Reference: `lib/features/dashboard/presentation/screens/project_dashboard_screen.dart:265-295`
+Reference: `lib/features/dashboard/presentation/screens/project_dashboard_screen.dart` — stat card usage

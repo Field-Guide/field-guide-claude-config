@@ -20,7 +20,7 @@ See `database_service.dart` for current version (increment for migrations).
 - Junction tables: `entry_` prefix + related entity
 
 ### Column Names
-- snake_case: `project_id`, `created_at`, `sync_status`
+- snake_case: `project_id`, `created_at`
 - Foreign keys: `{entity}_id` pattern
 - Timestamps: `created_at`, `updated_at`, `synced_at`
 
@@ -36,7 +36,6 @@ const String createProjectsTable = '''
     contract_number TEXT,
     start_date TEXT,
     end_date TEXT,
-    sync_status TEXT DEFAULT 'pending',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
   )
@@ -52,7 +51,6 @@ const String createProjectsTable = '''
 
 const String createProjectsIndexes = '''
   CREATE INDEX IF NOT EXISTS idx_projects_name ON projects(name);
-  CREATE INDEX IF NOT EXISTS idx_projects_sync_status ON projects(sync_status);
 ''';
 ```
 
@@ -79,11 +77,24 @@ const String createDailyEntriesTable = '''
 ### Version Increment
 ```dart
 // In database_service.dart
-static const int _databaseVersion = 21;  // Increment for each migration
+// Current version: 46 — increment for each migration
+
+// openDatabase pattern (version + onConfigure for PRAGMAs)
+final db = await openDatabase(
+  path,
+  version: 46,
+  onCreate: _onCreate,
+  onUpgrade: _onUpgrade,
+  onConfigure: (db) async {
+    // Use rawQuery — Android API 36 rejects PRAGMA via execute()
+    await db.rawQuery('PRAGMA journal_mode=WAL');
+    await db.rawQuery('PRAGMA foreign_keys=ON');
+  },
+);
 
 // In onUpgrade callback
 onUpgrade: (db, oldVersion, newVersion) async {
-  if (oldVersion < 21) {
+  if (oldVersion < 46) {
     await db.execute('ALTER TABLE photos ADD COLUMN caption TEXT');
     await db.execute('CREATE INDEX idx_photos_caption ON photos(caption)');
   }
@@ -111,42 +122,11 @@ if (oldVersion < 20) {
 }
 ```
 
-## Seed Data
-
-### Seed Version Tracking
-```dart
-// In seed_data_service.dart
-static const int currentSeedVersion = 5;  // Increment when seed data changes
-
-// Check if reseed needed
-final storedVersion = prefs.getInt('seedVersion') ?? 0;
-if (storedVersion < currentSeedVersion) {
-  await _seedDatabase();
-  prefs.setInt('seedVersion', currentSeedVersion);
-}
-```
-
-### JSON Seed Format
-```json
-// In assets/seed_data/forms.json
-{
-  "forms": [
-    {
-      "id": "form-0582b-v1",
-      "name": "MDOT 0582B",
-      "fields": [...]
-    }
-  ]
-}
-```
-
 ## Common Patterns
 
 ### Sync Status Column
-```sql
-sync_status TEXT DEFAULT 'pending'
--- Values: 'pending', 'synced', 'error', 'failed'
-```
+
+**DEPRECATED**: Per-row `sync_status` columns are no longer used. The sync engine uses the `change_log` table populated by SQLite triggers. Do not add `sync_status` columns to new tables.
 
 ### Timestamps
 ```sql
@@ -188,7 +168,7 @@ await db.query('projects', where: 'id = ?', whereArgs: [projectId]);
 // This won't trigger migration on existing installs!
 
 // GOOD - always increment version with schema changes
-static const int _databaseVersion = 21;  // Was 20
+// Increment _databaseVersion (currently 46) for every schema change
 ```
 
 ## Debugging
@@ -228,7 +208,6 @@ Logger.db('Indexes: $indexes');
 - [ ] Version bump: [old] -> [new]
 - [ ] Migration tested (upgrade from previous version)
 - [ ] Indexes added for new FKs/filters
-- [ ] Seed version updated (if seed data changed)
 
 ## Testing
 - [ ] Fresh install works

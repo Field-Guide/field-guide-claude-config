@@ -13,8 +13,11 @@ paths:
 lib/features/pdf/
 ├── data/
 │   ├── models/          # PDF-related models
-│   ├── services/        # PDF generation services
-│   └── parsers/         # Bid item PDF parsers
+│   └── datasources/     # Local data sources
+├── services/            # PDF generation + extraction services
+│   ├── extraction/      # V2 pipeline stages
+│   ├── mp/              # MP extraction (MpExtractionService)
+│   └── ocr/             # OCR engine helpers
 └── presentation/
     ├── screens/         # Preview screens
     └── widgets/         # PDF-related widgets
@@ -107,6 +110,11 @@ else return ExtractedValue(value);
 
 Re-extraction loop: up to 2 retries at 400 DPI (PSM 3 then PSM 6). Best result by `overallScore` kept.
 
+### MP Document Extraction
+File: `lib/features/pdf/services/mp/mp_extraction_service.dart`
+
+`MpExtractionService` is a purpose-built orchestrator for construction MP (Materials/Pay) documents. It reuses stages 0, 2B-i, 2B-ii, and 2B-iii from the V2 pipeline but applies MP-specific page header detection (project#, section digits, page#, ALL CAPS title pattern) and maps extracted cells to `MpLineItem` models rather than `ParsedBidItem`.
+
 ### Image Preprocessing (Stage 2B-ii)
 File: `lib/features/pdf/services/extraction/stages/image_preprocessor_v2.dart`
 
@@ -135,7 +143,7 @@ Only runs on pages where `GridLineDetector` flagged a grid. Steps:
 
 ### OCR Engine + Cell PSM Selection (Stages 2B-iii)
 Files:
-- `lib/features/pdf/services/extraction/ocr/tesseract_engine_v2.dart` — executes OCR with a given `OcrConfigV2` (PSM is caller-provided, not decided here)
+- `lib/features/pdf/services/extraction/ocr/tesseract_engine_v2.dart` — executes OCR with a given `TesseractConfigV2` (PSM is caller-provided, not decided here)
 - `lib/features/pdf/services/extraction/stages/text_recognizer_v2.dart` — decides PSM per cell via `_determineRowPsm`
 
 Package: `flusseract` (Tesseract 5)

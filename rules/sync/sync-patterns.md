@@ -3,71 +3,79 @@ paths:
   - "lib/features/sync/**/*.dart"
 ---
 
-<!-- TODO: Remove [BRANCH: feat/sync-engine-rewrite] annotations from 5 section headings after branch merges to main -->
+# Sync Architecture
 
-# Sync Architecture Diagram
-
-## Layer Diagram [BRANCH: feat/sync-engine-rewrite]
+## Layer Diagram
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    PRESENTATION LAYER                        │
 │  lib/features/sync/presentation/providers/sync_provider.dart │
 │  • Exposes sync state to UI                                  │
-│  • Screens: SyncDashboard, ConflictViewer, ProjectSelection  │
+│  • Screens: SyncDashboardScreen, ConflictViewerScreen        │
+│  • Widgets: SyncStatusIcon, DeletionNotificationBanner       │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   APPLICATION LAYER                          │
 │  lib/features/sync/application/sync_orchestrator.dart        │
+│  lib/features/sync/application/sync_lifecycle_manager.dart   │
 │  lib/features/sync/application/background_sync_handler.dart  │
+│  lib/features/sync/application/fcm_handler.dart              │
 │  • Routes sync based on ProjectMode                          │
-│  • Coordinates adapters and background sync triggers         │
+│  • Manages app-lifecycle-driven sync triggers                │
+│  • Handles FCM push notifications for sync signals           │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      ENGINE LAYER                            │
 │  lib/features/sync/engine/sync_engine.dart                   │
+│  lib/features/sync/engine/sync_control_service.dart          │
 │  • SyncEngine: core sync orchestration                       │
-│  • ChangeTracker: identifies pending changes                 │
+│  • ChangeTracker: reads change_log for pending changes       │
 │  • ConflictResolver: handles data conflicts                  │
 │  • IntegrityChecker: post-sync consistency                   │
 │  • SyncMutex: prevents concurrent syncs                      │
 │  • SyncRegistry: ordered table adapter registry              │
+│  • OrphanScanner: detects orphaned local records             │
+│  • StorageCleanup: post-sync file cleanup                    │
+│  • ScopeType: tenant-scope enum (direct/viaProject/etc.)     │
+│  • SyncControlService: circuit-breaker + health UI state     │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    TABLE ADAPTERS (17)                       │
+│                    TABLE ADAPTERS (22)                       │
 │  lib/features/sync/adapters/table_adapter.dart (base)        │
 │  • One adapter per syncable table                            │
-│  • Handles push/pull/conflict for its table                  │
-│  • TypeConverters for data type mapping                      │
+│  • Pure configuration + conversion objects                   │
+│  • Declares FK ordering, scope type, type converters         │
+│  • TypeConverters for column-level data type mapping         │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      DOMAIN LAYER                            │
-│  lib/features/sync/domain/sync_adapter.dart                  │
 │  lib/features/sync/domain/sync_types.dart                    │
-│  • SyncAdapter interface                                     │
-│  • SyncResult value object                                   │
+│  • SyncResult value object (pushed/pulled/errors/rlsDenials) │
 │  • SyncAdapterStatus enum                                    │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                      DATA LAYER                              │
-│  lib/features/sync/data/adapters/supabase_sync_adapter.dart  │
-│  • Implements SyncAdapter for Supabase backend               │
+│  lib/features/sync/data/adapters/mock_sync_adapter.dart      │
+│  • Mock adapter for test environments (no-network)           │
+│  • Supabase I/O is handled directly by SyncEngine — there   │
+│    is no separate supabase_sync_adapter.dart file            │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ## Data Flow
 
-### Sync Operation Flow [BRANCH: feat/sync-engine-rewrite]
+### Sync Operation Flow
 
 ```
 User Action (Settings, Dashboard, or auto-reconnect)
@@ -82,45 +90,68 @@ SyncOrchestrator.syncProject(project)
 SyncEngine.syncAll()
     │
     ├─► SyncMutex.acquire()
-    ├─► ChangeTracker.getPendingChanges()
+    ├─► ChangeTracker.getPendingChanges()   ← reads change_log table
     ├─► For each TableAdapter (ordered by SyncRegistry):
-    │   ├─► adapter.push(pendingRecords)
-    │   ├─► adapter.pull(lastSyncTimestamp)
+    │   ├─► adapter.convertForRemote(localRecord)
+    │   ├─► TableAdapter.push(records)        ← interface contract
+    │   ├─► TableAdapter.pull(lastSyncTimestamp) ← interface contract
+    │   ├─► adapter.convertForLocal(remoteRecord)
     │   └─► ConflictResolver.resolve(conflicts)
+    │
+    │   NOTE: SyncEngine calls the TableAdapter interface only.
+    │   The SyncEngine handles all Supabase I/O directly — the
+    │   TableAdapter is the contract, not any separate adapter class.
     ├─► IntegrityChecker.validate()
     └─► SyncMutex.release()
+```
+
+### Change Tracking
+
+SQLite triggers automatically populate the `change_log` table on every INSERT, UPDATE, and DELETE to syncable tables. The `ChangeTracker` class reads unprocessed `change_log` entries to determine what needs pushing to Supabase. There is no `sync_queue` table.
+
+```
+Local Write (any table)
+    │
+    ▼  [SQLite trigger fires]
+change_log row inserted (table, record_id, operation, processed=0)
+    │
+    ▼  [next sync cycle]
+ChangeTracker.getPendingChanges() → groups by table
+    │
+    ▼
+SyncEngine pushes records, marks entries processed=1
 ```
 
 ### Multi-Backend Flow
 
 ```
-User Action
-    │
-    ▼
 SyncOrchestrator.syncProject(project)
     │
     ├─► if ProjectMode.localAgency
-    │   └─► SupabaseSyncAdapter
+    │   └─► SyncEngine
     │       └─► Supabase Backend
     │
-    └─► if ProjectMode.mdot
-        └─► AASHTOWareSyncAdapter (future)
+    └─► if ProjectMode.mdot (future)
+        └─► AASHTOWareSyncAdapter
             └─► AASHTOWare OpenAPI
 ```
 
-## Class Relationships [BRANCH: feat/sync-engine-rewrite]
+## Class Relationships
 
 ```
 ┌──────────────────┐
-│  SyncAdapter     │  <<interface>>
+│  TableAdapter    │  <<abstract>>
 │ ─────────────── │
-│ + syncAll()      │
-│ + syncProject()  │
+│ + tableName      │
+│ + scopeType      │
+│ + fkDependencies │
+│ + converters     │
+│ + insertOnly     │
+│ + convertForRemote() │
+│ + convertForLocal()  │
 └────────▲─────────┘
-         │ implements
-┌────────┴──────────────┐
-│ SupabaseSyncAdapter   │
-└───────────────────────┘
+         │ extends (22 concrete adapters)
+    [see Adapters section below]
 
 ┌──────────────────┐     ┌──────────────────┐
 │   SyncEngine     │────►│  SyncRegistry    │
@@ -135,59 +166,158 @@ SyncOrchestrator.syncProject(project)
 │ Change   │ │ Conflict      │
 │ Tracker  │ │ Resolver      │
 └──────────┘ └───────────────┘
-
-┌──────────────────┐
-│  TableAdapter    │  <<abstract>>
-│ ─────────────── │
-│ + push()         │
-│ + pull()         │
-│ + tableName      │
-└────────▲─────────┘
-         │ extends (17 concrete adapters)
 ```
 
-## File Organization [BRANCH: feat/sync-engine-rewrite]
+## Adapters
+
+### Base Class
+
+`lib/features/sync/adapters/table_adapter.dart` — abstract class. The SyncEngine calls `convertForRemote()` before push and `convertForLocal()` after pull. Adapters are pure configuration + conversion objects; the engine handles all Supabase I/O.
+
+Key properties:
+- `tableName` — must match SQLite/Supabase table name exactly
+- `scopeType` — how this table is tenant-scoped (`ScopeType`)
+- `fkDependencies` — tables that must be pushed first (FK parents)
+- `converters` — column-level `TypeConverter` instances
+- `localOnlyColumns` / `remoteOnlyColumns` — stripped during conversion
+- `insertOnly` — true for append-only tables (e.g., consent_records — legal audit trail)
+- `isFileAdapter` — true for photo/document/export adapters (3-phase storage bucket push)
+- `naturalKeyColumns` — for UNIQUE constraint pre-check before upsert (prevents 23505 errors)
+
+### Concrete Adapters (22)
+
+| Adapter | Table |
+|---------|-------|
+| `ProjectAdapter` | projects |
+| `LocationAdapter` | locations |
+| `ContractorAdapter` | contractors |
+| `EquipmentAdapter` | equipment |
+| `PersonnelTypeAdapter` | personnel_types |
+| `BidItemAdapter` | bid_items |
+| `DailyEntryAdapter` | daily_entries |
+| `EntryContractorsAdapter` | entry_contractors |
+| `EntryEquipmentAdapter` | entry_equipment |
+| `EntryPersonnelCountsAdapter` | entry_personnel_counts |
+| `EntryQuantitiesAdapter` | entry_quantities |
+| `PhotoAdapter` | photos |
+| `InspectorFormAdapter` | inspector_forms |
+| `FormResponseAdapter` | form_responses |
+| `FormExportAdapter` | form_exports |
+| `EntryExportAdapter` | entry_exports |
+| `DocumentAdapter` | documents |
+| `TodoItemAdapter` | todo_items |
+| `ProjectAssignmentAdapter` | project_assignments |
+| `CalculationHistoryAdapter` | calculation_history |
+| `ConsentRecordAdapter` | user_consent_records |
+| `SupportTicketAdapter` | support_tickets |
+| `TypeConverters` | (shared utility, not a table adapter) |
+
+## Engine Components
+
+| Class | File | Purpose |
+|-------|------|---------|
+| `SyncEngine` | `engine/sync_engine.dart` | Core orchestration: push/pull loop, conflict dispatch |
+| `ChangeTracker` | `engine/change_tracker.dart` | Reads `change_log`; groups pending changes by table |
+| `ConflictResolver` | `engine/conflict_resolver.dart` | Last-writer-wins + manual resolution support |
+| `IntegrityChecker` | `engine/integrity_checker.dart` | Post-sync FK consistency validation |
+| `SyncMutex` | `engine/sync_mutex.dart` | Prevents concurrent sync runs |
+| `SyncRegistry` | `engine/sync_registry.dart` | Ordered list of all active `TableAdapter` instances |
+| `OrphanScanner` | `engine/orphan_scanner.dart` | Detects local records with no valid FK parent |
+| `StorageCleanup` | `engine/storage_cleanup.dart` | Deletes local files after successful remote upload |
+| `ScopeType` | `engine/scope_type.dart` | Enum: `direct`, `viaProject`, `viaEntry`, `viaContractor` |
+| `SyncControlService` | `engine/sync_control_service.dart` | Circuit-breaker state + health metrics for UI |
+
+## Application Layer
+
+| Class | File | Purpose |
+|-------|------|---------|
+| `SyncOrchestrator` | `application/sync_orchestrator.dart` | Multi-backend router; dispatches to SyncEngine (real) or MockSyncAdapter (test) |
+| `SyncLifecycleManager` | `application/sync_lifecycle_manager.dart` | Triggers sync on app foreground / reconnect events |
+| `BackgroundSyncHandler` | `application/background_sync_handler.dart` | Schedules and runs background sync tasks |
+| `FcmHandler` | `application/fcm_handler.dart` | Processes FCM push notifications that signal remote changes |
+
+## Config, Domain, and DI
+
+### Config
+
+`lib/features/sync/config/sync_config.dart` — thresholds, retry limits, batch sizes, and feature flags for the sync engine.
+
+### Domain
+
+`lib/features/sync/domain/sync_types.dart` — shared value types used across all sync layers:
+- `SyncResult` — immutable result object: `pushed`, `pulled`, `errors`, `errorMessages`, `rlsDenials`, `skippedPush`. Supports `+` operator for combining results.
+- `SyncAdapterStatus` — enum: `idle`, `syncing`, `success`, `error`, `offline`, `authRequired`
+
+### DI
+
+`lib/features/sync/di/sync_providers.dart` — Provider definitions that wire together SyncEngine, ChangeTracker, SyncRegistry, SyncOrchestrator, and all concrete adapters.
+
+## File Organization
 
 ```
 lib/features/sync/
 ├── sync.dart                           # Feature entry point
 │
-├── adapters/                           # 17 table adapters + base
+├── adapters/                           # 22 table adapters + base
 │   ├── table_adapter.dart              # Abstract base class
-│   ├── type_converters.dart            # Shared type conversion
-│   ├── project_adapter.dart            # ... through ...
-│   └── photo_adapter.dart              # 17 concrete adapters
+│   ├── type_converters.dart            # Shared type conversion utilities
+│   ├── project_adapter.dart
+│   ├── location_adapter.dart
+│   ├── contractor_adapter.dart
+│   ├── equipment_adapter.dart
+│   ├── personnel_type_adapter.dart
+│   ├── bid_item_adapter.dart
+│   ├── daily_entry_adapter.dart
+│   ├── entry_contractors_adapter.dart
+│   ├── entry_equipment_adapter.dart
+│   ├── entry_personnel_counts_adapter.dart
+│   ├── entry_quantities_adapter.dart
+│   ├── photo_adapter.dart
+│   ├── inspector_form_adapter.dart
+│   ├── form_response_adapter.dart
+│   ├── form_export_adapter.dart
+│   ├── entry_export_adapter.dart
+│   ├── document_adapter.dart
+│   ├── todo_item_adapter.dart
+│   ├── project_assignment_adapter.dart
+│   ├── calculation_history_adapter.dart
+│   ├── consent_record_adapter.dart
+│   └── support_ticket_adapter.dart
 │
 ├── engine/                             # Core sync engine
 │   ├── sync_engine.dart                # Main sync orchestration
-│   ├── change_tracker.dart             # Tracks pending changes
+│   ├── change_tracker.dart             # Reads change_log table
 │   ├── conflict_resolver.dart          # Conflict resolution
 │   ├── integrity_checker.dart          # Post-sync validation
 │   ├── sync_mutex.dart                 # Concurrency control
 │   ├── sync_registry.dart              # Ordered adapter registry
 │   ├── orphan_scanner.dart             # Orphan record detection
 │   ├── scope_type.dart                 # Sync scope enumeration
-│   └── storage_cleanup.dart            # Post-sync cleanup
+│   ├── storage_cleanup.dart            # Post-sync file cleanup
+│   └── sync_control_service.dart       # Circuit-breaker + health UI
 │
-├── domain/                             # Business rules & interfaces
+├── domain/                             # Business rules & value types
 │   ├── domain.dart                     # Barrel export
-│   ├── sync_adapter.dart               # Interface + enums
-│   └── sync_types.dart                 # Shared type definitions
+│   └── sync_types.dart                 # SyncResult, SyncAdapterStatus
 │
 ├── data/                               # External data sources
 │   ├── data.dart                       # Barrel export
 │   └── adapters/
 │       ├── adapters.dart               # Barrel export
-│       ├── supabase_sync_adapter.dart  # Supabase implementation
-│       └── mock_sync_adapter.dart      # Testing mock
+│       └── mock_sync_adapter.dart      # Testing mock (no-network)
 │
 ├── application/                        # Use cases & orchestration
 │   ├── application.dart                # Barrel export
 │   ├── sync_orchestrator.dart          # Multi-backend router
-│   └── background_sync_handler.dart    # Background sync triggers
+│   ├── sync_lifecycle_manager.dart     # App-lifecycle sync triggers
+│   ├── background_sync_handler.dart    # Background sync
+│   └── fcm_handler.dart               # FCM push notification handler
 │
 ├── config/
 │   └── sync_config.dart                # Sync configuration
+│
+├── di/
+│   └── sync_providers.dart             # DI wiring for all sync components
 │
 └── presentation/                       # UI layer
     ├── presentation.dart               # Barrel export
@@ -195,28 +325,26 @@ lib/features/sync/
     │   └── sync_provider.dart          # ChangeNotifier for UI
     ├── screens/
     │   ├── sync_dashboard_screen.dart
-    │   ├── conflict_viewer_screen.dart
-    │   └── project_selection_screen.dart
+    │   └── conflict_viewer_screen.dart
     └── widgets/
-        ├── sync_status_banner.dart
         ├── sync_status_icon.dart
         └── deletion_notification_banner.dart
 ```
 
-## Import Patterns [BRANCH: feat/sync-engine-rewrite]
+## Import Patterns
 
 ### Internal (within sync feature)
 ```dart
 // From sync_provider.dart
-import '../../domain/sync_adapter.dart';
 import '../../engine/sync_engine.dart';
+import '../../domain/sync_types.dart';
 ```
 
 ### External (from other features)
 ```dart
 // From settings_screen.dart
 import 'package:construction_inspector/features/sync/presentation/providers/sync_provider.dart';
-import 'package:construction_inspector/features/sync/domain/sync_adapter.dart';
+import 'package:construction_inspector/features/sync/domain/sync_types.dart';
 ```
 
 ### Via barrel export
@@ -225,10 +353,11 @@ import 'package:construction_inspector/features/sync/domain/sync_adapter.dart';
 import 'package:construction_inspector/features/sync/sync.dart';
 
 // Now have access to:
-// - SyncAdapter, SyncResult, SyncAdapterStatus
-// - SupabaseSyncAdapter
-// - SyncOrchestrator, BackgroundSyncHandler
+// - SyncResult, SyncAdapterStatus
+// - MockSyncAdapter
+// - SyncOrchestrator, BackgroundSyncHandler, SyncLifecycleManager, FcmHandler
 // - SyncEngine, ChangeTracker, ConflictResolver
+// - TableAdapter, all concrete adapters
 // - SyncProvider
 ```
 
@@ -245,3 +374,5 @@ Sync correctness is verified via a 3-layer system:
 
 Scenario files live in `tools/debug-server/scenarios/`. Results are accessible via
 `GET /test-status` on the debug server (port 3947).
+
+**IMPORTANT**: Always use the app UI to create/modify test data for sync testing. Never use raw SQL, Supabase REST writes, or direct `change_log` inserts (except the one documented exception in `ChangeTracker.manualInsert()`). Bypassing the UI skips the SQLite trigger that populates `change_log`, so changes will never sync.

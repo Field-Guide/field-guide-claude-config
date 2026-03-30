@@ -11,7 +11,7 @@ This document captures the architectural decisions and patterns used throughout 
 
 ## Layer Architecture
 
-The app follows a **Feature-First Clean Architecture** with clear separation:
+The app follows a **Feature-First Clean Architecture** with clear separation. Clean architecture (domain layer, use cases, repository interfaces) is the norm across **nearly all 17 features** following the S676 refactor — not limited to sync alone.
 
 ```
 lib/
@@ -23,27 +23,39 @@ lib/
 │   │            # forms, gallery, locations, pdf, photos, projects, quantities,
 │   │            # settings, sync, todos, toolbox, weather)
 │   └── [feature]/
-│       ├── data/         # Models, repositories, datasources
-│       └── presentation/ # Screens, widgets, providers
+│       ├── data/         # Models, repositories (impl), datasources
+│       │   ├── datasources/
+│       │   │   ├── local/   # SQLite datasource
+│       │   │   └── remote/  # Supabase datasource
+│       │   ├── models/      # Data transfer objects / entity implementations
+│       │   └── repositories/ # Repository implementations
+│       ├── domain/       # Pure Dart — no Flutter, no framework deps
+│       │   ├── repositories/ # Repository interfaces (abstracts)
+│       │   └── usecases/     # Single-responsibility use case classes
+│       ├── presentation/ # Flutter UI layer
+│       │   ├── providers/    # ChangeNotifier state holders
+│       │   ├── screens/      # Full-page widgets
+│       │   ├── widgets/      # Reusable sub-widgets
+│       │   └── controllers/  # Editing / form controllers
+│       └── di/           # Feature-specific provider/DI definitions
 │       # Note: calculator/forms/gallery/todos are sub-features of toolbox
-│       # No domain/ layer in most features (only sync uses full Clean Architecture)
-└── services/    # Cross-cutting services
+└── services/    # Cross-cutting services (photo, image, permission)
 ```
 
 ## Model Pattern
 
-All data models follow a consistent structure. Reference: `lib/features/projects/data/models/project.dart:1-65`
+All data models follow a consistent structure. Reference: `lib/features/projects/data/models/project.dart`
 
 ### Standard Model Template
 
 1. **Immutable fields** with final keyword
-2. **UUID-based IDs** - Auto-generated if not provided
-3. **Timestamp management** - `createdAt`, `updatedAt` auto-populated
+2. **UUID-based IDs** — Auto-generated if not provided
+3. **Timestamp management** — `createdAt`, `updatedAt` auto-populated
 4. **copyWith()** method for immutable updates
 5. **toMap()** for SQLite/JSON serialization
 6. **fromMap()** factory for deserialization
 
-Example from `lib/features/contractors/data/models/contractor.dart:3-6`:
+Example from `lib/features/contractors/data/models/contractor.dart`:
 - Enums defined at file top (e.g., `ContractorType`)
 - Helper getters for enum checks (e.g., `isPrime`, `isSub`)
 
@@ -54,7 +66,7 @@ Example from `lib/features/contractors/data/models/contractor.dart:3-6`:
 
 ## Database Pattern
 
-Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart:1-180`
+Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart` (1900+ lines, schema version 46).
 
 ### Table Naming Convention
 
@@ -67,11 +79,9 @@ Indexes on:
 - All foreign key columns
 - Frequently filtered columns (e.g., `date`)
 
-Reference: `lib/core/database/database_service.dart:155-166`
-
 ## Navigation Pattern
 
-Uses **go_router** with shell routes for persistent bottom nav. Reference: `lib/core/router/app_router.dart:1-110`
+Uses **go_router** with shell routes for persistent bottom nav. Reference: `lib/core/router/app_router.dart`
 
 ### Route Structure
 
@@ -104,7 +114,7 @@ void initState() {
 }
 ```
 
-This prevents "setState during build" errors. Reference: `lib/features/entries/presentation/screens/home_screen.dart:32-35`
+This prevents "setState during build" errors. Reference: `lib/features/entries/presentation/screens/home_screen.dart` (`initState` — `addPostFrameCallback` calling `_loadProjectData`).
 
 ### Async Context Safety
 
@@ -124,7 +134,8 @@ Future<void> _doSomething() async {
 |--------------|-----|-----|
 | `setState()` in `dispose()` | Widget already deactivated | Use `WidgetsBindingObserver` lifecycle |
 | `Provider.of(context)` after async | Context may be invalid | Check `mounted` first |
-| Hardcoded colors | Inconsistent theming | Use `AppTheme.*` constants |
+| Hardcoded colors | Inconsistent theming, breaks dark/light/HC | Use `Theme.of(context).colorScheme.*` or `FieldGuideColors.of(context).*` |
+| `AppTheme.*` color constants | Deprecated — does not adapt to dark/light/HC themes | Use `Theme.of(context).colorScheme.*` or `FieldGuideColors.of(context).*` |
 | Skip barrel exports | Breaks imports | Update `models.dart`, `providers.dart` |
 | `firstWhere` without `orElse` | Throws on empty | Use `.where(...).firstOrNull` |
 | Save in `dispose()` | Context deactivated | Use `WidgetsBindingObserver.didChangeAppLifecycleState` |
@@ -136,22 +147,38 @@ Future<void> _doSomething() async {
 
 ## Offline-First Pattern
 
-### Sync Status
+### Sync Mechanism
 
-All syncable entities include `syncStatus` field:
-- `pending` - Local changes not yet synced
-- `synced` - In sync with server
-- `error` - Sync failed
+The sync system uses **SQLite triggers** that auto-populate the `change_log` table on any INSERT, UPDATE, or DELETE to tracked tables. There is no per-model `syncStatus` field. The change log drives what gets pushed to Supabase during the next sync cycle.
 
-Reference: `lib/features/entries/data/models/daily_entry.dart:26`
+Reference: `lib/features/sync/` and `lib/core/database/database_service.dart` (trigger definitions).
 
 ### Photo Storage
 
 Photos stored locally with:
-- `filePath` - Local device path
-- `remotePath` - Cloud storage URL (null until synced)
+- `filePath` — Local device path
+- `remotePath` — Cloud storage URL (null until synced)
 
-Reference: `lib/features/photos/data/models/photo.dart:1-65`
+Reference: `lib/features/photos/data/models/photo.dart`
+
+## Color System
+
+Use the correct color lookup pattern based on the semantic meaning:
+
+| Color Need | Correct Pattern |
+|------------|----------------|
+| Primary brand color | `Theme.of(context).colorScheme.primary` |
+| Error / destructive | `Theme.of(context).colorScheme.error` |
+| Primary text | `Theme.of(context).colorScheme.onSurface` |
+| Secondary / hint text | `Theme.of(context).colorScheme.onSurfaceVariant` |
+| Success indicators | `FieldGuideColors.of(context).statusSuccess` |
+| Warning indicators | `FieldGuideColors.of(context).statusWarning` |
+| Info indicators | `FieldGuideColors.of(context).statusInfo` |
+| Elevated surface | `FieldGuideColors.of(context).surfaceElevated` |
+| Glass/frosted overlay | `FieldGuideColors.of(context).surfaceGlass` |
+| Tertiary text (hints, timestamps) | `FieldGuideColors.of(context).textTertiary` |
+
+`AppTheme.*` constants are **deprecated** — they do not adapt across dark/light/high-contrast themes.
 
 ## Barrel Exports
 
@@ -169,7 +196,7 @@ Enums serialized/deserialized using `.name` and `.values.byName()`:
 type: ContractorType.values.byName(map['type'] as String)
 ```
 
-Reference: `lib/features/contractors/data/models/contractor.dart:47-53`
+Reference: `lib/features/contractors/data/models/contractor.dart`
 
 ## Key Packages
 

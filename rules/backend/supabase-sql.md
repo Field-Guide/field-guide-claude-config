@@ -49,6 +49,10 @@ ORDER BY pg_total_relation_size(tablename::text) DESC;
 
 ## Row Level Security (RLS)
 
+**IMPORTANT**: This project uses multi-tenant company-scoped RLS (`company_id = get_my_company_id()`), NOT user-scoped (`auth.uid() = user_id`). See `backend-supabase-agent.memory.md` for the correct pattern.
+
+The examples below are generic Supabase patterns for reference only:
+
 ```sql
 -- Enable RLS
 ALTER TABLE daily_entries ENABLE ROW LEVEL SECURITY;
@@ -88,6 +92,7 @@ USING (bucket_id = 'entry-photos' AND auth.uid()::text = (storage.foldername(nam
 CREATE INDEX idx_entries_project_date ON daily_entries(project_id, date DESC);
 
 -- Partial index for pending sync
+-- **DEPRECATED**: `sync_status` columns are no longer used. The sync engine uses `change_log` triggers. This index pattern is historical only.
 CREATE INDEX idx_entries_pending ON daily_entries(id) WHERE sync_status = 'pending';
 
 -- GIN index for full-text search

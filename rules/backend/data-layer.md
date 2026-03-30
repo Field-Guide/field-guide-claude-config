@@ -33,6 +33,8 @@ lib/features/[feature]/data/
 - `lib/services/database_service.dart` does NOT exist
 - Correct path: `lib/core/database/database_service.dart`
 
+**Note**: This is an idealized example structure. Actual feature directories may not have all files shown.
+
 **Example Feature Structure** (Projects feature):
 ```
 lib/features/projects/
@@ -47,36 +49,60 @@ lib/features/projects/
 │       │   └── project_local_datasource.dart
 │       └── remote/
 │           └── project_remote_datasource.dart
-└── presentation/
-    ├── presentation.dart              # Barrel export
-    ├── providers/
-    │   └── project_provider.dart
-    ├── screens/
-    │   └── project_list_screen.dart
-    └── widgets/
-        └── project_card.dart
+├── domain/
+│   ├── domain.dart                    # Barrel export
+│   └── use_cases/
+│       └── get_projects_use_case.dart
+├── presentation/
+│   ├── presentation.dart              # Barrel export
+│   ├── providers/
+│   │   └── project_provider.dart
+│   ├── screens/
+│   │   └── project_list_screen.dart
+│   └── widgets/
+│       └── project_card.dart
+└── di/
+    └── projects_providers.dart        # Dependency injection wiring
 ```
 
 **17 Features** (all follow same pattern):
-auth, contractors, dashboard, entries, locations, pdf, photos, projects, quantities, settings, sync, toolbox, weather
+auth, calculator, contractors, dashboard, entries, forms, gallery, locations, pdf, photos, projects, quantities, settings, sync, todos, toolbox, weather
 
 ### Database Schema Organization
 ```
 lib/core/database/
-├── database_service.dart  # Main database class (version 20)
-├── seed_data_service.dart # Sample data seeding
-├── seed_data_loader.dart  # Load seed data from JSON
-└── schema/                # Modular table definitions
-    ├── schema.dart           # Barrel export (imports all tables)
-    ├── core_tables.dart      # projects, locations
-    ├── contractor_tables.dart # contractors, equipment
-    ├── entry_tables.dart      # daily_entries, entry_contractors, entry_equipment
-    ├── personnel_tables.dart  # personnel_types, entry_personnel, entry_personnel_counts
-    ├── quantity_tables.dart   # bid_items, entry_quantities
-    ├── photo_tables.dart      # photos
-    ├── toolbox_tables.dart    # toolbox talks
-    └── sync_tables.dart       # sync metadata
+├── database_service.dart      # Main database class (version 46)
+└── schema/                    # Modular table definitions
+    ├── schema.dart             # Barrel export (imports all tables)
+    ├── core_tables.dart        # projects, locations
+    ├── entry_tables.dart       # daily_entries, entry_contractors, entry_equipment
+    ├── contractor_tables.dart  # contractors, equipment
+    ├── personnel_tables.dart   # personnel_types, entry_personnel, entry_personnel_counts
+    ├── quantity_tables.dart    # bid_items, entry_quantities
+    ├── photo_tables.dart       # photos
+    ├── toolbox_tables.dart     # toolbox talks
+    ├── extraction_tables.dart  # OCR extraction data
+    ├── sync_tables.dart        # legacy sync metadata
+    ├── sync_engine_tables.dart # change_log, sync engine state
+    ├── form_export_tables.dart # form export records
+    ├── entry_export_tables.dart # entry export records
+    ├── document_tables.dart    # documents
+    ├── consent_tables.dart     # user consent records
+    └── support_tables.dart     # support/diagnostic data
 ```
+
+## Shared Base Classes
+
+Shared base classes live in `lib/shared/` and are extended by feature-level implementations.
+
+### Repositories (`lib/shared/repositories/`)
+- `BaseRepository<T>` — abstract CRUD contract (getAll, getById, insert, update, delete)
+- `ProjectScopedRepository<T>` — extends `BaseRepository`, scopes all queries to a project ID
+
+### Datasources (`lib/shared/datasources/`)
+- `BaseLocalDatasource<T>` — abstract SQLite CRUD interface
+- `GenericLocalDatasource<T>` — implements `BaseLocalDatasource` with standard sqflite operations
+- `ProjectScopedDatasource<T>` — extends `GenericLocalDatasource`, filters by `project_id`
 
 ## Code Style
 
@@ -124,13 +150,19 @@ class Project {
 ```
 
 ### Repository Pattern
+Extend `BaseRepository` or `ProjectScopedRepository` from `lib/shared/repositories/`:
+
 ```dart
-abstract class BaseRepository<T> {
-  Future<List<T>> getAll();
-  Future<T?> getById(String id);
-  Future<void> insert(T item);
-  Future<void> update(T item);
-  Future<void> delete(String id);
+class ProjectRepository extends BaseRepository<Project> {
+  final ProjectLocalDatasource _local;
+  final ProjectRemoteDatasource _remote;
+
+  @override
+  Future<List<Project>> getAll() => _local.getAll();
+
+  @override
+  Future<void> insert(Project item) => _local.insert(item);
+  // ...
 }
 ```
 
@@ -207,8 +239,7 @@ class ProjectProvider extends ChangeNotifier {
 ### Schema Files
 Schema definitions: `lib/core/database/schema/` (modular table definitions)
 Database service: `lib/core/database/database_service.dart`
-Seed data: `lib/core/database/seed_data_service.dart`, `seed_data_loader.dart`
-Current version: 20 (see `lib/core/database/database_service.dart`)
+Current version: 46 (see `lib/core/database/database_service.dart`)
 
 ### Indexes
 Add indexes on:
@@ -225,15 +256,13 @@ if (oldVersion < 9) {
 
 ## Sync (Offline-First)
 
-### Sync Status Enum
-```dart
-enum SyncStatus { pending, synced, error, failed }
-```
+### Sync Architecture
+Sync uses a `change_log` table populated by SQLite triggers. There is NO `SyncStatus` enum per model. The sync engine reads from `change_log` and pushes changes to Supabase.
 
 ### Sync Flow
 1. Save locally first (immediate)
-2. Queue for sync
-3. Process queue when online
+2. SQLite trigger writes to `change_log`
+3. Sync engine reads `change_log` when online
 4. Use last-write-wins (updated_at)
 
 ## Error Handling
