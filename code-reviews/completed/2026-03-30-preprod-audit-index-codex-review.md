@@ -6,6 +6,13 @@ Scope: full read-only hygiene and architecture audit using `.claude/autoload/_st
 
 This index and the layer reports were expanded with a second scoped verification pass focused on tightening evidence, separating stale drift from unfinished recent work, and adding missing coverage/tooling findings.
 
+## Canonical Defect Record
+
+- This index is summary-only.
+- No defect, bug, hygiene issue, or coverage gap should exist only in this file.
+- The canonical record for every finding is the appropriate layer report listed below.
+- If a finding is summarized here for navigation or cross-layer context, it must also exist in the proper layer file.
+
 ## Historical Context Used
 
 Recent sessions show the current app shape is the result of several large refactors landing in quick succession:
@@ -40,18 +47,18 @@ That history matters for classification:
 
 ## Report Set
 
-- `2026-03-30-preprod-audit-wiring-routing-codex-review.md`
-- `2026-03-30-preprod-audit-data-sync-codex-review.md`
-- `2026-03-30-preprod-audit-providers-state-codex-review.md`
-- `2026-03-30-preprod-audit-services-integrations-codex-review.md`
-- `2026-03-30-preprod-audit-features-business-logic-codex-review.md`
-- `2026-03-30-preprod-audit-screens-navigation-codex-review.md`
-- `2026-03-30-preprod-audit-shared-ui-hygiene-codex-review.md`
-- `2026-03-30-preprod-audit-tests-tooling-codex-review.md`
+- `2026-03-30-preprod-audit-layer-application-wiring-startup-routing-codex-review.md`
+- `2026-03-30-preprod-audit-layer-data-database-sync-codex-review.md`
+- `2026-03-30-preprod-audit-layer-providers-state-management-codex-review.md`
+- `2026-03-30-preprod-audit-layer-services-integrations-codex-review.md`
+- `2026-03-30-preprod-audit-layer-features-business-logic-codex-review.md`
+- `2026-03-30-preprod-audit-layer-screens-navigation-ux-codex-review.md`
+- `2026-03-30-preprod-audit-layer-shared-ui-cross-cutting-hygiene-codex-review.md`
+- `2026-03-30-preprod-audit-layer-tests-tooling-quality-gates-codex-review.md`
 
 ## Cross-Layer Themes
 
 1. The recent clean-architecture and DI refactors changed file layout faster than they reduced real coupling. Several old global/singleton patterns still exist under the new structure.
 2. Form generalization is only partially complete. Registry-based code exists, but 0582B assumptions still leak through schema, providers, screens, and PDF/export paths.
 3. Test health and runtime health have diverged. The suite is green, but analyzer debt, stale code paths, and coverage gaps remain material for pre-production readiness.
-4. The codebase is currently too dirty to treat git status alone as a source of truth for dead code. Findings below distinguish recent unfinished work from older stale drift where possible.
+4. The codebase is currently too dirty to treat git status alone as a source of truth for dead code. The layer reports below distinguish recent unfinished work from older stale drift where possible.

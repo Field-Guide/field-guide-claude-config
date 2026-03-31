@@ -4,6 +4,13 @@ Date: 2026-03-30
 Mode: read-only reporting only
 Goal: run another isolated wave one layer at a time, focused on code quality, deprecated code/imports, dead or stale compatibility surface, and layer integrity; append only verified findings to the existing layer reports
 
+## Canonical Defect Record
+
+- This tracker is summary-only and workflow-oriented.
+- No defect, bug, hygiene issue, or coverage gap should exist only in this tracker.
+- Every finding summarized in the pass log must also be written into the appropriate layer report.
+- The layer reports are the canonical source for audit findings.
+
 ## Fresh-Pass Protocol
 
 For each layer pass:
@@ -27,35 +34,35 @@ Note: I cannot force platform compaction on demand, but I can emulate the intend
 ## Layer TODO
 
 - [x] Wiring / Startup / Routing
-  Report: `2026-03-30-preprod-audit-wiring-routing-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-application-wiring-startup-routing-codex-review.md`
   Scope: composition root, app startup, router contract, route guards, app-wide bootstrap duplication
 
 - [x] Data / Database / Sync
-  Report: `2026-03-30-preprod-audit-data-sync-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-data-database-sync-codex-review.md`
   Scope: schema, migrations, datasources, repositories, sync engine/bootstrap, local/remote boundary integrity
 
 - [x] Providers / State
-  Report: `2026-03-30-preprod-audit-providers-state-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-providers-state-management-codex-review.md`
   Scope: provider ordering, notifier ownership, cross-provider coupling, state-layer dead code and hygiene
 
 - [x] Services / Integrations
-  Report: `2026-03-30-preprod-audit-services-integrations-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-services-integrations-codex-review.md`
   Scope: logging, telemetry, background services, PDF/image integrations, support/help integrations
 
 - [x] Features / Business Logic
-  Report: `2026-03-30-preprod-audit-features-business-logic-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-features-business-logic-codex-review.md`
   Scope: form infrastructure, feature completeness, domain-model drift, hidden special cases
 
 - [x] Screens / Navigation UX
-  Report: `2026-03-30-preprod-audit-screens-navigation-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-screens-navigation-ux-codex-review.md`
   Scope: screen behavior, user flows, stale UI surfaces, presentation dead code, navigation consistency
 
 - [x] Shared UI / Cross-Cutting Hygiene
-  Report: `2026-03-30-preprod-audit-shared-ui-hygiene-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-shared-ui-cross-cutting-hygiene-codex-review.md`
   Scope: theme tokens, shared utilities, testing keys, deprecated compatibility layers, cross-cutting hygiene
 
 - [x] Tests / Tooling / Quality Gates
-  Report: `2026-03-30-preprod-audit-tests-tooling-codex-review.md`
+  Report: `2026-03-30-preprod-audit-layer-tests-tooling-quality-gates-codex-review.md`
   Scope: coverage gaps, stale fixtures, CI gates, skips/suppressions, misleading test surfaces
 
 ## Current Pass
