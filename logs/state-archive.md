@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 683 (2026-03-30)
+**Work**: Preprod audit verification (wiring/routing layer). 3 opus agents verified 11 findings (8 confirmed, 3 partial). Full brainstorming → approved spec for all 11 fixes.
+**Decisions**: Feature-scoped initializers, three-file router split, CoreDeps for Supabase DI, bottom-up execution, 12 test files, Sentry/Aptabase always on.
+**Next**: /writing-plans → /implement → commit.
+
 ### Session 682 (2026-03-30)
 **Work**: Executed 13-phase .claude/ directory audit update (/implement). 12 orchestrator launches. 5 review/fix sweeps (15 opus review agents, 66 total fixes). 96 files modified. 0 active phantoms remaining.
 **Decisions**: Parallel dispatch for Groups 8+9 and 10+11. User-requested aggressive review loops caught 66 findings missed by per-phase orchestrator reviews.

@@ -1,63 +1,63 @@
 # Session State
 
-**Last Updated**: 2026-03-31 | **Session**: 687
+**Last Updated**: 2026-03-31 | **Session**: 688
 
 ## Current Phase
-- **Phase**: Automated Quality Gates spec APPROVED. Merged sync-engine-rewrite to main. All branches cleaned up. Secrets scrubbed from history.
-- **Status**: Spec complete at `.claude/specs/2026-03-31-automated-quality-gates-spec.md`. Ready for /writing-plans next session.
+- **Phase**: Writing-plans skill refactor — spec approved, plan written, 3 review cycles PASSED. Ready for /implement.
+- **Status**: Plan at `.claude/plans/2026-03-31-writing-plans-refactor.md`. Quality gates spec still queued.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (687)
+### What Was Done This Session (688)
 
-1. **Merged feat/sync-engine-rewrite to main** via PR #6 (squash merge, 199 commits)
-2. **Scrubbed Supabase secrets** from git history (tools/assign-springfield.mjs, tools/seed-springfield.mjs) — replaced hardcoded keys with `process.env.*` reads, rebased 46 commits
-3. **Deleted all 11 non-main branches** (local + remote) — verified all were behind main
-4. **Fixed main branch tracking** — `git branch --set-upstream-to=origin/main main`
-5. **Built comprehensive Automated Quality Gates spec** via brainstorming skill:
-   - 9 Opus research agents analyzed 8 code reviews, session archive, defects archive, specs, and rules
-   - 4 Opus verification agents validated all violation counts, design system, DI patterns, and sync/schema
-   - Corrected multiple inaccuracies from initial research (AppTheme count 306→797, Colors 99→20, Supabase 19→15, etc.)
-   - Final spec: 46 lint rules across 4 packages, 3 enforcement layers, verified violation counts
-6. **Spec saved**: `.claude/specs/2026-03-31-automated-quality-gates-spec.md`
+1. **Diagnosed writing-plans skill failures** — mapped entire skill pipeline, identified BLOCKER-37 root cause
+2. **Researched solutions** — 2 parallel agents investigated GitHub issues (#4462, #7032, #5465, #38026, #37730, #28584, #22665). Found `.claude/` directory has hardcoded write protection separate from settings.json permissions.
+3. **Brainstormed writing-plans refactor** — 18 clarifying questions, all answered, zero ambiguity
+4. **Wrote spec** — `.claude/specs/2026-03-31-writing-plans-refactor-spec.md` (APPROVED)
+5. **Wrote implementation plan** — headless plan writers via `claude --agent`, 4 new agents, skill rewrite, implement skill updates
+6. **3 review/fix cycles**:
+   - Cycle 1: REJECT/APPROVE/REJECT → 11 fixes (1 CRITICAL, 5 HIGH, 5 MEDIUM)
+   - Cycle 2: APPROVE/APPROVE/APPROVE → 3 polish fixes
+   - Cycle 3: APPROVE/APPROVE/APPROVE → clean pass
+7. **Plan finalized** at `.claude/plans/2026-03-31-writing-plans-refactor.md`
 
 ### What Needs to Happen Next
 
-1. **Launch /writing-plans** for the quality gates spec — create implementation plan
-2. **Opus-level verification review** of spec intent vs codebase reality (user requested for next session)
-3. **Rotate Supabase service role key** — was exposed in git history before scrub (rotate in Supabase dashboard)
-4. **Commit** — S681-S686 still uncommitted plus this session's branch merge/cleanup
+1. **`/implement` the writing-plans refactor plan** — 5 phases, creates 4 agents + rewrites skill + updates implement orchestrator
+2. **Test the refactored skill** — run `/writing-plans` on the quality gates spec to validate
+3. **Rotate Supabase service role key** — was exposed in git history before S687 scrub
+4. **Commit** — S681-S687 still uncommitted
 5. **Run flutter test** — verify codebase still clean after merge to main
 6. **Push Supabase migrations** — `npx supabase db push` (2 new migrations from S677)
 
-### Key Decisions Made (S687)
+### Key Decisions Made (S688)
 
-- **4 lint packages**: Architecture, Data Safety, Sync Integrity, Test Quality (in `fg_lint_packages/field_guide_lints/`)
-- **Clean slate**: Fix ALL violations before enabling linters (no grandfathering)
-- **3 enforcement layers**: Pre-commit (hard block) → CI (comprehensive) → Branch protection (merge gate)
-- **`custom_lint` framework**: By Remi Rousselet, VS Code squiggles, no Riverpod dependency
-- **Scripts in `.claude/hooks/`**, lint packages in `fg_lint_packages/` (app repo)
-- **All `Supabase.instance.client` usages are violations** — DI migration not yet complete, linter will enforce
-- **`is_deleted` column does NOT exist** — only `deleted_at`/`deleted_by` (schema-patterns.md is stale)
-- **Upgrade `flutter_lints: ^6.0.0`** to current `lints` package
+- **Headless mode for plan writers** — `claude --agent plan-writer-agent --print` via Bash bypasses subagent permission bug
+- **Agent tool for reviewers** — read-only agents don't hit the permission bug
+- **3 review sweeps** — code-review, security, completeness (spec guardian) — with fix loop (max 3 cycles)
+- **4 new agents**: plan-writer-agent (opus), completeness-review-agent (opus), plan-fixer-agent (sonnet), code-fixer-agent (sonnet)
+- **Context bundle** — single staging file consolidates spec + analysis + source excerpts for headless writer
+- **Prescribed CodeMunch sequence** — 9 mandatory steps, 2 optional, no get_repo_outline/index_repo
+- **Implement skill updated** — completeness-review-agent replaces general-purpose, code-fixer-agent replaces general-purpose fixer
+- **`.claude/` has hardcoded write protection** — separate from settings.json, no config override available. Per-session approval required.
+
+### What Was Done Last Session (687)
+Merged sync-engine-rewrite to main (PR #6). Scrubbed secrets from history. Deleted all branches. Built comprehensive quality gates spec (9 research + 4 verification agents). 46 lint rules, 4 packages, 3 layers.
 
 ### What Was Done Last Session (686)
 Implemented CodeMunch Dart enhancement (14 phases, 9 orchestrator launches, 4 parallel). 3 review/fix cycles → clean. Pushed to fork. Switched MCP to local fork. Reviewed 8 pre-prod audit layers.
 
-### What Was Done Last Session (685)
-Attempted /writing-plans for wiring-routing-audit-fixes. Dependency graph complete. 3 plan-writer agents ALL got Write/Edit denied — systematic platform bug. Parts 2+3 partially recovered via Bash fallback (truncated).
-
 ### Committed Changes
-- PR #6 merged to main (squash: "Sync engine rewrite + full codebase modernization")
-- All non-main branches deleted (local + remote)
-- Supabase secrets scrubbed from history
+- No new commits this session (planning/skill work only)
 
 ## Blockers
 
-### BLOCKER-37: Agent Write/Edit Permission Inheritance (Windows)
-**Status**: OPEN — blocks all plan-writing and fix agents
-**Impact**: `general-purpose` subagents get Write/Edit denied despite explicit allow in settings.json
-**Refs**: Claude Code bugs #4462, #7032, #5465
+### BLOCKER-37: Agent Write/Edit Permission Inheritance
+**Status**: WORKAROUND DESIGNED — headless `claude --agent` bypasses the bug
+**Impact**: Subagents spawned via Agent tool get Write/Edit denied regardless of settings
+**Root Cause**: `.claude/` has hardcoded write protection; subagent permission inheritance broken cross-platform
+**Refs**: Claude Code bugs #4462, #7032, #5465, #38026, #37730, #22665
+**Workaround**: Plan writers use headless mode; reviewers/fixers use Agent tool (read-only or Edit-only)
 
 ### BLOCKER-34: Item 38 — Superscript `th` → `"` (Tesseract limitation)
 **Status**: OPEN (parked, cosmetic)
@@ -72,6 +72,11 @@ Attempted /writing-plans for wiring-routing-audit-fixes. Dependency graph comple
 **Status**: OPEN — MEDIUM
 
 ## Recent Sessions
+
+### Session 688 (2026-03-31)
+**Work**: Diagnosed writing-plans failures, researched solutions (2 agents), brainstormed refactor (18 questions), wrote spec + plan, 3 review/fix cycles (all APPROVE). 4 new agents designed.
+**Decisions**: Headless plan writers, Agent tool reviewers, 3 review sweeps with fix loop, prescribed CodeMunch sequence, context bundle staging.
+**Next**: /implement refactor plan → test on quality gates spec → commit.
 
 ### Session 687 (2026-03-31)
 **Work**: Merged sync-engine-rewrite to main (PR #6). Scrubbed secrets from history. Deleted all branches. Built comprehensive quality gates spec (9 research agents + 4 verification agents). 46 lint rules, 4 packages, 3 layers.
@@ -93,11 +98,6 @@ Attempted /writing-plans for wiring-routing-audit-fixes. Dependency graph comple
 **Decisions**: nielsenko grammar via separate pip install (Option C), regex-based imports (matching existing pattern), `lib/` path matching over pubspec.yaml parsing (YAGNI).
 **Next**: /implement CodeMunch plan → /writing-plans for wiring spec → commit.
 
-### Session 683 (2026-03-30)
-**Work**: Preprod audit verification (wiring/routing layer). 3 opus agents verified 11 findings (8 confirmed, 3 partial). Full brainstorming → approved spec for all 11 fixes.
-**Decisions**: Feature-scoped initializers, three-file router split, CoreDeps for Supabase DI, bottom-up execution, 12 test files, Sentry/Aptabase always on.
-**Next**: /writing-plans → /implement → commit.
-
 ## Active Debug Session
 
 None active.
@@ -115,8 +115,9 @@ None active.
 - **S07**: PASS | **S08**: PASS | **S09**: FAIL (delete no push) | **S10**: PASS
 
 ## Reference
+- **Writing-Plans Refactor Plan (REVIEWED, 3 CYCLES PASSED)**: `.claude/plans/2026-03-31-writing-plans-refactor.md`
+- **Writing-Plans Refactor Spec (APPROVED)**: `.claude/specs/2026-03-31-writing-plans-refactor-spec.md`
 - **Quality Gates Spec (APPROVED)**: `.claude/specs/2026-03-31-automated-quality-gates-spec.md`
-- **Old Audit Plan (OUTDATED, REPLACED)**: `.claude/backlogged-plans/2026-02-15-audit-system-design.md`
 - **CodeMunch Fork**: `https://github.com/RobertoChavez2433/dart_tree_sitter_fork` (branch: `feat/dart-first-class-support`)
 - **Pre-Prod Audit Reviews (8 layers)**: `.claude/code-reviews/2026-03-30-preprod-audit-layer-*.md`
 - **Wiring/Routing Audit Fixes Spec (APPROVED)**: `.claude/specs/2026-03-30-wiring-routing-audit-fixes-spec.md`
