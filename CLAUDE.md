@@ -78,8 +78,8 @@ Screen -> Provider -> UseCase -> Repository -> SQLite (local) -> Supabase (sync)
 - `/resume-session` — Load HOT context | `/end-session` — Save state with auto-archiving
 - State: `.claude/autoload/_state.md` | Defects: `.claude/defects/_defects-{feature}.md` (max 5 per feature)
 - Git: Feature branches only, never commit to main. `gh pr create` / `gh pr merge --squash`
-- Planning pipeline: `brainstorming` (spec) → `writing-plans` (plan) → `implement` (execute)
-- **Sizing guide:** XS (single-file mechanical) = no skill needed | S (up to 3 files, known pattern) = skip brainstorming + writing-plans | M+ = full pipeline. Security-sensitive changes (auth, RLS, sync, data exposure) always require full pipeline regardless of size.
+- Planning pipeline: `brainstorming` (spec) → `tailor` (research) → `writing-plans` (plan) → `implement` (execute)
+- **Sizing guide:** XS (single-file mechanical) = no skill needed | S (up to 3 files, known pattern) = skip brainstorming + tailor + writing-plans | M+ = full pipeline. Security-sensitive changes (auth, RLS, sync, data exposure) always require full pipeline regardless of size.
 
 ## Pointers (on-demand, NOT auto-loaded)
 | What | Where |

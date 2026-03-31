@@ -169,7 +169,7 @@ After checkpoint verification passes, run the full test suite ONCE for the group
    ```
    with `run_in_background: true`
 2. If all tests pass → update checkpoint: set `dispatch_groups[N].test_gate = "pass"` → proceed to 2d
-3. If tests fail → launch a general-purpose fixer agent with:
+3. If tests fail → launch code-fixer-agent with:
    - The test failure output
    - The list of ALL files modified in this group (from `checkpoint.modified_files`)
    - "Fix the failing tests. Run `pwsh -Command 'flutter analyze'` after fixing to verify no regressions. NEVER run flutter clean."

@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## March 2026
 
+### Session 684 (2026-03-30)
+**Work**: CodeMunch Dart enhancement — full planning pipeline. 4 research agents, spec (R1-R16), plan-writer, 4 review/fix sweeps (12 adversarial agents, 4 fix agents, 30 findings resolved). Target: `C:\Users\rseba\Projects\jcodemunch-mcp`.
+**Decisions**: nielsenko grammar via separate pip install (Option C), regex-based imports (matching existing pattern), `lib/` path matching over pubspec.yaml parsing (YAGNI).
+**Next**: /implement CodeMunch plan → /writing-plans for wiring spec → commit.
+
 ### Session 683 (2026-03-30)
 **Work**: Preprod audit verification (wiring/routing layer). 3 opus agents verified 11 findings (8 confirmed, 3 partial). Full brainstorming → approved spec for all 11 fixes.
 **Decisions**: Feature-scoped initializers, three-file router split, CoreDeps for Supabase DI, bottom-up execution, 12 test files, Sentry/Aptabase always on.

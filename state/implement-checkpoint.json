@@ -1,5 +1,5 @@
 {
-  "plan": ".claude/plans/2026-03-30-codemunch-dart-enhancement.md",
+  "plan": ".claude/plans/2026-03-31-writing-plans-refactor.md",
   "dispatch_groups": [
     {
       "group": 1,
@@ -25,70 +25,18 @@
         "5"
       ],
       "status": "done",
-      "test_gate": "pass"
-    },
-    {
-      "group": 4,
-      "phases": [
-        "6",
-        "7"
-      ],
-      "status": "done",
-      "test_gate": "pass"
-    },
-    {
-      "group": 5,
-      "phases": [
-        "8"
-      ],
-      "status": "done",
-      "test_gate": "pass"
-    },
-    {
-      "group": 6,
-      "phases": [
-        "9"
-      ],
-      "status": "done",
-      "test_gate": "pass"
-    },
-    {
-      "group": 7,
-      "phases": [
-        "10",
-        "11"
-      ],
-      "status": "done",
-      "test_gate": "pass"
-    },
-    {
-      "group": 8,
-      "phases": [
-        "12"
-      ],
-      "status": "done",
       "test_gate": "n/a"
-    },
-    {
-      "group": 9,
-      "phases": [
-        "13",
-        "14"
-      ],
-      "status": "done",
-      "test_gate": "pass"
     }
   ],
   "phases": [
     {
-      "name": "Phase 1: Upstream Sync",
+      "name": "Phase 1: Create New Agent Definitions",
       "status": "done",
       "substeps": {
-        "1.1.1": "done",
-        "1.1.2": "done",
-        "1.1.3": "done",
-        "1.1.4": "done",
-        "1.1.5": "done"
+        "1.1": "done",
+        "1.2": "done",
+        "1.3": "done",
+        "1.4": "done"
       },
       "reviews": {
         "completeness": {
@@ -103,173 +51,27 @@
         "code_review": {
           "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      }
-    },
-    {
-      "name": "Phase 2: Grammar Upgrade (R12)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 2,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 1,
-          "low": 2,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "2.1.1": "done",
-        "2.1.2": "done",
-        "2.1.3": "done",
-        "2.2.1": "done",
-        "2.2.2": "done",
-        "2.2.3": "done"
-      }
-    },
-    {
-      "name": "Phase 3: Test Fixture",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 4,
-          "fix_cycles": 1
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "3.1.1": "done",
-        "3.1.2": "done",
-        "3.1.3": "done"
-      }
-    },
-    {
-      "name": "Phase 4: DART_SPEC Update (R4, R5, R6, R11, R14)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 2,
-          "low": 2,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "4.1.1": "done",
-        "4.1.2": "done",
-        "4.1.3": "done"
-      }
-    },
-    {
-      "name": "Phase 5: Extractor Updates (R4, R5, R11, R14)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 1,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 1,
+          "high": 2,
+          "medium": 3,
           "low": 3,
           "fix_cycles": 1
         },
         "security": {
           "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 2,
+          "high": 1,
+          "medium": 3,
+          "low": 3,
           "fix_cycles": 1
         }
-      },
-      "substeps": {
-        "5.1.1": "done",
-        "5.1.2": "done",
-        "5.1.3": "done",
-        "5.1.4": "done",
-        "5.1.5": "done"
       }
     },
     {
-      "name": "Phase 6: Dart Import Extractor (R2, R7, R8, R10)",
+      "name": "Phase 2: Rewrite writing-plans Skill",
       "status": "done",
+      "substeps": {
+        "2.1": "done"
+      },
       "reviews": {
         "completeness": {
           "status": "pass",
@@ -278,230 +80,49 @@
           "medium": 0,
           "low": 0,
           "tests_verified": true,
-          "fix_cycles": 1
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 1
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 1
-        }
-      },
-      "substeps": {
-        "6.1.1": "done",
-        "6.1.2": "done",
-        "6.1.3": "done",
-        "6.1.4": "done"
-      }
-    },
-    {
-      "name": "Phase 7: Package URI Resolution (R3)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 1
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 1
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 1
-        }
-      },
-      "substeps": {
-        "7.1.1": "done",
-        "7.1.2": "done",
-        "7.1.3": "done"
-      }
-    },
-    {
-      "name": "Phase 8: Class Hierarchy Update (R6)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 2,
-          "fix_cycles": 1
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 2,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "8.1.1": "done",
-        "8.1.2": "done",
-        "8.1.3": "done",
-        "8.1.4": "done"
-      }
-    },
-    {
-      "name": "Phase 9: Tests (R15)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 1
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
           "fix_cycles": 2
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "9.1.1": "done",
-        "9.2.1": "done",
-        "9.2.2": "done"
-      }
-    },
-    {
-      "name": "Phase 10: Annotation and Extension Verification (R9, R14)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "10.1.1": "done",
-        "10.1.2": "done",
-        "10.2.1": "done"
-      }
-    },
-    {
-      "name": "Phase 11: Generated Code Filtering (R10)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": true,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
-        }
-      },
-      "substeps": {
-        "11.1.1": "done"
-      }
-    },
-    {
-      "name": "Phase 12: Documentation (R16)",
-      "status": "done",
-      "reviews": {
-        "completeness": {
-          "status": "pass",
-          "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
         },
         "code_review": {
           "status": "pass",
           "critical": 0,
           "high": 1,
-          "medium": 2,
-          "low": 3,
+          "medium": 0,
+          "low": 5,
+          "fix_cycles": 1
+        },
+        "security": {
+          "status": "pass",
+          "critical": 0,
+          "high": 0,
+          "medium": 3,
+          "low": 4,
+          "fix_cycles": 2
+        }
+      }
+    },
+    {
+      "name": "Phase 3: Update Implement Skill",
+      "status": "done",
+      "substeps": {
+        "3.1": "done",
+        "3.2": "done"
+      },
+      "reviews": {
+        "completeness": {
+          "status": "pass",
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 0,
+          "tests_verified": true,
+          "fix_cycles": 0
+        },
+        "code_review": {
+          "status": "pass",
+          "critical": 0,
+          "high": 0,
+          "medium": 0,
+          "low": 1,
           "fix_cycles": 1
         },
         "security": {
@@ -512,16 +133,14 @@
           "low": 0,
           "fix_cycles": 0
         }
-      },
-      "substeps": {
-        "12.1.1": "done",
-        "12.2.1": "done",
-        "12.3.1": "done"
       }
     },
     {
-      "name": "Phase 13: Final Integration Test",
+      "name": "Phase 4: Create Directories",
       "status": "done",
+      "substeps": {
+        "4.1": "done"
+      },
       "reviews": {
         "completeness": {
           "status": "pass",
@@ -548,15 +167,14 @@
           "low": 0,
           "fix_cycles": 0
         }
-      },
-      "substeps": {
-        "13.1.1": "done",
-        "13.1.2": "done"
       }
     },
     {
-      "name": "Phase 14: Spec Validation (Real-World Verification)",
+      "name": "Phase 5: Verification",
       "status": "done",
+      "substeps": {
+        "5.1": "done"
+      },
       "reviews": {
         "completeness": {
           "status": "pass",
@@ -583,41 +201,23 @@
           "low": 0,
           "fix_cycles": 0
         }
-      },
-      "substeps": {
-        "14.1.1": "done",
-        "14.1.2": "done",
-        "14.1.3": "done",
-        "14.1.4": "done",
-        "14.1.5": "done",
-        "14.1.6": "done",
-        "14.1.7": "done"
       }
     }
   ],
   "modified_files": [
-    "pyproject.toml",
-    "src/jcodemunch_mcp/parser/extractor.py",
-    "src/jcodemunch_mcp/parser/languages.py",
-    "tests/fixtures/dart/sample.dart",
-    "tests/fixtures/dart/sample_part.dart",
-    "tests/fixtures/dart/sample.g.dart",
-    "src/jcodemunch_mcp/parser/imports.py",
-    "LANGUAGE_SUPPORT.md",
-    "DART_SUPPORT.md",
-    "src/jcodemunch_mcp/tools/find_importers.py",
-    "src/jcodemunch_mcp/tools/get_dependency_graph.py",
-    "src/jcodemunch_mcp/tools/get_blast_radius.py",
-    "src/jcodemunch_mcp/tools/get_class_hierarchy.py",
-    "tests/test_languages.py",
-    "tests/test_dart_imports.py",
-    "tests/conftest.py"
+    ".claude/agents/plan-writer-agent.md",
+    ".claude/agents/completeness-review-agent.md",
+    ".claude/agents/plan-fixer-agent.md",
+    ".claude/agents/code-fixer-agent.md",
+    ".claude/skills/writing-plans/skill.md",
+    ".claude/agents/implement-orchestrator.md",
+    ".claude/skills/implement/skill.md"
   ],
   "build": "n/a",
-  "analyze_and_test": "pass",
+  "analyze_and_test": "n/a",
   "integration_reviews": {
     "completeness": {
-      "status": "pass",
+      "status": "pending",
       "critical": 0,
       "high": 0,
       "medium": 0,
@@ -625,7 +225,7 @@
       "fix_cycles": 0
     },
     "code_review": {
-      "status": "pass",
+      "status": "pending",
       "critical": 0,
       "high": 0,
       "medium": 0,
@@ -633,7 +233,7 @@
       "fix_cycles": 0
     },
     "security": {
-      "status": "pass",
+      "status": "pending",
       "critical": 0,
       "high": 0,
       "medium": 0,
@@ -641,21 +241,7 @@
       "fix_cycles": 0
     }
   },
-  "decisions": [
-    "1.1.1: upstream URL jcodemunch/jcodemunch-mcp.git not found; synced from origin (jgravelle/jcodemunch-mcp) instead â€” fast-forward succeeded, 466 commits applied. Local uncommitted Kotlin-support changes stashed as local-mods-before-ff-sync.",
-    "Phase 1: Upstream URL in plan (jcodemunch/jcodemunch-mcp) was wrong — synced from origin (jgravelle/jcodemunch-mcp) instead. Kotlin WIP stashed as local-mods-before-ff-sync. v1.13.1 confirmed with 1381 tests passing.",
-    "Phase 2: test_parse_dart fails after grammar switch because DART_SPEC uses class_definition (language-pack) but nielsenko grammar uses class_declaration. This is expected and will be resolved in Phase 4 DART_SPEC update.",
-    "Phase 2: Pinned tree-sitter-dart to commit 316b9743b2d45b7e7b71fdbdb28e3e8971d64c13. Added tool.hatch.metadata.allow-direct-references=true to pyproject.toml to allow git URL dependencies.",
-    "Phase 2: Grammar upgrade complete. nielsenko/tree-sitter-dart installed and pinned to commit 316b9743. Grammar override added in extractor.py. 1 expected test failure (test_parse_dart) due to node type mismatch - will be resolved in Phase 4. allow-direct-references=true added to hatch metadata for VCS dep.",
-    "Phases 3-5: Implemented in parallel (no file overlap). Test fixtures rewritten, DART_SPEC expanded with class_declaration/constructors/extension_types/setters/constants, extractor updated with constructor name extraction, constant extraction, extension_type_declaration handling. test_parse_dart now passes. 1 fix cycle for const/final guard, decode safety, depth cap, and sample.g.dart stub.",
-    "Phases 6-7: Dart import extractor and package URI resolver implemented in imports.py. 1 fix cycle for: name-merging dedup, hide-only names fix, ReDoS mitigation, dead code removal, null byte defense, additional generated suffixes. All re-reviews passed.",
-    "Phase 12: Documentation complete. LANGUAGE_SUPPORT.md Dart row restructured to match table header (1 fix cycle). DART_SUPPORT.md created with full Dart support docs. Tool docstrings updated for Dart/package: URI support.",
-    "Phase 8: Added _WITH_RE regex, updated _EXTENDS_RE with \\s+with\\b lookahead, updated _parse_bases() for Dart mixin support. 1 fix cycle for docstring update and word boundary guard. Pre-existing test failure (missing pytest-asyncio) unrelated to Phase 8.",
-    "Phases 10-11: Verification phases. Phase 10: annotation extraction needed fallback fix for class-level decorators (children vs preceding siblings in nielsenko grammar), constant signature calculation fixed. Extension on-type signatures verified OK. Phase 11: _is_dart_generated() confirmed in imports.py, extra_ignore_patterns mechanism exists in indexing pipeline. No code changes needed for Phase 11.",
-    "Phase 9: Expanded test_parse_dart with 20+ symbol assertions, created test_dart_imports.py with 12 tests (TestDartImportExtraction + TestDartPackageResolution), deleted sample_barrel.dart. Shared fixtures moved to conftest.py. 2 fix cycles for DRY/import cleanup. All tests pass.",
-    "Phase 13: Full test suite — 1353 passed, 16 Dart tests green, 43 pre-existing async failures unrelated. E2E: 44 symbols + 13 imports from sample.dart.",
-    "Phase 14: Real-world verification — 1196 files, 9248 symbols indexed. find_importers(91), dependency_graph(148 nodes), blast_radius OK, class_hierarchy(42 descendants). Spec notes: hashed repo name, nonexistent sync_repository.dart path. Step 14.1.8 skipped."
-  ],
+  "decisions": [],
   "fix_attempts": [],
   "blocked": []
 }

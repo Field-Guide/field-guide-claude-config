@@ -169,12 +169,14 @@ After the spec is written and user has approved all sections:
 
 **"Spec complete. Saved to `.claude/specs/YYYY-MM-DD-<topic>-spec.md`.**
 
-**Ready to create the implementation plan? I'll invoke the writing-plans skill to:**
+**Ready to map the codebase? I'll invoke the tailor skill to:**
 1. Index the codebase with CodeMunch
-2. Build the dependency graph and blast radius
-3. Write a detailed Phase > Sub-phase > Step plan
+2. Discover architectural patterns and reusable methods
+3. Verify ground truth against the codebase
 
-**Proceed with writing-plans?"**
+**After tailoring, run `/writing-plans` to create the implementation plan.**
+
+**Proceed with `/tailor`?"**
 
 Wait for user confirmation before invoking.
 

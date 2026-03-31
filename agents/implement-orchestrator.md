@@ -97,14 +97,14 @@ When you need to run `flutter analyze`, `flutter test`, or `flutter build`, disp
 
 | Role | subagent_type | model |
 |------|--------------|-------|
-| Completeness (per-phase) | `general-purpose` | sonnet |
+| Completeness (per-phase) | `completeness-review-agent` | opus |
 | Code Review (per-phase) | `code-review-agent` | opus |
 | Security (per-phase) | `security-agent` | opus |
 
 ### Fixer Agent (fixes issues found by reviewers or builds)
 
-- `subagent_type: general-purpose`, `model: sonnet`
-- Include: the findings, the affected files, the fix guidance, and "NEVER run flutter clean."
+- `subagent_type: code-fixer-agent`, `model: sonnet`
+- Include: the findings, the affected files, the fix guidance, the plan path, the spec path, and "NEVER run flutter clean."
 
 ### Checkpoint-Writer Agent (batched per parallel batch)
 
@@ -193,7 +193,7 @@ Dispatch all reviewers in a SINGLE message (3 × batch_size Agent calls):
 
 For EACH phase in the batch, dispatch these three:
 
-1. **Completeness** (`general-purpose`, sonnet): "Read each file listed. Verify every requirement in the phase text is implemented. Check: tests present and meaningful, code wired correctly, behavior matches spec. Report findings as CRITICAL/HIGH/MEDIUM/LOW."
+1. **Completeness** (`completeness-review-agent`, opus): "Read the plan header to extract the Spec and Analysis paths (look for the **Spec:** line (required) and **Analysis:** line (optional — skip if not present)). Read those files. Then read each file listed in this phase. Verify every requirement in the phase text is implemented. Check: tests present and meaningful, code wired correctly, behavior matches spec intent. The spec is the source of truth — flag any drift. Report findings as CRITICAL/HIGH/MEDIUM/LOW."
 
 2. **Code Review** (`code-review-agent`, opus): "Read these files: [list]. Review for code quality, DRY/KISS, correctness. Report findings as CRITICAL/HIGH/MEDIUM/LOW."
 
@@ -203,7 +203,7 @@ Example: batch of 3 phases = 9 parallel Agent calls in one message.
 
 **If ANY findings from ANY reviewer:**
 1. Consolidate ALL findings into one list, grouped by file
-2. Dispatch ONE fixer agent with consolidated findings
+2. Dispatch ONE `code-fixer-agent` with consolidated findings
 3. Re-run analyze (once)
 4. Re-dispatch ONLY the reviews for phases that had findings
 5. Max 3 fix cycles total → BLOCKED

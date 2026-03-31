@@ -20,7 +20,8 @@
 | code-reviews/ | Code review reports (auto-saved by code-review-agent) |
 | hooks/ | Pre-flight and post-work validation scripts |
 | test-results/ | UI test findings per journey run |
-| dependency_graphs/ | CodeMunch codebase analysis per plan |
+| tailor/ | Codebase analysis output from /tailor skill (per-spec structured directories) |
+| dependency_graphs/ | Legacy — CodeMunch analysis (superseded by tailor/) |
 | adversarial_reviews/ | Spec-level adversarial review reports |
 | backlogged-plans/ | Deferred/future implementation plans |
 | debug-sessions/ | Session logs from systematic debugging (gitignored, 30-day retention) |
@@ -49,4 +50,4 @@
 - `.claude/logs/defects-archive.md` — Archived defect entries
 
 ## Planning Pipeline
-`brainstorming` (spec) → `writing-plans` (plan) → `implement` (execute)
+`brainstorming` (spec) → `tailor` (research) → `writing-plans` (plan) → `implement` (execute)
