@@ -254,6 +254,79 @@ Why this matters:
 - These diagnostics can silently drop out of effective coverage when fixtures are stale, absent, or not regenerated on the right machine.
 - The current quality gates do not verify the prerequisites needed for those tests to remain meaningful.
 
+### 13. High | Confirmed
+The deprecated Patrol and `flutter_driver` stacks are not just historical references; they are still wired into the live test manifest and non-production entrypoints.
+
+Evidence:
+
+- `pubspec.yaml:119-121` still declares both `flutter_driver` and `integration_test` as dev dependencies.
+- `pubspec.yaml:133-138` still declares `patrol: ^4.1.0` and a live `patrol.test_directory: integration_test` configuration.
+- `lib/test_harness.dart:14,18` still imports `package:flutter_driver/driver_extension.dart` and calls `enableFlutterDriverExtension()`.
+- `lib/driver_main.dart:2,7` still imports `package:flutter_driver/driver_extension.dart` and calls `enableFlutterDriverExtension()`.
+- `integration_test/test_bundle.dart:7-8,12-13,21,24,40-41,44` is still generated Patrol scaffolding that initializes `PatrolBinding` and `PatrolAppService` even though the file also says all Patrol E2E tests were moved away.
+
+Why this matters:
+
+- The repository is carrying three concurrent verification stories at once: `integration_test`, Patrol-generated glue, and `flutter_driver` entrypoints.
+- That makes it harder to tell which stack is canonical, which dependencies are still intentional, and which toolchain contracts can be safely removed later.
+
+Classification: stale post-migration tooling drift that is still part of the active test surface.
+
+### 14. Medium | Confirmed
+`integration_test/grant-permissions.sh` is stale enough to misconfigure the current Android app under test.
+
+Evidence:
+
+- `integration_test/grant-permissions.sh:4,8-9,44` still tells users to run the script before `patrol test`.
+- `integration_test/grant-permissions.sh:16` hardcodes `PACKAGE="com.example.construction_inspector"`.
+- The live Android app id is `com.fieldguideapp.inspector`:
+  - `android/app/build.gradle.kts:21`
+  - `android/app/build.gradle.kts:37`
+
+Why this matters:
+
+- This is not just an outdated comment. Running the script as documented targets the wrong package name, so the permission grants do not line up with the current app identity.
+- That weakens one of the few remaining pieces of scripted device-test setup and can create false negatives or wasted debugging time.
+
+### 15. Medium | Confirmed
+The shared test-helper documentation is materially stale and includes broken imports, obsolete screen examples, and an outdated test-tree contract.
+
+Evidence:
+
+- `test/helpers/README.md:12,48,84` still recommends importing helper files via `package:construction_inspector/test/helpers/...`, even though these are repo test files rather than package-library imports.
+- `test/helpers/README.md:85` references `package:construction_inspector/presentation/widgets/project_card.dart`, which does not exist in the current tree.
+- `test/helpers/README.md:101-119` uses `HomeScreen` and `DashboardScreen` as example widgets, but those examples are not backed by current imports in the file and reflect older structure assumptions.
+- `test/helpers/README.md:140-142` still documents a simplified `test/presentation/` + app-level `widget_test.dart` tree shape that no longer reflects the current repo layout closely.
+- Direct path checks during this pass confirmed:
+  - `lib/presentation/widgets/project_card.dart` does not exist
+  - `lib/presentation/screens/home_screen.dart` does not exist
+
+Why this matters:
+
+- The docs that are supposed to make writing tests easier now encode broken examples and outdated structure assumptions.
+- That creates friction for future cleanup and increases the chance that contributors copy obsolete patterns into new tests.
+
+### 16. Medium | Confirmed
+The test/tooling layer is carrying substantial unresolved analyzer hygiene debt, including deprecated API use inside active golden tests.
+
+Evidence:
+
+- A targeted `flutter analyze test lib/test_harness integration_test` run during this pass reported `219 issues`.
+- Representative integration/harness hygiene findings from that run:
+  - `integration_test/cell_crop_diagnostic_test.dart:24` unnecessary import
+  - `integration_test/grid_line_drift_test.dart:20` unused import
+  - `lib/test_harness/harness_providers.dart:15` unnecessary import
+  - `test/features/auth/domain/use_cases/sign_in_use_case_test.dart:8-9` unused imports
+  - `test/features/projects/presentation/screens/project_setup_screen_test.dart:37` dead code
+- Representative deprecated test API usage from the same analyzer run:
+  - `test/golden/components/dashboard_widgets_test.dart:17,38,132,142,175,189,322` still uses deprecated `AppTheme` color members such as `primaryCyan`, `success`, `warning`, `error`, `textPrimary`, `textSecondary`, and `surfaceHighlight`
+  - `test/golden/widgets/project_card_test.dart:147,152,169,178,182,196,206` still uses the same deprecated theme members
+
+Why this matters:
+
+- The verification layer is not clean enough to serve as a strong integrity gate for the rest of the app.
+- When tests and harness code carry this much local hygiene debt, analyzer noise in the verification stack itself can hide more meaningful regressions.
+
 ## Coverage Gaps
 
 - No direct tests for startup/router composition: `AppInitializer`, `AppRouter`, `app_providers`.
@@ -270,3 +343,7 @@ Why this matters:
 - No direct tests verify the test harness itself: `harness_providers`, `stub_router`, `flow_registry`, or `screen_registry`.
 - No executable replacement is present in-repo for the deprecated Patrol widget/E2E coverage claims still referenced by several screen test files.
 - PDF diagnostic coverage depends on manual fixture generation and local environment setup, but the automated gates do not enforce fixture freshness or availability.
+- No guard verifies whether `flutter_driver`, Patrol config, and generated `integration_test/test_bundle.dart` are still intentionally part of the canonical test stack.
+- No validation keeps device-test helper scripts aligned with the live Android application id or current integration-test command path.
+- No lint or review gate keeps golden tests and test harness code off deprecated theme APIs, dead code, and stale imports.
+- No documentation check keeps `test/helpers/README.md` examples aligned with the current repo structure and import reality.

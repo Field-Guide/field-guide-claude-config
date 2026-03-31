@@ -168,9 +168,93 @@ Why this matters:
 - Because the state is static, this leak is app-global rather than local to one widget instance.
 - This is exactly the kind of subtle shared-utility failure that is easy to miss in manual verification and hard to diagnose later.
 
-## Coverage Gaps
+## Additional Coverage Gaps
 
 - Shared theme behavior is well represented by golden tests, but the analyzer results show the golden suite itself still depends on deprecated theme tokens.
 - There is no single hygiene gate today that prevents deprecated theme aliases from continuing to spread.
 - `test/golden/widgets/confirmation_dialog_test.dart` is the only direct shared-widget coverage found in this pass; there are no direct widget tests for `SearchBarField`, `VersionBanner`, `StaleConfigWarning`, `showStoragePermissionDialog()`, or `ContextualFeedbackOverlay`.
 - There is no test asserting that testing-key aliases are intentional and still mapped to the right live widgets, or that unused legacy testing keys are being retired instead of preserved indefinitely.
+
+### 11. Medium | Confirmed
+`shared/domain/domain.dart` is now an empty compatibility barrel that is still exported as part of the primary shared contract.
+
+Evidence:
+
+- `lib/shared/shared.dart:2` still exports `domain/domain.dart`.
+- `lib/shared/domain/domain.dart:1-8` contains only barrel comments describing a shared-domain import surface.
+- `lib/shared/domain/domain.dart:8` explicitly says the prior `UseCase` base class was removed because no use case extends it.
+- Repo-wide search during this pass found no imports of `package:construction_inspector/shared/domain/domain.dart` outside the file’s own self-documenting comment.
+- Targeted analyzer output for the shared layer reports `dangling_library_doc_comments` on `lib/shared/domain/domain.dart:1-8`, which matches the file being only comments and no live declarations.
+- Git history shows this file comes from older shared-layer infrastructure work rather than an active in-progress change:
+  - `99b6558 refactor(domain): add shared domain layer infrastructure`
+
+Why this matters:
+
+- The main shared import surface is still exporting a contract that no longer exists.
+- This is stale compatibility scaffolding, not an unfinished current implementation.
+- Keeping empty barrels in the canonical shared surface makes dependency review noisier and cleanup planning harder.
+
+### 12. Medium | Confirmed
+The testing-key layer is not actually governed by one canonical shared contract; live code still bypasses `TestingKeys` and reaches feature-specific key classes directly.
+
+Evidence:
+
+- `lib/shared/testing_keys/testing_keys.dart:36-38` describes itself as the centralized testing-key surface and “the single source of truth for all widget keys used in tests.”
+- Repo-wide search during this pass found `57` direct non-facade references to feature-specific `*TestingKeys` classes in `lib/` and `test/`, excluding the key-definition files and `TestingKeys` facade itself.
+- Representative runtime bypasses include:
+  - `lib/features/settings/presentation/screens/consent_screen.dart:117,151,258` using `ConsentTestingKeys.*`
+  - `lib/features/auth/presentation/screens/register_screen.dart:213` using `ConsentTestingKeys.registerTosCheckbox`
+  - `lib/features/projects/presentation/widgets/project_switcher.dart:24,189,200,222` using `ProjectsTestingKeys.*`
+  - `lib/features/projects/presentation/screens/project_list_screen.dart:160,165,257,262,844` using `ProjectsTestingKeys.*`
+- `lib/shared/testing_keys/consent_keys.dart:16-19` defines active consent keys, but `lib/shared/testing_keys/testing_keys.dart` does not expose `consentScreen`, `consentAcceptButton`, or `registerTosCheckbox` through the `TestingKeys` facade.
+
+Why this matters:
+
+- The documented “single source of truth” is already split across two active public contracts: the large `TestingKeys` facade and direct feature-specific key classes.
+- That split makes key ownership less predictable and weakens the integrity of the shared testing API.
+- It also makes later cleanup riskier because removing or renaming keys in one surface does not necessarily update the other.
+
+### 13. Medium | Confirmed
+The shared widget layer still contains hidden service-composition and broad shared-barrel coupling, so it is not consistently acting as a pure presentation boundary.
+
+Evidence:
+
+- `lib/shared/widgets/permission_dialog.dart:13` constructs `PermissionService()` directly inside `showStoragePermissionDialog(...)`.
+- `lib/shared/widgets/permission_dialog.dart:46-84` couples that shared widget flow to lifecycle-observer permission orchestration rather than a passed-in dependency or callback contract.
+- Repo-wide search during this pass found only two shared widgets importing the broad umbrella barrel:
+  - `lib/shared/widgets/confirmation_dialog.dart:2`
+  - `lib/shared/widgets/permission_dialog.dart:4`
+- In both files, the broad barrel is only needed for testing-key access rather than for a legitimately mixed shared dependency surface.
+
+Why this matters:
+
+- Shared UI code is still directly instantiating service-layer behavior instead of receiving it through a cleaner contract.
+- That blurs the line between shared presentation utilities and integration logic.
+- It also means the shared widget layer is preserving exactly the kind of broad-coupling pattern this audit is trying to isolate before production.
+
+### 14. Medium | Confirmed
+The shared layer still exports dormant pagination and time abstractions that currently have no consumers in production or test code.
+
+Evidence:
+
+- `lib/shared/providers/providers.dart:1-2` exports both `base_list_provider.dart` and `paged_list_provider.dart`.
+- `lib/shared/providers/paged_list_provider.dart:14-165` defines a full generic pagination provider, but repo-wide search during this pass found no subclasses, instantiations, or imports beyond the file itself.
+- `lib/shared/shared.dart:7` exports `time_provider.dart`.
+- `lib/shared/time_provider.dart:25-121` defines `TimeProvider`, `RealTimeProvider`, `FixedTimeProvider`, and `AppTime`, but repo-wide search during this pass found no uses of `AppTime`, `TimeProvider`, `RealTimeProvider`, or `FixedTimeProvider` outside that file.
+- Git history indicates both are older shared abstractions rather than fresh unfinished work:
+  - `3a86b18 feat(pagination): Phase 13 Complete - Pagination UI + Sync Chunking`
+  - `a5de5fe feat(e2e): Add state reset and time provider for deterministic tests (PR-4A/4B)`
+  - `8e03ab4 feat(e2e): Add mock Supabase auth for network-free testing (PR-5A)`
+
+Why this matters:
+
+- The primary shared export surface is still carrying abstractions that look supported but are not actually part of the live architecture.
+- Dormant generic infrastructure increases the apparent supported API without providing current value.
+- This is stale shared compatibility/dead surface, not a recently started implementation that simply needs finishing.
+
+## Coverage Gaps
+
+- There is still no direct test or lint gate that fails when an empty shared barrel like `shared/domain/domain.dart` remains exported but unused.
+- There is no verification guarding the claimed canonical ownership of `TestingKeys` against direct `*TestingKeys` bypasses in runtime code.
+- There is no direct widget test around `showStoragePermissionDialog()` even though it owns lifecycle-observer behavior and direct service construction inside the shared widget layer.
+- There is no test or static guard asserting that dormant shared exports like `PagedListProvider` and `AppTime` are either intentionally retained or actually consumed.

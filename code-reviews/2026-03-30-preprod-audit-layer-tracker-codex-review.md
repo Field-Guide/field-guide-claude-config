@@ -50,11 +50,11 @@ Note: I cannot force platform compaction on demand, but I can emulate the intend
   Report: `2026-03-30-preprod-audit-screens-navigation-codex-review.md`
   Scope: screen behavior, user flows, stale UI surfaces, presentation dead code, navigation consistency
 
-- [ ] Shared UI / Cross-Cutting Hygiene
+- [x] Shared UI / Cross-Cutting Hygiene
   Report: `2026-03-30-preprod-audit-shared-ui-hygiene-codex-review.md`
   Scope: theme tokens, shared utilities, testing keys, deprecated compatibility layers, cross-cutting hygiene
 
-- [ ] Tests / Tooling / Quality Gates
+- [x] Tests / Tooling / Quality Gates
   Report: `2026-03-30-preprod-audit-tests-tooling-codex-review.md`
   Scope: coverage gaps, stale fixtures, CI gates, skips/suppressions, misleading test surfaces
 
@@ -66,7 +66,9 @@ Note: I cannot force platform compaction on demand, but I can emulate the intend
 - Completed: Services / Integrations
 - Completed: Features / Business Logic
 - Completed: Screens / Navigation UX
-- Next recommended pass: Shared UI / Cross-Cutting Hygiene
+- Completed: Shared UI / Cross-Cutting Hygiene
+- Completed: Tests / Tooling / Quality Gates
+- Next recommended pass: wave complete
 
 ## Pass Log
 
@@ -122,6 +124,14 @@ Note: I cannot force platform compaction on demand, but I can emulate the intend
   Result: completed additional fresh scoped sweep
   New additions: `shared.dart` is acting as a catch-all compatibility barrel across `84` production imports, shared testing keys still preserve alias-collisions and unused legacy API surface, `SearchBarField` does not handle controller replacement safely, `ContextualFeedbackOverlay` can strand a global overlay after the caller unmounts, and the report now documents missing direct widget coverage for the shared banner/dialog/search/overlay surfaces
 
+- Shared UI / Cross-Cutting Hygiene
+  Result: completed code-quality / deprecated-surface / integrity sweep
+  New additions: `shared/domain/domain.dart` is now an empty exported compatibility barrel, the testing-key layer is no longer truly canonical because live code still bypasses `TestingKeys` with direct feature-key usage, shared widgets still self-compose service behavior and broad-barrel imports in `permission_dialog.dart` and `confirmation_dialog.dart`, and dormant shared exports like `PagedListProvider` and `AppTime` remain publicly exposed without active consumers or coverage
+
 - Tests / Tooling / Quality Gates
   Result: completed additional fresh scoped sweep
   New additions: default CI and `flutter test` verification still do not execute the current `integration_test/` surfaces that several tests rely on for "real" coverage, Patrol deprecation left stale and partially broken workflow/doc references behind, multiple screen test files are still mislabeled as meaningful presentation coverage while asserting detached helper logic, the helper/harness infrastructure is itself lightly verified and composes a non-production app environment, and PDF diagnostic verification still depends on manual fixture generation and local machine inputs outside the automated gates
+
+- Tests / Tooling / Quality Gates
+  Result: completed code-quality / deprecated-surface / integrity sweep
+  New additions: deprecated Patrol and `flutter_driver` stacks remain wired into `pubspec.yaml`, `test_harness.dart`, `driver_main.dart`, and generated `integration_test/test_bundle.dart`; `integration_test/grant-permissions.sh` still targets the wrong Android package id and Patrol command path; `test/helpers/README.md` contains broken import examples and an outdated test-tree contract; and a targeted `flutter analyze test lib/test_harness integration_test` run still reports `219` issues including deprecated theme API usage in golden tests plus stale/unused imports in the verification layer itself
