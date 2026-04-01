@@ -6,6 +6,15 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## April 2026
 
+### Session 698 (2026-04-01)
+**Work**: Custom lint cleanup. 1,851→45 violations. ~1,200 real code fixes. **ALL LOST IN S699 INCIDENT.**
+
+### Session 697 (2026-04-01)
+**Work**: Ran `/implement` on wiring-routing plan. 8 phases, 94 new tests. **ALL LOST IN S699 INCIDENT.**
+
+### Session 696 (2026-03-31)
+**Work**: Fixed 72 dart analyze issues (clean). Config repo committed. **RECOVERED via dangling commit.**
+
 ### Session 694 (2026-03-31)
 **Work**: Ran `/writing-plans` on wiring-routing-audit-fixes spec. 2 parallel plan writers, 3 review cycles, 18 findings fixed. Plan APPROVED (4194 lines, 8 phases).
 **Decisions**: Multi-writer split, photoServiceOverride dropped (chicken-and-egg), PII scrubbing extracted.
