@@ -4,7 +4,7 @@ paths:
   - "test/**/*.dart"
   - "lib/shared/testing_keys/testing_keys.dart"
   - "lib/shared/testing_keys/quantities_keys.dart"
-  - "lib/test_harness/**/*.dart"
+  - "lib/core/driver/**/*.dart"
   - "lib/test_harness.dart"
   - "lib/main_driver.dart"
 ---
@@ -162,12 +162,12 @@ Purpose: render one screen at a time with real providers backed by in-memory SQL
 
 ### Config Fields
 
-- `screen` (required): registry key from `lib/test_harness/screen_registry.dart`
+- `screen` (required): registry key from `lib/core/driver/screen_registry.dart`
 - `data` (optional): per-screen constructor/seed inputs
 
 ### Adding a New Screen to Harness
 
-1. Add a registry entry in `lib/test_harness/screen_registry.dart`
+1. Add a registry entry in `lib/core/driver/screen_registry.dart`
 2. Add `ValueKey` coverage for interactive elements in the screen widget
 3. Add/update keys in `lib/shared/testing_keys/testing_keys.dart`
 4. If the screen needs extra context, extend harness seeding via `harness_config.json` `data`
@@ -186,7 +186,7 @@ Wires up real GoRouter routes so screens navigate naturally without relaunching 
   }
 }
 ```
-- `flow`: key into `lib/test_harness/flow_registry.dart` (triggers flow mode instead of single-screen mode).
+- `flow`: key into `lib/core/driver/flow_registry.dart` (triggers flow mode instead of single-screen mode).
 - `startAt`: optional initial route path (defaults to flow's `defaultInitialLocation`).
 - `data`: shared seed data, same as single-screen mode.
 
@@ -196,7 +196,7 @@ Wires up real GoRouter routes so screens navigate naturally without relaunching 
 | `0582b-forms` | `/forms` | FormsListScreen, FormViewerScreen, QuickTestEntryScreen, ProctorEntryScreen, WeightsEntryScreen, ToolboxHomeScreen |
 
 #### Add a New Flow
-1. Add a `FlowDefinition` entry in `lib/test_harness/flow_registry.dart`.
+1. Add a `FlowDefinition` entry in `lib/core/driver/flow_registry.dart`.
 2. Copy needed `GoRoute` entries from `app_router.dart` (without auth redirects/shell routes).
 3. Include fallback routes used by `safeGoBack` in the flow's screens.
 4. List seed screen names in `seedScreens`.
@@ -367,7 +367,7 @@ The report test generates a scorecard automatically. When presenting results, us
 - UI Keys Reference: `integration_test/patrol/REQUIRED_UI_KEYS.md`
 - Pipeline Reports: `test/features/pdf/extraction/reports/` (gitignored, per-platform baselines)
 - Defects to Avoid: `.claude/defects/_defects-{feature}.md` (per-feature defect files)
-- Screen Registry: `lib/test_harness/screen_registry.dart`
+- Screen Registry: `lib/core/driver/screen_registry.dart`
 
 
 ## Deprecated Testing Stacks

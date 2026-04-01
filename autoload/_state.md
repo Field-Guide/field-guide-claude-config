@@ -1,32 +1,29 @@
 # Session State
 
-**Last Updated**: 2026-04-01 | **Session**: 703
+**Last Updated**: 2026-04-01 | **Session**: 704
 
 ## Current Phase
-- **Phase**: PR COMPLIANCE FIXES — plan written, reviewed, approved. Ready for `/implement`.
-- **Status**: Full pipeline complete (brainstorming → tailor → writing-plans). Plan passed 3 review sweeps (code, security, completeness) after 2 fix cycles. No code changes yet.
+- **Phase**: PR COMPLIANCE FIXES — fully implemented, reviewed, clean. Ready to commit + push.
+- **Status**: 6-phase plan executed. 2 review sweeps (6 agents each). All 3 reviewers APPROVE with 0 MEDIUM+ findings. `flutter analyze` clean, 3767 pass / 4 pre-existing fail.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (703)
+### What Was Done This Session (704)
 
-1. Ran `/writing-plans` on `.claude/specs/2026-04-01-pr-compliance-fixes-spec.md`
-2. Wrote 6-phase plan: `.claude/plans/2026-04-01-pr-compliance-fixes.md`
-3. Ran 3 cycles of adversarial reviews (code, security, completeness — 9 review agents total)
-4. Fixed 11 findings across 2 fix cycles (cycle 1: 6 fixes, cycle 2: 5 fixes)
-5. Cycle 3: all 3 reviewers APPROVE (0 HIGH/CRITICAL remaining, 3 LOW informational)
-
-#### Plan Structure (6 phases, 22 sub-phases):
-- Phase 1: CI fixes (AUTOINCREMENT, Supabase grep, Flutter version)
-- Phase 2: Dead code removal (test_harness/, isDriverMode, stale refs)
-- Phase 3: AppInitializer decomposition (5 initializer modules)
-- Phase 4: AppRouter decomposition (7 route modules)
-- Phase 5: BackgroundSyncHandler fix + entrypoint slimming (app_widget, driver_setup)
-- Phase 6: Test rewrites (5 rewritten, 1 deleted, 27 untouched)
+1. Executed 6-phase PR compliance plan as manual orchestrator (no `/implement` skill)
+2. Dispatched agents in 4 batches with parallelism analysis:
+   - Batch 1: P1 (CI) + P2 (dead code) + P3.1-3.5 (initializer modules) + P4.1-4.7 (route modules) — 4 parallel
+   - Batch 2: P3.6 (rewire AppInitializer) + P4.8 (rewire AppRouter) — 2 parallel
+   - Batch 3: P5 (BackgroundSyncHandler + entrypoints) — 1 agent
+   - Batch 4: P6 (test rewrites) — 3 parallel agents
+3. Many sub-phases were already done from S700 wiring session (route modules, app_router, app_initializer, app_widget, driver_setup, BackgroundSyncHandler)
+4. Key changes made this session: CI grep comment exclusion, test_harness deletion, isDriverMode removal, 5 initializer module files, lint allowlist updates, test rewrites (32 new tests across 5 files, 1 test deleted)
+5. Architectural fix: moved `Supabase.instance.client` out of `platform_initializer.dart` back to `app_initializer.dart` (DI root only)
+6. Review sweep 1: 3M + 6L findings. Fixed all. Review sweep 2: all 3 APPROVE, 0 findings.
 
 ### What Needs to Happen Next
-1. **Run `/implement`** on `.claude/plans/2026-04-01-pr-compliance-fixes.md`
-2. **Verify CI passes**, update PR #7, merge
+1. **Commit all changes** on `feat/wiring-routing-rewire` branch
+2. **Push + update PR #7**, verify CI green, merge
 3. **Address BLOCKER-38** (sign-out data wipe) after merge
 
 ## Blockers
@@ -57,6 +54,11 @@
 
 ## Recent Sessions
 
+### Session 704 (2026-04-01)
+**Work**: Executed 6-phase PR compliance plan. 4-batch parallel orchestration. 32 new tests, 2 review sweeps, all APPROVE. Architecture fix: Supabase singleton stays in DI root only.
+**Decisions**: PlatformInitializer returns void (no singleton access). BackgroundSyncHandler.dbService now required. Admin guard gets explicit return null. Data-guard redirects documented.
+**Next**: Commit → push → CI green → merge PR #7 → BLOCKER-38.
+
 ### Session 703 (2026-04-01)
 **Work**: Ran `/writing-plans` — 6-phase plan, 3 review cycles (9 agents), 2 fix cycles, all APPROVE. No code changes.
 **Decisions**: 7 route modules (merged onboarding into auth). Step 8 stays inline. DriverSetup extracted to core/driver/.
@@ -77,10 +79,6 @@
 **Decisions**: Targeted re-wiring plan. Direct edits. Opus subagents only.
 **Next**: COMMIT → lint cleanup (S698 redo).
 
-### Session 699 (2026-04-01)
-**Work**: Lint rule allowlists (8 rules, ~150 paths). DATA LOSS: `git checkout --` destroyed sessions 697-698. Recovered 681-696 from dangling commit.
-**Decisions**: File-level allowlists only. NEVER run destructive git commands.
-
 ## Active Debug Session
 
 None active.
@@ -88,11 +86,9 @@ None active.
 ## Test Results
 
 ### Flutter Unit Tests
-- **Full suite (S701)**: 3769 pass, 4 pre-existing fail (form_sub_screens_test.dart)
-- **Analyze (S701)**: 0 issues
-- **Custom lint (S701)**: 0 issues
-- **Lint package (S701)**: 0 issues, 86/86 tests passing
-- **DI/Router/Sync tests (S700)**: 98/98 PASSING
+- **Full suite (S704)**: 3767 pass, 4 pre-existing fail (form_sub_screens_test.dart)
+- **Analyze (S704)**: 0 issues
+- **Affected tests (S704)**: 29/29 pass (bootstrap 6, initializer 6, router 15, sync 3, scaffold 3 — note: some counted differently by runner)
 
 ### Sync Verification (S668 — 2026-03-28)
 - **S01**: PASS | **S02**: PASS | **S03**: PASS
@@ -100,7 +96,7 @@ None active.
 - **S07**: PASS | **S08**: PASS | **S09**: FAIL (delete no push) | **S10**: PASS
 
 ## Reference
-- **PR Compliance Plan (READY)**: `.claude/plans/2026-04-01-pr-compliance-fixes.md`
+- **PR Compliance Plan (IMPLEMENTED)**: `.claude/plans/2026-04-01-pr-compliance-fixes.md`
 - **PR Compliance Spec**: `.claude/specs/2026-04-01-pr-compliance-fixes-spec.md`
 - **Tailor Output**: `.claude/tailor/2026-04-01-pr-compliance-fixes/`
 - **Review Sweeps**: `.claude/plans/review_sweeps/pr-compliance-fixes-2026-04-01/`
