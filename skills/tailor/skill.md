@@ -93,8 +93,11 @@ Verify ALL string literals, file paths, and symbol names discovered during resea
 | RPC function names | `supabase/migrations/*.sql` |
 | Enum values | Model files where enums are defined |
 | File paths in code | Glob to confirm existence |
+| Lint rules per path | `rules/architecture.md` "Lint Rule Path Triggers" table |
 
 Flag any discrepancies. The output directory must contain ONLY verified ground truth.
+
+**New-file lint check:** When the spec proposes creating new files, cross-reference each target path against the "Lint Rule Path Triggers" table in `rules/architecture.md`. Include a "Lint Rules for New Files" section in `ground-truth.md` noting which rules will apply to each new file path.
 
 ### Phase 5: Research Agent Gap-Fill
 

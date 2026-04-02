@@ -2,6 +2,11 @@
 
 ## Active Patterns
 
+### [DATA] 2026-04-02: SchemaVerifier only detected missing columns, not definition drift
+**Pattern**: SchemaVerifier checked column existence but not type, default, or nullability. Schema drift (e.g., wrong column type or default value) survived silently at runtime.
+**Prevention**: SchemaVerifier now returns `List<ColumnDrift>` with type/default/nullability mismatches. 4 tests cover this. When adding schema changes, verify drift detection catches the change.
+**Ref**: @lib/core/database/schema_verifier.dart, audit Finding 8. Fixed in S706.
+
 ### [CONFIG] 2026-03-29: Supabase migration used UUID for app table PKs/FKs — remote schema uses TEXT
 **Pattern**: New table CREATE statements used `id UUID PRIMARY KEY DEFAULT gen_random_uuid()` and `UUID REFERENCES` for FK columns, but all existing app tables use `TEXT PRIMARY KEY` with app-generated UUIDs. Only `created_by_user_id`/`deleted_by` are UUID (reference `auth.users`).
 **Prevention**: Always check existing table id types before writing new CREATE TABLE migrations. App tables = TEXT PKs. Auth references = UUID.

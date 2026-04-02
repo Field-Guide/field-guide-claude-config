@@ -87,11 +87,11 @@ Route by file pattern:
 | `test/**`, `integration_test/**` | `qa-testing-agent` | sonnet |
 | Multiple domains or unclear | `general-purpose` | sonnet |
 
-### Build-Runner Agent (runs flutter commands)
+### Build-Runner Agent (runs flutter analyze)
 
-When you need to run `flutter analyze`, `flutter test`, or `flutter build`, dispatch:
+When you need to run `flutter analyze`, dispatch:
 - `subagent_type: qa-testing-agent`, `model: sonnet`
-- Prompt: Include the exact commands and say "Run these commands and return the full output. Use `pwsh -Command \"...\"` wrapper for all Flutter commands. NEVER run flutter clean."
+- Prompt: Include the exact command and say "Run this command and return the full output. Use `pwsh -Command \"...\"` wrapper. NEVER run flutter clean. NEVER run flutter test — tests run in CI only."
 
 ### Reviewer Agents (read-only, report findings)
 
@@ -127,9 +127,8 @@ Source: lib/ (feature-first organization)
 
 Build commands (MUST use pwsh wrapper — Git Bash silently fails on Flutter):
   Analyze:     pwsh -Command "flutter analyze"
-  Test:        pwsh -Command "flutter test"
-  Build APK:   pwsh -Command "flutter build apk --debug"
 
+CRITICAL: NEVER run flutter test — tests run in CI via PR quality gate only.
 CRITICAL: NEVER run flutter clean. It is prohibited.
 CRITICAL: NEVER add "Co-Authored-By" lines to commits.
 ```
@@ -172,7 +171,7 @@ For each phase in the batch:
 3. Dispatch via Agent. The prompt MUST include:
    - The **COMPLETE phase text** from the plan (all sub-phases, all steps, all code blocks — copy verbatim)
    - The project context block
-   - This instruction: "Implement the assigned phase exactly as written. The plan contains complete code for every step — write it to the specified files. Do not add anything beyond what the plan specifies. Do not omit anything the plan requires. Read each target file before editing (to preserve existing content if modifying). Use `pwsh -Command \"...\"` for all Flutter commands. NEVER run flutter clean. SKIP all `flutter test` commands inside sub-phases — do NOT run the full test suite. Only run `flutter analyze` for verification. The orchestrator runs the full test suite once at the batch level after all sub-phases complete."
+   - This instruction: "Implement the assigned phase exactly as written. The plan contains complete code for every step — write it to the specified files. Do not add anything beyond what the plan specifies. Do not omit anything the plan requires. Read each target file before editing (to preserve existing content if modifying). Use `pwsh -Command \"...\"` for all Flutter commands. NEVER run flutter clean. NEVER run flutter test — tests run in CI via PR quality gate only. Only run `flutter analyze` for verification."
    - This instruction: **"Print a status line to stdout after each sub-step: `[PROGRESS] Phase N Step X.Y: DONE — <brief description>`"**
 
 **If batch size > 1**: Dispatch ALL implementers in a SINGLE message (parallel Agent calls). Add to each prompt: **"Do NOT update the checkpoint JSON — your phase will be checkpointed after all parallel phases complete."**

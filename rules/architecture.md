@@ -242,3 +242,15 @@ These patterns are enforced by `field_guide_lints` custom lint rules. Violations
 | Hardcoded `Colors.*` in presentation | A13 | Use theme tokens |
 
 > **Note:** Rules A10–A11 and additional data safety, sync integrity, and test quality rules are defined in `fg_lint_packages/field_guide_lints/`. The table above covers architecture-specific rules only.
+
+### Lint Rule Path Triggers
+
+Which lint rules activate based on file path. Use this when creating or modifying files to know what constraints apply.
+
+| Path Pattern | Active Rules | Key Constraints |
+|-------------|-------------|-----------------|
+| `*/presentation/*` | A3, A5, A8, A13, D5 | No raw SQL, no datasource imports, no service construction, no hardcoded Colors, mounted check required |
+| `*/di/*` | A4, A6, A15 | No raw SQL in DI, no business logic in DI, no duplicate services |
+| `*/data/models/*` | S5, D8 | toMap must include project_id for project-scoped features, no sentinel strings |
+| `test/*` or `integration_test/*` | T2, T3, T4, T5 | Test rules activate; D3, D11, S1, S3, S4 are EXCLUDED (test-only relaxations) |
+| Global (all `lib/**/*.dart`) | A1, A2, A7, A9, A10, A11, A12, A14, A17, D1, D2, D3, D4, D6, D7, D10, S2, S4, S8, T1, T6, T7, T8 | Always enforced regardless of path |

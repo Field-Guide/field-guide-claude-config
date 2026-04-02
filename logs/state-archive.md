@@ -6,6 +6,23 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## April 2026
 
+### Session 705 (2026-04-01)
+**Work**: Committed + pushed PR. Fixed sqlite3 DLL crash, pre-commit hook (single invocation + advisory), moved initializers to core/bootstrap/, fixed CI Flutter version + D9 grep, added GitHub Job Summaries. Pain point analysis: 4 systemic issues identified.
+**Decisions**: Bootstrap modules live in core/bootstrap/ not di/. Pre-commit tests advisory. CI needs Dart version assertion. Lint rule pre-flight for new files.
+**Next**: Verify CI → merge PR #7 → harden quality system → BLOCKER-38.
+
+### Session 702 (2026-04-01)
+**Work**: PR compliance audit — 6 opus research agents, brainstorming spec, tailor codebase mapping. No code changes.
+**Decisions**: Option C (fix everything in one PR). Feature-domain route modules. Hybrid test approach. Delete test_harness/ entirely.
+**Next**: `/writing-plans` → `/implement` → CI green → merge.
+
+## April 2026
+
+### Session 701 (2026-04-01)
+**Work**: Full lint cleanup redo. 977 custom lint + 73 analyzer + 18 lint package warnings → 0. 466 files across 6 commits.
+**Decisions**: Parallel opus agents. No ignore comments. Catch-all patterns preserved. Pre-commit hook hardened.
+**Next**: PR → merge. Address form_sub_screens failures. BLOCKER-38.
+
 ### Session 698 (2026-04-01)
 **Work**: Custom lint cleanup. 1,851→45 violations. ~1,200 real code fixes. **ALL LOST IN S699 INCIDENT.**
 

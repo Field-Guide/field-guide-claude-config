@@ -20,6 +20,7 @@ $failed = $false
 # Check 1: sync_control writes outside transaction blocks
 # FROM SPEC: Section 9 - "sync_control writes outside transaction blocks"
 foreach ($file in $stagedDart) {
+    if ($file -match "^fg_lint_packages/|schema_verifier\.dart$") { continue }
     $content = (Get-StagedContent $file) -join "`n"
     if ($content -match "sync_control" -and $content -notmatch "transaction\s*\(") {
         # Heuristic: if file mentions sync_control but has no transaction() call, flag it
@@ -105,8 +106,8 @@ foreach ($file in $stagedDart) {
 # Check 5: AUTOINCREMENT in schema files
 # FROM SPEC: Section 9 - "No AUTOINCREMENT in schema"
 foreach ($file in ($stagedDart + $stagedSql)) {
-    # Skip schema_verifier (reads/validates schema) and test files (create test databases)
-    if ($file -match "schema_verifier\.dart$|^test/|^integration_test/") { continue }
+    # Skip schema_verifier (reads/validates schema), test files, and lint rule packages (contain rule strings)
+    if ($file -match "schema_verifier\.dart$|^test/|^integration_test/|^fg_lint_packages/") { continue }
     $stagedLines = Get-StagedContent $file
     if ($null -eq $stagedLines) { continue }
     $lineNum = 0
