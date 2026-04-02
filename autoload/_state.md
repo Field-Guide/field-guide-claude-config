@@ -1,35 +1,23 @@
 # Session State
 
-**Last Updated**: 2026-04-02 | **Session**: 710
+**Last Updated**: 2026-04-02 | **Session**: 711
 
 ## Current Phase
-- **Phase**: Data/sync audit remediation — plan written and reviewed (2 cycles). Ready for `/implement`.
-- **Status**: On `main`. Plan at `.claude/plans/2026-04-02-data-sync-audit-remediation.md`. Security + completeness APPROVE, code review REJECT cycle 2 (fixes applied, cycle 3 not run).
+- **Phase**: Both plans written and reviewed. Ready for `/implement` on both.
+- **Status**: On `main`. Audit remediation plan + defect migration plan both APPROVED (3 reviewers each, 3 cycles on migration).
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (710)
+### What Was Done This Session (711)
 
-1. **Ran `/writing-plans`** on audit remediation spec — wrote full 6-phase plan (~700 lines)
-2. **Cycle 1 reviews** — 3 parallel agents (code, security, completeness), all REJECT
-   - Security: SEC-R1 cross-tenant exposure (SwitchCompanyUseCase deletion), SEC-R2 migration drops triggers
-   - Completeness: Missing INSERT audit step, missing defects update step
-   - Code: Migration DDL catastrophically wrong (6 missing columns), syncAll() doesn't exist, factory params wrong
-3. **Cycle 1 fixer** — 13/16 findings fixed (3 already correct after fixer edits)
-   - Major: Phase 1.4 restructured to KEEP SwitchCompanyUseCase (security override of spec)
-   - Major: Migration DDL rewritten with correct canonical DDL, all 6 indexes, trigger recreation
-4. **Cycle 2 reviews** — Security APPROVE, Completeness APPROVE, Code REJECT (2 new HIGHs)
-   - CR-10: SyncEngineFactory.createForBackground wrong signature
-   - CR-11: EntryContractorsRepository API wrong + missing entry_editor_screen.dart consumer
-5. **Cycle 2 fixer** — All 4 findings fixed
-   - Repository rewritten with actual datasource APIs (entry-scoped junction methods)
-   - Factory createForBackground signature fixed
-   - Both repository + individual datasource Providers kept for incremental migration
+1. **Ran `/writing-plans`** on defect migration spec — wrote 5-phase plan (~1300 lines, 57 steps)
+2. **Cycle 1 reviews** — Code REJECT (2 HIGH: missing files in audit, missing resume-session), Security APPROVE, Completeness REJECT (missing file)
+3. **Cycle 1 fixer** — 10/10 findings fixed (added 4 files beyond spec scope: resume-session, debug-session-management, logs/README.md, archive-index.md)
+4. **Cycle 2 reviews** — All 3 APPROVE. Post-approval targeted fixes: PowerShell `\n` → backtick-n in 2 steps, count verification query expanded to include both defect+blocker labels
+5. **Cycle 3 reviews** — All 3 APPROVE. Only cosmetic LOWs remain (summary arithmetic, stale backlogged plan ref)
 
 ### What Needs to Happen Next
-1. **Implement** audit remediation plan: `/implement .claude/plans/2026-04-02-data-sync-audit-remediation.md`
-2. **Run `/writing-plans`** on defect migration spec `.claude/specs/2026-04-01-defect-tracking-github-issues-migration-spec.md`
-3. **Implement** defect migration plan
+1. **Implement** defect migration plan: `/implement .claude/plans/2026-04-02-defect-tracking-github-issues-migration.md`
 
 ## Blockers
 
@@ -56,6 +44,11 @@
 
 ## Recent Sessions
 
+### Session 711 (2026-04-02)
+**Work**: Ran `/writing-plans` on defect migration spec. 3 review cycles (9 reviewer agents, 1 fixer agent). Added 4 files beyond spec scope (resume-session, debug-session-management, logs/README.md, archive-index.md). Fixed PowerShell escaping and count verification query.
+**Decisions**: All general-purpose agent (no Dart code). Dual defect+blocker count queries for migration verification safety gate. `directory-reference.md` noted as additional cleanup target during implementation.
+**Next**: `/implement` audit remediation → `/implement` defect migration.
+
 ### Session 710 (2026-04-02)
 **Work**: Ran `/writing-plans` on audit remediation spec. 2 review/fix cycles (6 reviewer agents, 2 fixer agents). Security override: kept SwitchCompanyUseCase (spec wanted deletion but creates cross-tenant exposure). Migration DDL rewritten from canonical source. Repository redesigned with actual datasource APIs.
 **Decisions**: SwitchCompanyUseCase KEPT for sign-in company-switch detection (security override of spec). Unsynced check lives in SignOutDialog widget (not use case — avoids circular init dep). Both repository + datasource Providers kept for incremental migration. Cert datasource injected via SyncInitializer (not AuthInitializer — consumer lives there).
@@ -76,11 +69,6 @@
 **Decisions**: Remove form_type DEFAULT (Option A). Builder pattern for SyncOrchestrator. Migrations authoritative, SchemaVerifier report-only. Delete clearLocalCompanyData entirely. Extend existing UserCertificationLocalDatasource (don't duplicate). Reduce A6 baseline in Phase 4.
 **Next**: `/writing-plans` → implement → merge PR #7.
 
-### Session 706 (2026-04-02)
-**Work**: Hardened CI quality gate end-to-end. Fixed D9 regex, added 3 lint rules + baseline system + auto-issue sync. Found/fixed Windows path normalization bug in 8 rules (local→CI parity: 24→93). Added unified Quality Report job. SchemaVerifier now detects drift.
-**Decisions**: Lint baseline gates CI (known pass, new block). Issues auto-managed by CI. Path normalization mandatory in all path-scoped rules. Unified report via 4th job + artifact upload.
-**Next**: Verify CI green → merge PR #7 → BLOCKER-38.
-
 ## Active Debug Session
 
 None active.
@@ -99,10 +87,12 @@ None active.
 - **S07**: PASS | **S08**: PASS | **S09**: FAIL (delete no push) | **S10**: PASS
 
 ## Reference
-- **Audit Remediation Plan (READY)**: `.claude/plans/2026-04-02-data-sync-audit-remediation.md`
+- **Audit Remediation Plan (IMPLEMENTED)**: `.claude/plans/2026-04-02-data-sync-audit-remediation.md`
 - **Audit Remediation Reviews**: `.claude/plans/review_sweeps/data-sync-audit-remediation-2026-04-02/` (2 cycles, 6 reports)
 - **Audit Remediation Spec**: `.claude/specs/2026-04-02-data-sync-audit-remediation-spec.md`
 - **Audit Remediation Tailor**: `.claude/tailor/2026-04-02-data-sync-audit-remediation/`
+- **Defect Migration Plan (READY)**: `.claude/plans/2026-04-02-defect-tracking-github-issues-migration.md`
+- **Defect Migration Reviews**: `.claude/plans/review_sweeps/defect-tracking-github-issues-migration-2026-04-02/` (3 cycles, 9 reports)
 - **Defect Migration Spec**: `.claude/specs/2026-04-01-defect-tracking-github-issues-migration-spec.md`
 - **Defect Migration Tailor**: `.claude/tailor/2026-04-01-defect-tracking-github-issues-migration/`
 - **Pre-Prod Audit**: `.claude/code-reviews/2026-03-30-preprod-audit-layer-data-database-sync-codex-review.md`

@@ -1,0 +1,8 @@
+STATUS: DONE
+PHASES_EXECUTED: 5
+PARALLEL_BATCHES: Batch1(5)
+FILES: lib/features/settings/presentation/widgets/sign_out_dialog.dart, lib/shared/testing_keys/settings_keys.dart, lib/shared/testing_keys/testing_keys.dart, .claude/defects/_defects-auth.md
+PER_PHASE_REVIEWS:
+  Phase 5: completeness=PASS(C:0,H:0,M:0,L:0) code=PASS(C:0,H:0,M:2,L:2) security=PASS(C:0,H:0,M:0,L:3) fix_cycles:1
+TOTAL_FIX_CYCLES: 1
+DECISIONS: Fail-closed on getPendingCount error (shows warning dialog instead of hiding it), Added _cancelled flag to prevent orphaned sign-out when Cancel pressed during sync, Sanitized error messages (no raw exceptions shown to user), Added TestingKeys for signOutAnywayButton and syncAndSignOutButton

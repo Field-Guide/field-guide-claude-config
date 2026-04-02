@@ -6,6 +6,11 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## April 2026
 
+### Session 706 (2026-04-02)
+**Work**: Hardened CI quality gate end-to-end. Fixed D9 regex, added 3 lint rules + baseline system + auto-issue sync. Found/fixed Windows path normalization bug in 8 rules (local→CI parity: 24→93). Added unified Quality Report job. SchemaVerifier now detects drift.
+**Decisions**: Lint baseline gates CI (known pass, new block). Issues auto-managed by CI. Path normalization mandatory in all path-scoped rules. Unified report via 4th job + artifact upload.
+**Next**: Verify CI green → merge PR #7 → BLOCKER-38.
+
 ### Session 705 (2026-04-01)
 **Work**: Committed + pushed PR. Fixed sqlite3 DLL crash, pre-commit hook (single invocation + advisory), moved initializers to core/bootstrap/, fixed CI Flutter version + D9 grep, added GitHub Job Summaries. Pain point analysis: 4 systemic issues identified.
 **Decisions**: Bootstrap modules live in core/bootstrap/ not di/. Pre-commit tests advisory. CI needs Dart version assertion. Lint rule pre-flight for new files.

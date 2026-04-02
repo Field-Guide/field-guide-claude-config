@@ -13,11 +13,13 @@ Archive: .claude/logs/defects-archive.md
 **Prevention**: Always let profile-check gates run before returning null for onboarding routes. Gate ordering is security-critical.
 **Ref**: @lib/core/router/app_redirect.dart
 
-### [DATA-LOSS] 2026-04-01: Sign-out hard-deletes ALL local data — BLOCKER-38
-**Pattern**: `auth_service.dart:354` performs raw `db.delete()` on all tables during sign-out, wiping all local user data. Sign-out should clear auth state (tokens, session) but NOT destroy inspection data, entries, photos, etc. User data must persist for offline access and re-authentication.
-**Prevention**: Sign-out should only clear auth tokens and session state. Local data belongs to the device/user and should survive sign-out. If multi-user support requires data isolation, use per-user encryption or filtering, not deletion.
-**Ref**: @lib/features/auth/services/auth_service.dart:354
-**Priority**: HIGH — data loss risk on every sign-out
+### [FIXED] 2026-04-02: Sign-out data-wipe and missing unsynced warning — BLOCKER-38
+**Original issue**: `auth_service.dart:354` performed raw `db.delete()` on all tables during sign-out via `clearLocalCompanyData`, wiping all local user data.
+**Resolution**:
+- Phase 1 removed `clearLocalCompanyData` from the sign-out path; local data now persists across sign-out (BUG-17 guarantee).
+- `SwitchCompanyUseCase` retained for sign-in company-switch detection (SEC-R1 cross-tenant protection).
+- Phase 5 added unsynced-change warning to `SignOutDialog`: three-action variant (Cancel / Sign Out Anyway / Sync & Sign Out) when `SyncOrchestrator.getPendingCount() > 0`.
+**Status**: FIXED — data-sync-audit-remediation branch (2026-04-02)
 
 ## Active Patterns
 
