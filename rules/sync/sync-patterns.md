@@ -370,7 +370,7 @@ Sync correctness is verified via a 3-layer system:
 
 ### Layer 2 & Layer 3 Sync Testing
 
-Sync integration testing is Claude-driven via test flows. See `.claude/test-flows/sync-verification-guide.md` for the current workflow.
+Sync integration testing is Claude-driven via test flows. See `.claude/test-flows/sync/framework.md` and the flow files in `.claude/test-flows/sync/` for the current workflow.
 
 > **Note:** The previous `run-tests.js --layer L2/L3` CLI commands have been removed. Use the Claude-driven verification guide instead.
 

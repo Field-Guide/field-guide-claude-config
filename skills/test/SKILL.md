@@ -22,14 +22,15 @@ flows directly via curl — no sub-agents, no orchestrator layer.
 - [ ] `report.md` updated with tier results table
 - [ ] Screenshot review: only view screenshots for FAILED flows
 
-### Per-Run Outputs (only two files — no registry updates)
+### Per-Run Outputs (only two files)
 - **`checkpoint.json`** — machine-readable state, updated per-tier
 - **`report.md`** — human-readable results, updated per-tier
-- Do NOT update `registry.md` during runs — it is a reference doc, not a run log
+- Tier files are static reference docs — do NOT update them during runs
+- Bugs are tracked in GitHub Issues
 
 ### HARD RULES — SYNC FLOWS
 
-These rules are **non-negotiable** for S01-S17. Violating them wastes cycles and requires user correction.
+These rules are **non-negotiable** for S01-S19. Violating them wastes cycles and requires user correction.
 
 1. **NEVER use `POST /driver/sync`** — sync ONLY via UI: tap `settings_nav_button` → tap `settings_sync_button`, wait 3s, tap again if needed.
 2. **NEVER use `GET /driver/local-record` for verification** — navigate the inspector app to the screen where the data appears and take a screenshot. Visual verification only.
@@ -108,33 +109,31 @@ curl -s -X POST http://127.0.0.1:4948/driver/wait -d '{"key":"dialog_name_field"
 curl -s -X POST .../text -d '{"key":"dialog_name_field","text":"second item"}'
 ```
 
-## Screen Identification — Sentinel Keys
+## Reference Loading
 
-**Never rely on route alone to determine which screen is active.** go_router shell routes report the parent route — `/projects` could be the project list, project edit, or project create screen.
+Before executing, read the files mapped to your command. Load reference files on first use, then as-needed.
 
-Use **sentinel key checks** to identify the current screen:
+| Command | Files to Read |
+|---|---|
+| Any tier (first use) | `skills/test/references/driver-and-navigation.md` + `skills/test/references/debug-server-and-logs.md` |
+| `auth`, `project-setup` | `test-flows/tiers/setup-and-auth.md` |
+| `entries`, `lifecycle` | `test-flows/tiers/entry-crud.md` |
+| `toolbox`, `pdf` | `test-flows/tiers/toolbox-and-pdf.md` |
+| `settings`, `admin` | `test-flows/tiers/settings-and-admin.md` |
+| `edits`, `deletes` | `test-flows/tiers/mutations.md` |
+| `permissions`, `navigation` | `test-flows/tiers/verification.md` |
+| `sync` or `S01-S19` | `test-flows/sync/framework.md` + relevant flow group file (see below) |
+| Single flow (e.g., `T15`) | Tier file containing that flow |
+| `full` or `--resume` | `test-flows/flow-dependencies.md` + tier files as you reach each tier |
+| Manual flows | `test-flows/tiers/manual-flows.md` |
 
-| Screen | Route Reports | Sentinel Key (exists = on this screen) |
-|--------|--------------|---------------------------------------|
-| Dashboard | `/` | `dashboard_new_entry_button` |
-| Calendar | `/calendar` | `calendar_prev_month` |
-| Project List | `/projects` | `project_create_button` + NO `project_save_button` |
-| Project Create/Edit | `/projects` | `project_save_button` + `project_locations_tab` |
-| Entry Editor | `/calendar` or `/` | `entry_editor_scroll` |
-| Settings | `/settings` | `settings_sync_button` |
-| Toolbox Hub | (nested) | `toolbox_home_screen` |
-| Todos | (nested) | `todos_screen` |
-| Calculator | (nested) | `calculator_screen` |
-| Admin Dashboard | (nested) | `settings_admin_dashboard_tile` absent, member tiles present |
-
-When confused about current state, check 2-3 sentinels — **do NOT take a screenshot**. Screenshots consume significant tokens and should be reserved for failure investigation only.
-
-### State Confusion Protocol
-If you are unsure what screen you're on:
-1. `curl -s http://127.0.0.1:4948/driver/current-route` — check route + `hasBottomNav` + `canPop`
-2. `curl -s "http://127.0.0.1:4948/driver/find?key=<sentinel>"` for 2-3 keys from the table above
-3. If still unclear, `curl -s "http://127.0.0.1:4948/driver/tree?depth=5"` — text-only, low cost
-4. **Only** view a screenshot as a last resort after all 3 above fail
+### Sync Flow Group Files
+| Flows | File | Notes |
+|---|---|---|
+| S01-S03 | `test-flows/sync/flows-S01-S03.md` | Compaction pause after S03 |
+| S04-S06 | `test-flows/sync/flows-S04-S06.md` | Compaction pause after S06 |
+| S07-S10 | `test-flows/sync/flows-S07-S10.md` | Compaction pause after S09 |
+| S11-S19 | `test-flows/sync/flows-S11-S19.md` | Advanced sync flows |
 
 ## Pre-Run Data Verification
 
@@ -176,7 +175,7 @@ When an entity already exists (e.g., entry with contractors from a prior run), v
 /test admin                        # T53-T58 (Admin Operations)
 /test edits                        # T59-T67 (Edit Mutations)
 /test deletes                      # T68-T77 (Delete Operations)
-/test sync                         # S01-S17 (Claude-driven dual-device + sync-mode verification)
+/test sync                         # S01-S19 (Claude-driven dual-device + sync-mode + private-channel verification)
 /test S01                          # Single sync flow
 /test S01-S03                      # Range of sync flows
 /test sync --resume                # Resume from checkpoint
@@ -203,7 +202,7 @@ settings     → T44-T52
 admin        → T53-T58
 edits        → T59-T67
 deletes      → T68-T77
-sync         → S01-S17 (Claude-driven dual-device verification + sync-mode coverage)
+sync         → S01-S19 (Claude-driven dual-device verification + sync-mode + private-channel coverage)
 permissions  → T85-T91
 navigation   → T92-T96
 ```
@@ -313,7 +312,7 @@ Use these signals to detect failures **without viewing screenshots**:
 ### Screenshot Rules
 - **Save to disk**: ALWAYS, after every flow (`curl --output`)
 - **View inline**: ONLY when a failure signal above is detected
-- **State confusion is NOT a failure** — use sentinel key checks (see "Screen Identification"), not screenshots
+- **State confusion is NOT a failure** — use sentinel key checks (see `references/driver-and-navigation.md`), not screenshots
 - Each inline screenshot view costs significant context tokens — prefer `/driver/find` checks which are free
 
 ## Compaction Protocol (Every 2 Tiers)
@@ -474,200 +473,6 @@ for line in tree.split('\n'):
 "
 ```
 
-## HTTP Driver Endpoints (port 4948)
-
-Binds to loopback (127.0.0.1) only — no auth required.
-
-| Method | Endpoint | Body/Params |
-|--------|----------|-------------|
-| GET | /driver/ready | — |
-| GET | /driver/find?key=X | — |
-| GET | /driver/screenshot | — |
-| GET | /driver/tree?depth=N | — |
-| POST | /driver/tap | {"key": "X"} |
-| POST | /driver/text | {"key": "X", "text": "Y"} |
-| POST | /driver/scroll | {"key": "X", "dx": 0, "dy": -300} — **key must be on the scrollable widget itself** |
-| POST | /driver/scroll-to-key | {"scrollable": "X", "target": "Y", "maxScrolls": 20} — scrollable must have a ValueKey |
-| POST | /driver/back | {} |
-| POST | /driver/wait | {"key": "X", "timeoutMs": 10000} |
-| POST | /driver/inject-photo | {"data": "<base64>", "filename": "test.jpg"} |
-| POST | /driver/inject-photo-direct | {"base64Data": "...", "filename": "...", "entryId": "...", "projectId": "..."} |
-| POST | /driver/inject-file | {"data": "<base64>", "filename": "doc.pdf"} |
-| POST | /driver/hot-restart | {} |
-
-> `/driver/screenshot` returns `image/png` binary. Use `curl --output <path>`.
-
-### Scrollable Keys (for /driver/scroll)
-
-The `key` parameter in `/driver/scroll` and `/driver/scroll-to-key` must target a **ValueKey on the scrollable widget itself** — NOT a child widget. Targeting a child (e.g., a TextField or Card) will cause the child to consume the gesture and the page won't scroll.
-
-| Screen | Scroll Key | Notes |
-|--------|-----------|-------|
-| Entry editor (create/edit) | `entry_editor_scroll` | Main entry form |
-| Entry review/detail | `entry_review_scroll` | Entry report view |
-| Project details form | `project_details_scroll` | Name, number, client fields |
-| Project locations list | `project_locations_list` | Locations tab in project edit |
-| Project contractors list | `project_contractors_list` | Contractors tab |
-| Project bid items list | `project_bid_items_list` | Pay items tab |
-| Project assignments list | `project_assignments_list` | Assignments tab |
-| Settings screen | `settings_list` | Main settings ListView |
-
-**Example — scroll entry editor down 500px:**
-```bash
-curl -s -X POST http://127.0.0.1:4948/driver/scroll -d '{"key":"entry_editor_scroll","dx":0,"dy":-500}'
-```
-
-**Example — scroll-to-key to find save button:**
-```bash
-curl -s -X POST http://127.0.0.1:4948/driver/scroll-to-key -d '{"scrollable":"entry_editor_scroll","target":"entry_wizard_save_draft","maxScrolls":10}'
-```
-
-## Debug Server Endpoints (port 3947)
-
-The debug server provides structured log collection and querying. Use the right endpoint for the job — **prefer the plain-text convenience endpoints** which require zero parsing.
-
-### Quick Reference — Which Endpoint to Use
-
-| Task | Endpoint | Output |
-|------|----------|--------|
-| **"Any errors since tier started?"** | `GET /logs/errors?since=<ISO>` | Plain text, deduplicated |
-| **"Show me recent log activity"** | `GET /logs?format=text&last=20` | Plain text, formatted |
-| **"Checkpoint stats for report"** | `GET /logs/summary?since=<ISO>` | JSON: `{total, errors, byLevel, byCategory}` |
-| **"Sync logs only"** | `GET /logs?category=sync&format=text&since=<ISO>` | Plain text, filtered |
-| **"Need structured data"** | `GET /logs?format=json&level=error` | JSON array (standard) |
-| **"Raw streaming (30K entries)"** | `GET /logs?last=N` | NDJSON (default, legacy) |
-| **"Is sync done?"** | `GET /sync/status` | JSON: `{state, ...}` |
-| **"Server alive?"** | `GET /health` | JSON: `{status, entries, ...}` |
-
-### /logs/errors (primary testing endpoint)
-Returns error-level logs as pre-formatted, deduplicated plain text. **This is the main endpoint to use after every tier.**
-
-```bash
-# One curl, no parsing, done.
-curl -s "http://127.0.0.1:3947/logs/errors?since=2026-04-03T10:00:00Z"
-# Output:
-# OK: 0 errors
-# — or —
-# ERRORS: 2 unique (5 total)
-#   10:05:12 [sync  ] pullCompanyMembers failed: no such column: deleted_at
-#   10:05:12 [app   ] SchemaVerifier: 1 missing columns detected
-```
-
-### /logs/summary (checkpoint reporting)
-Returns counts by level and category. Useful for writing the stats line in `report.md`.
-
-```bash
-curl -s "http://127.0.0.1:3947/logs/summary?since=2026-04-03T10:00:00Z"
-# {"total":47,"byLevel":{"info":44,"error":3},"byCategory":{"sync":20,"nav":15,"db":12},"errors":3,"since":"2026-04-03T10:00:00Z"}
-```
-
-### /logs?format=text (human-readable activity)
-Returns all matching logs as formatted plain text lines. Good for debugging a specific flow.
-
-```bash
-curl -s "http://127.0.0.1:3947/logs?format=text&category=sync&last=10"
-# 10:05:12 INFO  sync   Sync started
-# 10:05:14 ERROR sync   pullCompanyMembers failed: no such column: deleted_at
-# 10:05:15 INFO  sync   Sync cycle: pushed=0 pulled=0 errors=1
-```
-
-### /logs?format=json (structured data)
-Returns a standard JSON array. Use when you need to programmatically inspect log entries.
-
-```bash
-curl -s "http://127.0.0.1:3947/logs?format=json&level=error&last=5"
-# Standard JSON array — use json.load(sys.stdin) safely
-```
-
-### /logs (default — NDJSON)
-Legacy format. Returns newline-delimited JSON. **Prefer `?format=text` or `?format=json` instead** — they avoid the python parsing boilerplate that NDJSON requires.
-
-### Filter parameters (apply to all /logs variants)
-| Parameter | Type | Behavior |
-|-----------|------|----------|
-| `category` | string | Exact match: `sync`, `nav`, `db`, `auth`, `ui`, `pdf`, `ocr` |
-| `level` | string | Exact match: `info`, `error`, `hypothesis` |
-| `since` | ISO 8601 | Entries received after this timestamp |
-| `last` | integer | Return only last N entries (applied after other filters) |
-| `hypothesis` | string | Exact match on hypothesis tag (e.g., `H001`) |
-| `deviceId` | string | Exact match on device ID |
-| `format` | string | Output format: `text`, `json`, or omit for NDJSON |
-
-### Hot restart log delay
-
-After `POST /driver/hot-restart`, the Logger HTTP transport takes 3-5 seconds to reconnect. **Do not assume the transport is broken if logs are empty immediately after restart.** Trigger a UI action (e.g., tap a nav button) and check for log entries before investigating further.
-
-## Flow Dependencies
-
-**Tier 0 (T01-T04)** — Auth & Smoke: Login, navigate, sign out, inspector login
-**Tier 1 (T05-T14)** — Project Setup: T05 creates "E2E Test Project", T06-T14 add sub-entities
-**Tier 2 (T15-T23)** — Daily Entry Creation: Creates entries on the T05 project
-**Tier 3 (T24-T30)** — Entry Lifecycle: Edit/submit/approve entries from Tier 2
-**Tier 4 (T31-T40)** — Toolbox: Calculator, forms, gallery, todos
-**Tier 5 (T41-T43)** — PDF & Export: Generate/view PDFs for Tier 2 entries
-**Tier 6 (T44-T52)** — Settings & Profile
-**Tier 7 (T53-T58)** — Admin Operations
-**Tier 8 (T59-T67)** — Edit Mutations: Edit entities from earlier tiers
-**Tier 9 (T68-T77)** — Delete Operations: Delete entities (run last before cleanup)
-**Sync (S01-S17)** — Claude-driven dual-device sync verification (admin:4948, inspector:4949)
-  S01 (Project Setup) → S02 (Daily Entry) → S03 (Photos) → S04 (Forms) → S05 (Todos) → S06 (Calculator) → S07 (Update All) → S08 (PDF Export) → S11 (Documents) → S12 (Quick Resume) → S13 (Foreground Realtime) → S14 (Background FCM, manual) → S15 (Global Full Sync UI) → S16 (Dirty-Scope Isolation) → S17 (Maintenance Housekeeping, manual) → S09 (Delete Cascade) → S10 (Unassignment + Cleanup)
-**Tier 11 (T85-T91)** — Role Verification (inspector role)
-**Tier 12 (T92-T96)** — Nav & Dashboard
-
-## Sync Verification (Dual-Device) — S01-S17
-
-Claude drives two devices via HTTP driver endpoints and verifies data in Supabase via REST API.
-
-**Reference guide:** `.claude/test-flows/sync-verification-guide.md`
-
-### Setup
-- Admin device: port 4948 (Android or Windows)
-- Inspector device: port 4949 (second device)
-- Supabase credentials: `tools/debug-server/.env.test` (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-- Test credentials: `.claude/test-credentials.secret`
-
-### Driver Endpoints Used
-All standard endpoints (tap, text, wait, scroll, etc.) plus:
-- `POST /driver/dismiss-keyboard` — unfocus + hide soft keyboard (call before tapping buttons after text entry)
-- `POST /driver/dismiss-overlays` — clear snackbars and material banners blocking taps
-- `GET /driver/current-route` — returns `{route, hasBottomNav, canPop}` for navigation verification
-- `GET /driver/find?key=X` — enhanced: now returns `enabled` (bool) and `visible` (bool) fields
-- `POST /driver/remove-from-device` — remove project from device locally
-- `POST /driver/inject-photo-direct` — inject photo with entry/project association
-
-### BANNED Endpoints (Sync Flows)
-
-These endpoints exist but must **NEVER** be used during sync verification (S01-S17):
-
-| Endpoint | Why Banned | Use Instead |
-|----------|-----------|-------------|
-| `POST /driver/sync` | Bypasses UI, hides sync bugs | Tap `settings_nav_button` → `settings_sync_button` |
-| `GET /driver/local-record` | Bypasses UI verification | Navigate to screen + screenshot |
-
-### Cross-Device Sync Protocol (UI-Driven, 4-Step)
-After every data mutation:
-1. **Admin sync via UI**: tap `settings_nav_button` → tap `settings_sync_button` → wait 3s
-2. **Supabase verify**: curl REST API to confirm data arrived in the cloud
-3. **Inspector sync via UI** (2 rounds): tap `settings_nav_button` → tap `settings_sync_button` → wait 3s → tap `settings_sync_button` again → wait 3s
-4. **Inspector UI verify**: navigate the inspector app to the screen where synced data should appear → take screenshot to confirm
-
-### Supabase Verification Pattern
-```bash
-curl -s "${SUPABASE_URL}/rest/v1/<table>?<filters>" \
-  -H "apikey: ${KEY}" \
-  -H "Authorization: Bearer ${KEY}" \
-  -H "Accept: application/json"
-```
-
-### Per-Run Unique Data Tag
-Every run generates a 5-char alphanumeric tag. All test data uses prefix `VRF-` with this tag embedded in names to avoid collisions.
-
-### Compaction Pauses
-After S03, S06, and S09 — checkpoint written, user prompted to continue.
-
-### Post-Run Sweep
-After S10, query all 17 synced tables for `VRF-*` records. Any remaining = FAIL.
-
 ## Teardown
 
 After test run completes:
@@ -683,95 +488,11 @@ Add `-IncludeDebugServer` to also kill the debug server.
 - **Sync timeout (30s):** capture /sync/status, FAIL flow, continue
 - **App crash:** detect via /driver/ready timeout, capture last logs, try `POST /driver/hot-restart`
 
-## Flow Registry
-`.claude/test-flows/registry.md` — unified registry with all flows and run history.
-
 ## Test Data Safety
 - All test projects use "E2E " prefix
 - **CRITICAL**: Always use timestamped project names (e.g., "E2E Test 1711046095") to avoid collisions with prior runs
 - When a prior E2E project already exists, REUSE it instead of creating a new one (tap into it, verify sub-entities)
-- Cleanup: `pwsh -File tools/verify-sync.ps1 -Cleanup -ProjectName "E2E*" -DryRun` (still valid for data cleanup; sync correctness verification is now Claude-driven — see `/test sync` (S01-S17) or run `node tools/debug-server/run-tests.js --cleanup-only` for data cleanup only)
-
-## Android Gotchas
-
-### Keyboard Blocking
-After entering text in any field on Android, the soft keyboard covers the bottom ~40% of the screen. Taps on widgets behind the keyboard return `200 {tapped: true}` but the tap never reaches the widget.
-
-**Fix:** Always call `POST /driver/dismiss-keyboard` before tapping buttons after text entry:
-```bash
-curl -s -X POST http://127.0.0.1:4948/driver/dismiss-keyboard -H "Content-Type: application/json" -d '{}'
-sleep 0.3
-curl -s -X POST http://127.0.0.1:4948/driver/tap -d '{"key":"save_button"}'
-```
-
-### Snackbar Blocking
-Persistent snackbars (e.g., sync errors) overlay the bottom of the screen and block taps on project cards and action buttons.
-
-**Fix:** Call `POST /driver/dismiss-overlays` to clear all snackbars and banners:
-```bash
-curl -s -X POST http://127.0.0.1:4948/driver/dismiss-overlays -H "Content-Type: application/json" -d '{}'
-```
-
-### Toolbox Navigation Depth
-Toolbox sub-screens (Todos, Calculator, Gallery, Forms) are **two levels deep** from Dashboard:
-- Dashboard → Toolbox Hub → Sub-screen
-- Back from sub-screen → Toolbox Hub (NOT dashboard)
-- Back from Toolbox Hub → Dashboard
-- Bottom nav is NOT visible inside Toolbox sub-screens
-
-Always use `POST /driver/back` twice, or tap `dashboard_nav_button` to return to dashboard directly.
-
-## Error Recovery Protocol
-
-### Tap returns 200 but nothing happens
-1. Check `GET /driver/current-route` — you may be on the wrong screen
-2. Call `POST /driver/dismiss-keyboard` — keyboard may be blocking
-3. Call `POST /driver/dismiss-overlays` — snackbar may be blocking
-4. Verify widget with `GET /driver/find?key=X` — check `enabled` and `visible` fields
-5. Take screenshot to visually confirm state
-
-### Widget not found (404)
-1. Check you are on the correct screen: `GET /driver/current-route`
-2. Try scrolling: the widget may be off-screen (use `POST /driver/scroll-to-key`)
-3. Read `testing_keys/*.dart` to verify the exact key name
-4. As last resort, use `/driver/tree?filter=<partial>` to discover the actual key
-
-### Sync appears to fail
-1. Check sync logs: `curl -s "http://127.0.0.1:3947/logs?category=sync&format=text&last=10"`
-2. Check for errors: `curl -s "http://127.0.0.1:3947/logs/errors?since=<START>"`
-3. Dismiss any error snackbars: `POST /driver/dismiss-overlays`
-4. Retry sync via UI (settings_nav_button → settings_sync_button)
-5. If still failing, take screenshot and record as bug
-
-## Navigation Reference
-
-### Bottom Nav Destinations
-| Key | Destination | Sentinel Key |
-|-----|------------|--------------|
-| `dashboard_nav_button` | Dashboard/Home | `dashboard_new_entry_button` |
-| `calendar_nav_button` | Calendar view | `calendar_nav_button` (stays highlighted) |
-| `projects_nav_button` | Projects list | `project_create_button` |
-| `settings_nav_button` | Settings | `settings_sync_button` |
-
-### Common Navigation Patterns
-| Action | Sequence |
-|--------|----------|
-| Sync via UI | `settings_nav_button` → `settings_sync_button` (wait 3s) |
-| Create entry | `dashboard_nav_button` → `dashboard_new_entry_button` |
-| Edit project | `projects_nav_button` → `project_edit_menu_item_<id>` |
-| Open toolbox | `dashboard_nav_button` → `dashboard_toolbox_card` |
-| Open todos | Toolbox → `toolbox_todos_card` |
-| Open calculator | Toolbox → `toolbox_calculator_card` |
-| Return to dashboard from toolbox sub-screen | `POST /driver/back` x2, or tap `dashboard_nav_button` |
-
-### Project-Related Key Disambiguation
-| Key Pattern | Purpose |
-|-------------|---------|
-| `project_card_<id>` | Tap to select/open project |
-| `project_edit_menu_item_<id>` | Tap to enter project edit mode |
-| `project_create_button` | Create new project (also aliased as `add_project_fab`) |
-| `project_save_button` | Save project edits |
-| `project_remove_<id>` | Delete project (triggers two-step confirmation) |
+- Cleanup: `pwsh -File tools/verify-sync.ps1 -Cleanup -ProjectName "E2E*" -DryRun` (still valid for data cleanup; sync correctness verification is now Claude-driven — see `/test sync` (S01-S19) or run `node tools/debug-server/run-tests.js --cleanup-only` for data cleanup only)
 
 ## Windows Bash Constraints
 - **NO `jq`** — use `python3 -c "import json..."` for JSON parsing (but prefer `?format=text` endpoints which need no parsing)
