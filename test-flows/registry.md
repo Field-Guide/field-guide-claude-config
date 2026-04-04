@@ -153,7 +153,7 @@
 | T76 | Delete Remote Project (Admin) | projects | tap(projects_nav) → tap(company_tab) → long_press(remote_project_card) → tap(delete_remote) → tap(delete_confirm) | sync,db | MANUAL | - | Requires remote-only project visible to admin |
 | T77 | Permanently Delete from Trash | varies | tap(settings_nav) → tap(trash_tile) → tap(delete_forever_btn) → tap(delete_confirm) → screenshot | db | UNTESTED | - | Depends: T68 or T30 (needs trashed item) |
 
-## Sync Verification — Claude-Driven (S01-S10)
+## Sync Verification — Claude-Driven (S01-S17)
 
 > Dual-device sync verification. Claude drives admin (port 4948) and inspector (port 4949), verifies data via Supabase REST API.
 > Reference: `.claude/test-flows/sync-verification-guide.md`
@@ -171,6 +171,12 @@
 | S09 | Delete Cascade | All child tables of project 1 | Admin: two-step delete → sync → Supabase: verify 17 child tables soft-deleted → Inspector: deletion banner → verify gone | sync,db | PASS | 2026-03-27 | RPC + cascade trigger + RLS fix + orphan cleaner all working. Inspector pulls 21 tombstones, shows deletion banner, project auto-evicted on 2nd sync. |
 | S10 | Unassignment + Cleanup | project_assignments, projects | Admin: unassign inspector from project 2 → sync → Inspector: verify project 2 removed → Admin: delete project 2 → post-run VRF sweep (20 synced tables) | sync,db | FAIL | 2026-03-27 | BUG-S01-2: Assignment toggle doesn't persist soft-delete to SQLite/change_log. Pre-existing bug. |
 | S11 | Documents | documents | Admin: inject-document-direct → sync → Supabase: verify documents row + storage file → Inspector: sync x2 → verify document visible | sync,db | UNTESTED | - | Depends: S02; bucket: entry-documents |
+| S12 | Quick Resume Catch-Up | projects, daily_entries, contractors | Admin: mutate assigned project → sync → Inspector: background app, resume, no manual sync → verify fresh data appears | sync,nav | UNTESTED | - | Verifies lifecycle quick sync on resume for inspector role; use assigned project from S01/S02 |
+| S13 | Foreground Realtime Hint | daily_entries, contractors, entry_quantities | Inspector stays foreground on affected screen → Admin mutates + syncs → Inspector waits for auto-catch-up with no sync tap → verify update | sync,realtime | UNTESTED | - | Verifies Supabase broadcast hint path, dirty marking, and quick targeted sync |
+| S14 | Background FCM Hint Recovery | daily_entries, contractors | Inspector app backgrounded or closed → Admin mutates + syncs → Inspector reopens/resumes without manual full sync → verify update | sync,fcm | MANUAL | - | Requires OS-level background/notification control; validates closed-app hint recovery path |
+| S15 | Global Full Sync Action + Role Visibility | sync UI chrome | Admin and Inspector: verify top app-bar sync icon exists, opens sync dashboard, and Full Sync button runs successfully | sync,nav,auth | UNTESTED | - | Covers global manual full-sync affordance for both supported field roles |
+| S16 | Dirty-Scope Project Isolation | projects, daily_entries, contractors | Admin mutates project A only → sync → Inspector with A+B assigned verifies A updates without broad B sweep; review sync logs for scoped pull | sync,realtime,db | UNTESTED | - | Verifies project+table dirty scope stays targeted for multi-project users |
+| S17 | Maintenance Sync Housekeeping | user_profiles, sync_metadata | Run maintenance path, then verify pending local changes push, company members refresh, and last_synced_at advances without manual full sync | sync,auth | MANUAL | - | Background/periodic path; validate on both devices when platform support allows |
 
 ## Tier 11: Role & Permission Verification (T85-T91)
 
@@ -229,15 +235,15 @@
 | Tier 3 | T24-T30 | 7 | Entry Lifecycle |
 | Tier 4 | T31-T40 | 10 | Toolbox |
 | Tier 5 | T41-T43 | 3 | PDF & Export |
-| Tier 6 | T44-T52 | 8 | Settings & Profile (T50 removed — replaced by S01-S10 Claude-driven flows) |
+| Tier 6 | T44-T52 | 8 | Settings & Profile (T50 removed — replaced by sync verification coverage) |
 | Tier 7 | T53-T58 | 6 | Admin Operations |
 | Tier 8 | T59-T67 | 9 | Edit & Update Mutations |
 | Tier 9 | T68-T77 | 10 | Delete Operations |
-| Sync | S01-S11 | 11 | Sync Verification (Claude-driven, dual-device) |
+| Sync | S01-S17 | 17 | Sync Verification (Claude-driven, dual-device + sync-mode coverage) |
 | Tier 11 | T85-T91 | 7 | Role & Permission Verification |
 | Tier 12 | T92-T96 | 5 | Navigation & Dashboard |
-| Manual | M01-M13 | 12 | Manual-Only Flows (M06 removed — offline-reconnect covered by S01-S10 sync verification) |
-| **Total** | | **106** | **83 automated + 12 manual + 11 sync verification (Claude-driven)** |
+| Manual | M01-M13 | 12 | Manual-Only Flows (M06 removed — offline-reconnect covered by sync verification coverage) |
+| **Total** | | **112** | **83 automated + 12 manual + 17 sync verification (Claude-driven)** |
 
 ## Dependency Chain (Execution Order)
 
@@ -270,7 +276,7 @@ T01 (Login Admin)
  │    └── T59 (Edit Project)
  ├── T38 (Calculator HMA) → T39 (Calculator Concrete)
  ├── T40 (Gallery Browse)
- ├── T44-T49, T51-T52 (Settings flows; T50 removed — sync via S01-S10)
+ ├── T44-T49, T51-T52 (Settings flows; T50 removed — sync via dedicated sync verification flows)
  ├── T53-T58 (Admin flows)
  ├── T75 (Remove from Device)
  ├── T92-T96 (Navigation verification)
@@ -286,8 +292,14 @@ S01 (Project Setup) — dual-device session (admin:4948, inspector:4949)
  ├── S04 (Forms)
  ├── S05 (Todos)
  ├── S06 (Calculator) [COMPACTION]
- ├── S07 (Update All) → S08 (PDF Export) → S11 (Documents) → S09 (Delete Cascade) [COMPACTION]
- └── S10 (Unassignment + Cleanup)
+ ├── S07 (Update All) → S08 (PDF Export) → S11 (Documents)
+ ├── S12 (Quick Resume Catch-Up)
+ ├── S13 (Foreground Realtime Hint)
+ ├── S14 (Background FCM Hint Recovery) [MANUAL]
+ ├── S15 (Global Full Sync Action + Role Visibility)
+ ├── S16 (Dirty-Scope Project Isolation)
+ ├── S17 (Maintenance Sync Housekeeping) [MANUAL]
+ └── S09 (Delete Cascade) → S10 (Unassignment + Cleanup) [COMPACTION]
 ```
 
 ## Auto-Update Protocol

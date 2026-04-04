@@ -1,4 +1,4 @@
-# Sync Verification Guide (S01-S11)
+# Sync Verification Guide (S01-S17)
 
 > Claude-driven dual-device sync verification. This guide is the primary reference
 > for executing `/test sync`. Read it fully before starting a sync verification run.
@@ -1097,6 +1097,123 @@ If any VRF records remain, record them in the report as FAIL.
 7. Capture `ctx.documentIds` for use in S09 cascade verification.
 
 **If document UI not yet wired:** Record as OBSERVATION (not FAIL), continue to S09.
+
+---
+
+### S12: Quick Resume Catch-Up
+
+**Tables:** projects, daily_entries, contractors
+**Depends:** S01-S02
+
+**Purpose:** Verify the lifecycle path uses quick sync on resume so the inspector sees fresh remote changes without manually opening Settings and tapping sync.
+
+**Protocol:**
+1. Admin (4948): update a visible record on the shared assigned project, then sync via the canonical UI sequence.
+2. Inspector (4949): leave the app on a project-related screen, background it briefly using the device OS, then resume it.
+3. Inspector verify:
+   - Do **not** tap any sync action.
+   - Wait for the updated record to appear via normal UI navigation.
+   - Capture a screenshot and scan sync logs for a `quick` mode run on resume.
+4. Failure conditions:
+   - Only a manual full sync reveals the change.
+   - Logs show a broad default full sync rather than quick resume behavior.
+
+---
+
+### S13: Foreground Realtime Hint
+
+**Tables:** daily_entries, contractors, entry_quantities
+**Depends:** S02, S07
+
+**Purpose:** Verify Supabase Broadcast hints mark dirty scope and trigger a foreground quick sync while the inspector app remains open.
+
+**Protocol:**
+1. Inspector (4949): keep the app in the foreground on the screen where the affected record is visible.
+2. Admin (4948): mutate that same record and sync via UI.
+3. Inspector verify:
+   - Do **not** tap sync.
+   - Wait for the UI to refresh on its own, or navigate away/back once without syncing.
+   - Capture screenshot evidence.
+4. Log review:
+   - Expect realtime hint logs followed by quick sync logs.
+   - Reject any run that only refreshes after manual sync.
+
+---
+
+### S14: Background FCM Hint Recovery
+
+**Tables:** daily_entries, contractors
+**Depends:** S02, S07
+
+**Purpose:** Verify closed-app or backgrounded delivery can still recover the hinted remote changes when the inspector returns.
+
+**Status:** MANUAL
+
+**Manual protocol:**
+1. Inspector operator backgrounds or closes the app from the OS.
+2. Admin mutates assigned-project data and syncs so the server emits the FCM path.
+3. Inspector reopens/resumes the app without using manual full sync.
+4. Verify the updated data appears and capture screenshots plus sync logs.
+
+**Why manual:** the current HTTP driver does not provide reliable OS-level notification/background control.
+
+---
+
+### S15: Global Full Sync Action + Role Visibility
+
+**Tables:** sync UI chrome
+**Depends:** S01
+
+**Purpose:** Verify the new manual full-sync affordance is visible in main app chrome and usable by both supported field roles.
+
+**Protocol:**
+1. Admin (4948):
+   - Navigate to Dashboard and Calendar.
+   - Verify the app-bar sync icon is visible.
+   - Tap it to open the sync dashboard.
+   - Run the `sync_now_full_button` flow and confirm the dashboard remains healthy after completion.
+2. Inspector (4949):
+   - Repeat the same verification.
+3. Reject if either role lacks the chrome entrypoint or the dashboard full-sync action.
+
+---
+
+### S16: Dirty-Scope Project Isolation
+
+**Tables:** projects, daily_entries, contractors
+**Depends:** S01, S10
+
+**Purpose:** Verify multi-project users do not pay a broad sweep for unrelated projects when a targeted hint arrives.
+
+**Protocol:**
+1. Ensure inspector has at least two assigned projects visible locally.
+2. Admin mutates only project A and syncs.
+3. Inspector remains foregrounded and lets the automatic catch-up run.
+4. Verify:
+   - Project A shows the update.
+   - Project B remains unchanged.
+   - Sync logs indicate quick/scoped behavior rather than a broad all-project sweep.
+5. Record any broad sweep as a regression against sync-strategy intent.
+
+---
+
+### S17: Maintenance Sync Housekeeping
+
+**Tables:** user_profiles, sync_metadata
+**Depends:** S01
+
+**Purpose:** Verify deferred maintenance work still performs the required housekeeping: pending local push, company-member refresh, and `last_synced_at` advancement.
+
+**Status:** MANUAL
+
+**Manual protocol:**
+1. Prepare a device with a small pending local change plus a known remote profile/member change.
+2. Let the maintenance/background path run, or trigger it through the supported platform mechanism.
+3. Verify:
+   - Pending local change is pushed.
+   - Company member/profile data refreshes locally.
+   - `last_synced_at` advances.
+4. Capture screenshots and sync/auth logs for evidence.
 
 ---
 
