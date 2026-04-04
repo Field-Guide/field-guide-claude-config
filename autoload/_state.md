@@ -1,14 +1,26 @@
 # Session State
 
-**Last Updated**: 2026-04-04 | **Session**: 730
+**Last Updated**: 2026-04-04 | **Session**: 731
 
 ## Current Phase
-- **Phase**: Three plans approved and ready for /implement: (1) IDR PDF mapping, (2) Smarter Sync Strategy, (3) Private Sync Hint Channels. No code changes this session.
-- **Status**: Clean tree on `codex/reimplement-entry-ui-continuity` branch. Plans in `.claude/plans/`. Review sweeps complete.
+- **Phase**: CLAUDE.md + 11 rule files overhauled. All numbers verified against codebase. Three plans still ready for /implement.
+- **Status**: Clean tree on `codex/reimplement-entry-ui-continuity` branch. Claude config changes committed and pushed.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (730)
+### What Was Done This Session (731)
+
+1. **CLAUDE.md + 11 rule files overhauled**:
+   - CodeMunch indexed (9593 symbols), 6 verification agents, 11 implementation agents, 3 review agents
+   - Fixed 10 incorrect numbers in CLAUDE.md (tables 35→36, providers 52→~32, migrations 53→57, lint rules 35+→52, etc.)
+   - Added Gotchas section (10 cross-cutting one-liners that prevent AI mistakes)
+   - Added 7 pointer rows (flusseract, HTTP driver, debug server, scripts, rollbacks, golden tests, audit)
+   - Cut Analyzer Error Fixes section, consolidated lint table, removed Feature Inventory Notes column
+   - Updated repo URLs to Field-Guide org
+   - Rule files updated: architecture (v50, tiers, DI containers, AppTerminology), schema-patterns (v50×4, PRAGMA, helpers, SchemaVerifier), sync-patterns (5 missing classes, DirtyScopeTracker, SyncMode, SyncConfig, trigger suppression, file tree), flutter-ui (24 components, A18-A24, actionsBuilder, pop-before-signOut), supabase-sql (RLS to get_my_company_id, edge function, Postgres 17), supabase-auth (PasswordValidator, AuthDeps, use cases, auth listener), patrol-testing (HTTP driver, Patrol demoted, golden tests, CI-first, 4-tier strategy), platform-standards (minSdk 31, Gradle 8.13, iOS 13.0, Patrol removed), data-layer (v50, auto-filter, SchemaVerifier, _addColumnIfNotExists), pdf-generation (extraction structure, QualityThresholds, flusseract)
+   - Personal final review caught 4 issues agents missed (repo URLs, ui-prototyping trigger, audit pointer, lint category counts)
+
+### What Was Done Session 730
 
 1. **Tailor + Writing-Plans** for Private Sync Hint Channels spec:
    - Tailor: 18 files analyzed, 6 patterns discovered, 34 methods mapped, 42 ground truth verified
@@ -52,6 +64,11 @@
 **Status**: OPEN — production readiness blocker
 
 ## Recent Sessions
+
+### Session 731 (2026-04-04)
+**Work**: Full CLAUDE.md + 11 rule files overhaul. CodeMunch-powered architecture verification. 20 agents total (6 research, 11 implementation, 3 review). Personal final review caught 4 agent errors.
+**Decisions**: CLAUDE.md is map/pointer not encyclopedia. Gotchas section for cross-cutting AI pitfalls. Rule files are the detailed reference. Lint category counts verified (23/11/10/8=52).
+**Next**: /implement 3 plans → commit S726 changes → merge PR #140.
 
 ### Session 730 (2026-04-04)
 **Work**: Tailor + writing-plans for Private Sync Hint Channels. 3-cycle adversarial review (31+ findings across 3 cycles → all fixed). All 3 reviewers APPROVE.

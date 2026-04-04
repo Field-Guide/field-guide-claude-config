@@ -9,7 +9,7 @@ paths:
   Loaded automatically when editing Android/iOS config or pubspec.yaml.
   Not wired to a specific agent — platform work is done inline by whichever agent is working.
   Canonical source for SDK versions. Root CLAUDE.md should reference this file, not duplicate it.
-  Note: Gradle 8.14, Android Gradle Plugin 8.11.1 here are the authoritative versions.
+  Note: Gradle 8.13, Android Gradle Plugin 8.11.1 here are the authoritative versions.
 -->
 
 # 2026 Platform Standards Update
@@ -19,7 +19,7 @@ paths:
 
 ## Problem Statement
 
-Patrol integration tests were crashing after 20 tests due to:
+Integration tests were crashing after 20 tests due to:
 - Memory exhaustion on Android 13+ (stricter memory policies)
 - Outdated SDK versions and test configurations
 - Insufficient heap allocation for long test runs
@@ -41,14 +41,14 @@ targetSdk = flutter.targetSdkVersion    // Was 33
 **After:**
 ```kotlin
 compileSdk = 36  // Android 16 - Latest stable for 2026
-minSdk = 24      // Android 7.0 - Drops devices older than 7 years
+minSdk = 31      // Android 12 - Required by flusseract (Tesseract OCR FFI)
 targetSdk = 36   // Required for Play Store submissions
 ```
 
 **Rationale:**
 - Android 16 (API 36) provides better memory management
-- API 24+ enforces stricter security and performance standards
-- Dropping API 21-23 eliminates legacy devices with poor memory handling
+- API 31+ required by flusseract (Tesseract OCR FFI) native dependency
+- Dropping API 21-30 eliminates legacy devices with poor memory handling
 
 #### 2. Test Memory Settings (`android/app/build.gradle.kts`)
 
@@ -74,7 +74,7 @@ testOptions {
 
 **Rationale:**
 - Limits tests per device to prevent memory buildup
-- Increases timeout for complex Patrol tests
+- Increases timeout for complex integration tests
 - Disables animations to reduce test flakiness
 - Test orchestrator ensures proper isolation between tests
 
@@ -94,7 +94,7 @@ androidTestImplementation("androidx.test:rules:1.6.1")
 
 **Rationale:**
 - Orchestrator 1.6.1 has better memory management
-- Additional test runner and rules improve Patrol compatibility
+- Additional test runner and rules improve integration test stability
 
 #### 4. Gradle Memory Settings (`android/gradle.properties`)
 
@@ -111,7 +111,7 @@ android.enableJetifier=false
 ```
 
 **Rationale:**
-- 12G heap prevents OOM in long Patrol test runs
+- 12G heap prevents OOM in long integration test runs
 - G1GC provides better garbage collection for tests
 - Limited workers prevent memory fragmentation
 - Jetifier disabled (no longer needed with androidx)
@@ -124,23 +124,16 @@ android.enableJetifier=false
 - `ios/Flutter/AppFrameworkInfo.plist`
 - `ios/Runner.xcodeproj/project.pbxproj` (3 occurrences)
 
-**Before:**
+**Current value:**
 ```xml
 <key>MinimumOSVersion</key>
 <string>13.0</string>
 ```
 
-**After:**
-```xml
-<key>MinimumOSVersion</key>
-<string>15.0</string>
-```
-
 **Rationale:**
-- iOS 15.0 has better memory management
-- Drops iOS 13/14 support (devices older than 4 years)
-- Better aligned with Flutter 3.38+ requirements
-- Reduces compatibility testing surface
+- iOS 13.0 is the current deployment target across all iOS config files
+- Maintains broad device compatibility
+- Aligned with Flutter 3.38+ minimum requirements
 
 ### Documentation Updates
 
@@ -151,13 +144,18 @@ Added comprehensive platform requirements table to `.claude/CLAUDE.md`:
 ```markdown
 ## Platform Requirements (2026 Standards)
 
+### Flutter
+| Component | Version | Notes |
+|-----------|---------|-------|
+| Flutter | 3.38.9 | Pinned in CI (quality-gate.yml) |
+
 ### Android
 | Component | Version | Notes |
 |-----------|---------|-------|
 | compileSdk | 36 (Android 16) | Latest stable for 2026 |
 | targetSdk | 36 | Required for Play Store |
-| minSdk | 24 (Android 7.0) | Drops devices older than 7 years |
-| Gradle | 8.14 | Latest stable |
+| minSdk | 31 (Android 12) | Required by flusseract (Tesseract OCR FFI) |
+| Gradle | 8.13 | Via gradle-wrapper.properties |
 | Android Gradle Plugin | 8.11.1 | Latest stable |
 | Kotlin | 2.2.20 | Latest stable |
 | Java | 17 | LTS version |
@@ -165,14 +163,13 @@ Added comprehensive platform requirements table to `.claude/CLAUDE.md`:
 ### iOS
 | Component | Version | Notes |
 |-----------|---------|-------|
-| Minimum iOS | 15.0 | Drops iOS 13/14 for better performance |
-| Xcode | 15.0+ | Required for iOS 15+ support |
+| Minimum iOS | 13.0 | Deployment target in pbxproj and AppFrameworkInfo.plist |
+| Xcode | 15.0+ | Required for build support |
 
 ### Test Configuration
 | Component | Version | Purpose |
 |-----------|---------|---------|
 | Test Orchestrator | 1.6.1 | Proper test isolation |
-| Patrol | 4.1.0 | Native automation |
 | JVM Heap (Tests) | 12G | Prevents OOM in long test runs |
 | Max Tests Per Device | 5 | Memory exhaustion prevention |
 ```
@@ -183,7 +180,7 @@ Added comprehensive platform requirements table to `.claude/CLAUDE.md`:
 ```bash
 cd android
 ./gradlew --version
-# Gradle 8.14 confirmed
+# Gradle 8.13 confirmed
 
 ./gradlew help --warning-mode=all
 # Build configuration valid
@@ -201,17 +198,17 @@ pwsh -Command "flutter analyze"
 ### Test Stability
 1. **Memory Management**: 12G heap + G1GC prevents OOM crashes
 2. **Test Isolation**: Orchestrator ensures clean state between tests
-3. **Timeouts**: Extended timeouts accommodate complex Patrol tests
+3. **Timeouts**: Extended timeouts accommodate complex integration tests
 4. **Animations**: Disabled in tests reduces flakiness
 
 ### Performance
-1. **Modern APIs**: Android 16 and iOS 15 have better runtime performance
+1. **Modern APIs**: Android 16 and iOS 13+ have better runtime performance
 2. **Reduced Legacy Code**: Dropping old SDKs reduces compatibility layers
 3. **Garbage Collection**: G1GC provides smoother memory cleanup
 
 ### Compatibility
 1. **Play Store**: targetSdk 36 meets 2026 requirements
-2. **Device Coverage**: Focuses on devices from last 7 years (Android 7.0+)
+2. **Device Coverage**: Focuses on devices from last 4 years (Android 12+)
 3. **Flutter Alignment**: Better compatibility with Flutter 3.38+
 
 ## Files Modified
@@ -220,25 +217,27 @@ pwsh -Command "flutter analyze"
 |------|---------|
 | `android/app/build.gradle.kts` | SDK versions, test options, dependencies |
 | `android/gradle.properties` | JVM heap, workers, G1GC |
-| `ios/Flutter/AppFrameworkInfo.plist` | iOS 15.0 minimum |
-| `ios/Runner.xcodeproj/project.pbxproj` | iOS 15.0 deployment target (3x) |
+| `ios/Flutter/AppFrameworkInfo.plist` | iOS 13.0 minimum |
+| `ios/Runner.xcodeproj/project.pbxproj` | iOS 13.0 deployment target (3x) |
 | `.claude/CLAUDE.md` | Platform requirements table |
 
 ## Next Steps
 
-1. **Test Execution**: Run full Patrol test suite to validate improvements
+1. **Test Execution**: Run full test suite to validate improvements
    ```bash
-   pwsh -Command "flutter test integration_test/"
+   pwsh -Command "flutter test"
    ```
 
-2. **Memory Monitoring**: Monitor heap usage during tests
+2. **Memory Monitoring**: Monitor heap usage during integration tests
    ```bash
    pwsh -Command "flutter test integration_test/ --verbose"
    ```
 
 3. **CI/CD**: Update CI pipeline to use new SDK versions
 
-4. **Device Testing**: Verify on physical devices running Android 15 and iOS 15
+4. **Device Testing**: Verify on physical devices running Android 12+ and iOS 13+
+
+5. **TODO**: `testInstrumentationRunner` in build.gradle.kts still references `pl.leancode.patrol.PatrolJUnitRunner` but Patrol has been removed from pubspec.yaml. Update to `androidx.test.runner.AndroidJUnitRunner` when integration tests are next revisited.
 
 ## Rollback Plan
 
@@ -249,15 +248,13 @@ git revert HEAD
 
 Or manually revert:
 - Android compileSdk/targetSdk to 33, minSdk to 21
-- iOS MinimumOSVersion to 13.0
+- iOS MinimumOSVersion to 13.0 (already at 13.0)
 - Gradle heap to 8G
 - Test Orchestrator to 1.4.2
-- Patrol to 3.20.0
 
 ## References
 
-- [Android 15 Features](https://developer.android.com/about/versions/15)
-- [Gradle 8.14 Release Notes](https://docs.gradle.org/8.14/release-notes.html)
+- [Android 16 Features](https://developer.android.com/about/versions/16)
+- [Gradle 8.13 Release Notes](https://docs.gradle.org/8.13/release-notes.html)
 - [Test Orchestrator Guide](https://developer.android.com/training/testing/instrumented-tests/androidx-test-libraries/test-orchestrator)
 - [Flutter Platform Support](https://docs.flutter.dev/reference/supported-platforms)
-- [Patrol Testing Documentation](https://patrol.leancode.co/)

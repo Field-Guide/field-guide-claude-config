@@ -56,8 +56,9 @@ const String createProjectsIndexes = '''
 
 ### Foreign Keys
 ```dart
-// Enable foreign keys (done in database_service.dart)
-await db.execute('PRAGMA foreign_keys = ON');
+// Enable foreign keys (done in database_service.dart onConfigure)
+// Android API 36 rejects PRAGMA via execute()
+await db.rawQuery('PRAGMA foreign_keys = ON');
 
 // Table with foreign key
 const String createDailyEntriesTable = '''
@@ -77,12 +78,12 @@ const String createDailyEntriesTable = '''
 ### Version Increment
 ```dart
 // In database_service.dart
-// Current version: 46 — increment for each migration
+// Current version: 50 — increment for each migration
 
 // openDatabase pattern (version + onConfigure for PRAGMAs)
 final db = await openDatabase(
   path,
-  version: 46,
+  version: 50,
   onCreate: _onCreate,
   onUpgrade: _onUpgrade,
   onConfigure: (db) async {
@@ -94,21 +95,32 @@ final db = await openDatabase(
 
 // In onUpgrade callback
 onUpgrade: (db, oldVersion, newVersion) async {
-  if (oldVersion < 46) {
+  if (oldVersion < 50) {
     await db.execute('ALTER TABLE photos ADD COLUMN caption TEXT');
     await db.execute('CREATE INDEX idx_photos_caption ON photos(caption)');
   }
 }
 ```
 
-### Safe Migration
+### Safe Migration — `_addColumnIfNotExists` Helper
 ```dart
-// Check if column exists before adding
-final columns = await db.rawQuery("PRAGMA table_info(photos)");
-final hasCaption = columns.any((c) => c['name'] == 'caption');
-if (!hasCaption) {
-  await db.execute('ALTER TABLE photos ADD COLUMN caption TEXT');
+// Preferred pattern: use the helper method (defined in database_service.dart)
+Future<void> _addColumnIfNotExists(
+  Database db,
+  String table,
+  String column,
+  String type,
+) async {
+  final result = await db.rawQuery('PRAGMA table_info($table)');
+  final columnExists = result.any((row) => row['name'] == column);
+  if (!columnExists) {
+    await db.execute('ALTER TABLE $table ADD COLUMN $column $type');
+  }
 }
+
+// Usage in migration:
+await _addColumnIfNotExists(db, 'photos', 'caption', 'TEXT');
+await _addColumnIfNotExists(db, 'projects', 'company_id', 'TEXT');
 ```
 
 ### Data Migration
@@ -121,6 +133,23 @@ if (oldVersion < 20) {
   await db.execute("UPDATE entries SET status = 'complete' WHERE activities IS NOT NULL");
 }
 ```
+
+## Schema Overview
+
+The current schema has **36 tables** across 15 domain schema files plus a barrel export (`lib/core/database/schema/schema.dart`). Current version: **50**.
+
+## onOpen Callback
+
+The database `onOpen` callback resets `sync_control.pulling` to `'0'` on every startup. A crash during sync can leave `pulling=1` permanently, which suppresses all `change_log` triggers and silently breaks sync. The one-time v42 migration is insufficient because the flag can get stuck again after any future crash.
+
+## SchemaVerifier
+
+`lib/core/database/schema_verifier.dart` runs after every database open (report-only, no auto-repair). It detects:
+- Missing tables
+- Missing columns
+- Column definition drift (type, nullable, default value mismatches)
+
+SchemaVerifier **must be updated** alongside any schema change that adds new tables or columns. If you add a table or column in a migration, add the corresponding entry to `SchemaVerifier._columnTypes`.
 
 ## Common Patterns
 
@@ -135,7 +164,10 @@ updated_at TEXT NOT NULL,
 synced_at TEXT
 ```
 
-### Soft Delete
+### Soft Delete (Default for All Deletes)
+
+Soft-delete is the **default** behavior for all delete operations. Calling `delete()` on a repository sets `deleted_at` and `deleted_by` without removing the row. Use `hardDelete()` only when permanent removal is explicitly required. All read queries auto-filter `deleted_at IS NULL`.
+
 ```sql
 deleted_at TEXT,
 deleted_by TEXT
@@ -168,7 +200,7 @@ await db.query('projects', where: 'id = ?', whereArgs: [projectId]);
 // This won't trigger migration on existing installs!
 
 // GOOD - always increment version with schema changes
-// Increment _databaseVersion (currently 46) for every schema change
+// Increment _databaseVersion (currently 50) for every schema change
 ```
 
 ## Debugging

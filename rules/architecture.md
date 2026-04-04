@@ -66,7 +66,7 @@ Example from `lib/features/contractors/data/models/contractor.dart`:
 
 ## Database Pattern
 
-Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart` (1900+ lines, schema version 46).
+Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart` (schema version 50).
 
 ### Table Naming Convention
 
@@ -128,6 +128,36 @@ Future<void> _doSomething() async {
 }
 ```
 
+## Provider Initialization Tiers
+
+Providers are registered in strict tier order in `lib/core/di/app_providers.dart`. Misordering causes runtime failures when a provider tries to read a dependency that hasn't been registered yet.
+
+| Tier | What | Notes |
+|------|------|-------|
+| 0 | Settings, core services (PreferencesService, DatabaseService, PermissionService) | `.value` wrappers for pre-created instances |
+| 0.5 | Consent + Support | Optional, spliced by AppBootstrap (may not exist pre-auth) |
+| 1 | Datasources | NOT in widget tree -- created imperatively in AppInitializer |
+| 2 | Repositories | NOT in widget tree -- passed via typed *Deps containers |
+| 3 | Auth (AuthProvider, AppConfigProvider) | Hoisted `.value` wrappers |
+| 4 | Feature providers | ORDER MATTERS: forms MUST precede entries (EntryExportProvider reads FormExportProvider) |
+| 5 | Sync (SyncOrchestrator, SyncLifecycleManager, ProjectSyncHealthProvider) | Depends on auth + feature providers |
+
+Tiers 1-2 are created imperatively in `AppInitializer` and passed via typed dependency containers. They never appear as `Provider<T>` in the widget tree.
+
+### Typed DI Containers
+
+Dependencies are grouped into typed containers defined in `lib/core/di/app_dependencies.dart`:
+
+- `CoreDeps` -- database, preferences, photo/image services, soft-delete (`lib/core/di/core_deps.dart`)
+- `AuthDeps` -- AuthService, AuthProvider, AppConfigProvider
+- `ProjectDeps` -- project repository, assignment/settings/health providers, use cases
+- `EntryDeps` -- daily entry repository, export repository, document service
+- `FormDeps` -- form repositories, FormPdfService
+- `SyncDeps` -- SyncOrchestrator, SyncLifecycleManager
+- `FeatureDeps` -- remaining feature repositories (location, contractor, quantity, photo, calculator, todo, pdf, weather)
+
+All composed into `AppDependencies`, which is passed to `buildAppProviders()`. Feature initializers receive their specific *Deps container and return feature-specific deps.
+
 ## Anti-Patterns to Avoid
 
 | Anti-Pattern | Why | Fix |
@@ -143,7 +173,7 @@ Future<void> _doSomething() async {
 | `catch (_)` without logging | Silently swallows errors, makes debugging impossible | Add `Logger.<category>()` call |
 | `debugPrint` in production code | Not captured by logging system, no filtering/routing | Use `Logger.<category>()` |
 | Raw SQL in presentation layer | Violates separation of concerns, untestable | Move to repository/datasource layer |
-| `db.delete()` without soft-delete check | Bypasses trash/recovery system | Use `SoftDeleteService` or repository delete |
+| `db.delete()` (raw) | Bypasses soft-delete; banned by lint rule D4 (avoid_raw_database_delete) | `delete()` on any datasource performs soft-delete (sets `deleted_at`). Use `hardDelete()` for permanent removal. All reads auto-filter `deleted_at IS NULL` via GenericLocalDatasource. |
 
 ## Offline-First Pattern
 
@@ -222,6 +252,18 @@ Reference: `lib/features/contractors/data/models/contractor.dart`
 **Why:** `ContractorEditingController` requires `DatabaseService` from Provider, which is not available in `initState()`. The standard Loading Pattern (see above) using `addPostFrameCallback` created a race condition causing `LateInitializationError` when build ran before the callback. Moving to `didChangeDependencies` with a `_controllersInitialized` guard is the established Flutter pattern when `context` is required at build time.
 **Guard:** `_controllersInitialized` flag prevents re-initialization on dependency changes.
 
+
+## AppTerminology (Dual-Mode Labels)
+
+`AppTerminology` (`lib/core/config/app_terminology.dart`) switches all UI labels based on `AppTerminology.useMdotTerms`:
+
+| Concept | Local Agency Mode | MDOT Mode |
+|---------|------------------|-----------|
+| Daily report | IDR (Inspector's Daily Report) | DWR (Daily Work Report) |
+| Quantity item | Bid Item | Pay Item |
+| Contract change | Contract Modification | Change Order |
+
+Set via `AppTerminology.setMode(mdotMode: bool)` when switching projects. UI code references static getters (e.g., `AppTerminology.bidItem`) -- no conditional logic in screens.
 
 ## Anti-Patterns (Enforced by Lint)
 

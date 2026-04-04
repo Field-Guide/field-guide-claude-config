@@ -71,7 +71,7 @@ auth, calculator, contractors, dashboard, entries, forms, gallery, locations, pd
 ### Database Schema Organization
 ```
 lib/core/database/
-├── database_service.dart      # Main database class (version 46)
+├── database_service.dart      # Main database class (version 50)
 └── schema/                    # Modular table definitions
     ├── schema.dart             # Barrel export (imports all tables)
     ├── core_tables.dart        # projects, locations
@@ -102,6 +102,12 @@ Shared base classes live in `lib/shared/` and are extended by feature-level impl
 ### Datasources (`lib/shared/datasources/`)
 - `BaseLocalDatasource<T>` — abstract SQLite CRUD interface
 - `GenericLocalDatasource<T>` — implements `BaseLocalDatasource` with standard sqflite operations
+  - `getAll()`, `getById()`, and all read methods auto-prepend `deleted_at IS NULL` filter
+  - `delete(id)` performs soft-delete (sets `deleted_at` timestamp), NOT hard-delete
+  - `hardDelete(id)` is required for permanent removal
+  - `getDeleted()` returns soft-deleted records (for Trash screen)
+  - `restore(id)` clears `deleted_at`
+  - `purgeExpired(retentionDays)` hard-deletes records past TTL (default 30 days)
 - `ProjectScopedDatasource<T>` — extends `GenericLocalDatasource`, filters by `project_id`
 
 ## Code Style
@@ -202,6 +208,12 @@ class ProjectRemoteDatasource {
 
 ## State Management
 
+### Provider Base Classes (`lib/shared/providers/`)
+- `BaseListProvider<T, R>` — base for list-style providers with CRUD operations
+- `PagedListProvider<T, R>` — extends base with pagination support (infinite scroll)
+- Both extend `ChangeNotifier` and are parameterized on `ProjectScopedRepository<T>`
+- ~32 total `ChangeNotifier` providers in the app
+
 ### Provider for Data
 See `lib/features/projects/presentation/providers/project_provider.dart` for reference.
 
@@ -239,7 +251,10 @@ class ProjectProvider extends ChangeNotifier {
 ### Schema Files
 Schema definitions: `lib/core/database/schema/` (modular table definitions)
 Database service: `lib/core/database/database_service.dart`
-Current version: 46 (see `lib/core/database/database_service.dart`)
+Current version: 50 (see `lib/core/database/database_service.dart`)
+
+### SchemaVerifier
+`lib/core/database/schema_verifier.dart` — runs after every database open (report-only, no auto-repair). Detects missing tables, missing columns, and column definition drift. Must be updated when adding tables or columns.
 
 ### Indexes
 Add indexes on:
@@ -248,7 +263,13 @@ Add indexes on:
 - Search columns (name, title)
 
 ### Migrations
+Use `_addColumnIfNotExists` helper for safe ALTER TABLE migrations (checks `PRAGMA table_info` first). This is the standard pattern used throughout the codebase.
+
 ```dart
+// Preferred: safe column addition
+await _addColumnIfNotExists(db, 'photos', 'caption', 'TEXT');
+
+// Raw alternative (only when _addColumnIfNotExists is unavailable)
 if (oldVersion < 9) {
   await db.execute('ALTER TABLE examples ADD COLUMN new_field TEXT');
 }

@@ -6,6 +6,8 @@ paths:
 
 # SQL Cookbook for Supabase
 
+**PostgreSQL 17** | 57 migrations in `supabase/migrations/`
+
 ## Schema Migrations
 
 Create migrations in `supabase/migrations/` with timestamp naming:
@@ -49,26 +51,57 @@ ORDER BY pg_total_relation_size(tablename::text) DESC;
 
 ## Row Level Security (RLS)
 
-**IMPORTANT**: This project uses multi-tenant company-scoped RLS (`company_id = get_my_company_id()`), NOT user-scoped (`auth.uid() = user_id`). See `backend-supabase-agent.memory.md` for the correct pattern.
+**CRITICAL**: This project uses multi-tenant **company-scoped** RLS, NOT user-scoped.
+All policies gate on `get_my_company_id()`, never on `auth.uid() = user_id`.
 
-The examples below are generic Supabase patterns for reference only:
+### Primary pattern -- tables with `company_id` column
 
 ```sql
--- Enable RLS
-ALTER TABLE daily_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
--- Policy for authenticated users
-CREATE POLICY "Users can view own entries" ON daily_entries FOR SELECT
-USING (auth.uid() = user_id);
+-- SELECT: users see rows from their company
+CREATE POLICY "company_select" ON projects FOR SELECT TO authenticated
+  USING (company_id = get_my_company_id());
 
--- Policy for insert
-CREATE POLICY "Users can create entries" ON daily_entries FOR INSERT
-WITH CHECK (auth.uid() = user_id);
+-- INSERT: users can only insert for their company
+CREATE POLICY "company_insert" ON projects FOR INSERT TO authenticated
+  WITH CHECK (company_id = get_my_company_id());
 
--- Policy for service role (bypass RLS)
-CREATE POLICY "Service role full access" ON daily_entries
-USING (auth.role() = 'service_role');
+-- UPDATE: company-scoped, non-viewers only
+CREATE POLICY "company_update" ON projects FOR UPDATE TO authenticated
+  USING (company_id = get_my_company_id() AND NOT is_viewer());
+
+-- DELETE: company-scoped, non-viewers only
+CREATE POLICY "company_delete" ON projects FOR DELETE TO authenticated
+  USING (company_id = get_my_company_id() AND NOT is_viewer());
 ```
+
+### Child-table pattern -- join through parent to reach `company_id`
+
+Tables without a direct `company_id` column (e.g. `entry_equipment`) join through their parent:
+
+```sql
+CREATE POLICY "company_entry_equipment_select" ON entry_equipment
+  FOR SELECT TO authenticated
+  USING (entry_id IN (
+    SELECT id FROM daily_entries WHERE project_id IN (
+      SELECT id FROM projects WHERE company_id = get_my_company_id()
+    )
+  ));
+```
+
+### Idempotent migration pattern
+
+Always drop before recreating to avoid duplicate-policy errors:
+
+```sql
+DROP POLICY IF EXISTS "company_select" ON projects;
+CREATE POLICY "company_select" ON projects FOR SELECT TO authenticated
+  USING (company_id = get_my_company_id());
+```
+
+> **Note (generic Supabase):** The default Supabase docs show `auth.uid() = user_id` patterns.
+> Those are **not used** in this project. Do not introduce user-scoped policies.
 
 ## Storage Buckets
 
@@ -91,9 +124,8 @@ USING (bucket_id = 'entry-photos' AND auth.uid()::text = (storage.foldername(nam
 -- Composite index for common queries
 CREATE INDEX idx_entries_project_date ON daily_entries(project_id, date DESC);
 
--- Partial index for pending sync
--- **DEPRECATED**: `sync_status` columns are no longer used. The sync engine uses `change_log` triggers. This index pattern is historical only.
-CREATE INDEX idx_entries_pending ON daily_entries(id) WHERE sync_status = 'pending';
+-- [REMOVED] Partial index on sync_status -- sync_status columns no longer exist.
+-- The sync engine now uses change_log triggers. Do NOT create sync_status indexes.
 
 -- GIN index for full-text search
 CREATE INDEX idx_entries_activities_search ON daily_entries USING GIN(to_tsvector('english', activities));
@@ -119,6 +151,29 @@ BEGIN
     (SELECT COUNT(*) FROM contractors WHERE project_id = p_project_id);
 END; $$ LANGUAGE plpgsql;
 ```
+
+## Custom Helper Functions (used in RLS policies)
+
+| Function | Returns | Purpose |
+|----------|---------|---------|
+| `get_my_company_id()` | `UUID` | Returns `company_id` for the current `auth.uid()` from `user_profiles` (approved users only). `SECURITY DEFINER`. |
+| `is_approved_engineer()` | `BOOLEAN` | True if current user has role `engineer` and status `approved`. `SECURITY DEFINER`. |
+| `is_viewer()` | `BOOLEAN` | True if current user has role `viewer` and status `approved`. Used to block write operations. `SECURITY DEFINER`. |
+| `is_approved_admin()` | `BOOLEAN` | True if current user has role `admin` and status `approved`. Used in admin-only RPCs. `SECURITY DEFINER`. |
+
+All four are `STABLE`, use `SET search_path = public`, and are defined in migrations under `supabase/migrations/`.
+
+## Edge Function: `daily-sync-push`
+
+Location: `supabase/functions/daily-sync-push/index.ts`
+
+Sends sync-hint notifications to devices in a target company. Dual delivery:
+
+- **FCM silent push** -- sends a data-only message to all registered FCM tokens for the company's users. High priority for targeted hints, normal priority for daily cron.
+- **Supabase Realtime broadcast** -- fans out `sync_hint` events to active private channels for the company (via `get_active_sync_hint_channels` RPC).
+- **Expired FCM token cleanup** -- deletes tokens that return `UNREGISTERED` or `INVALID_ARGUMENT` from FCM.
+- **Authorization** -- service role key only (checked via `Authorization` header or `apikey` header). Returns 401 for all other callers.
+- **Company-scoped targeting** -- when `company_id` is provided in the request body, only that company's devices are notified. Without it, all tokens are targeted (daily cron mode).
 
 ## Common Errors
 

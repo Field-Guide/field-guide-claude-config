@@ -3,6 +3,7 @@ paths:
   - "lib/features/**/presentation/**/*.dart"
   - "lib/core/theme/**/*.dart"
   - "lib/core/router/**/*.dart"
+  - "lib/core/design_system/**/*.dart"
 ---
 
 # Frontend Guidelines
@@ -110,9 +111,7 @@ try {
   await operation();
 } catch (e) {
   if (!mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Error: $e')),
-  );
+  SnackBarHelper.showError(context, 'Error: $e');
 }
 ```
 
@@ -212,3 +211,62 @@ Reference: `lib/features/dashboard/presentation/screens/project_dashboard_screen
 
 Colors MUST use the three-tier system. Violations are blocked by custom lint rules.
 See spec Section 3 for the full tier mapping.
+
+**Exception:** `AppColors` weather tag constants (`sunny`, `rainy`, `overcast`, etc.) are an allowed exception for domain-specific color semantics. These are not hardcoded colors -- they are named constants for weather classification tags.
+
+## Design System Components (Enforced by A18-A24)
+
+24 components in `lib/core/design_system/` (barrel: `design_system.dart`):
+
+| Component | Component | Component | Component |
+|-----------|-----------|-----------|-----------|
+| AppBottomBar | AppBottomSheet | AppBudgetWarningChip | AppChip |
+| AppCounterField | AppDialog | AppDragHandle | AppEmptyState |
+| AppErrorState | AppGlassCard | AppIcon | AppInfoBanner |
+| AppListTile | AppLoadingState | AppMiniSpinner | AppPhotoGrid |
+| AppProgressBar | AppScaffold | AppSectionCard | AppSectionHeader |
+| AppStickyHeader | AppText | AppTextField | AppToggle |
+
+### Lint Rules Enforcing Design System Usage
+
+| Rule | Constraint |
+|------|-----------|
+| A18 | No raw `AlertDialog` -- use `AppDialog.show()` |
+| A19 | No raw `showDialog` -- use `AppDialog.show()` |
+| A20 | No raw `showModalBottomSheet` -- use `AppBottomSheet.show()` |
+| A21 | No raw `Scaffold` in screens -- use `AppScaffold` |
+| A22 | No direct `ScaffoldMessenger` -- use `SnackBarHelper.show*()` |
+| A23 | No inline `TextStyle` -- use `AppText.*` |
+| A24 | No raw `Text()` with manual style -- use `AppText.*` |
+
+### AppDialog actionsBuilder Pattern
+
+```dart
+// CORRECT: actionsBuilder provides dialog's own BuildContext
+AppDialog.show(
+  context: context,
+  title: 'Confirm',
+  actionsBuilder: (dialogContext) => [
+    TextButton(
+      onPressed: () => Navigator.pop(dialogContext),
+      child: const Text('Cancel'),
+    ),
+  ],
+);
+
+// WRONG: actions: uses parent context, causes wrong-context pop
+```
+
+### Pop-Before-SignOut Rule (CRITICAL)
+
+ALWAYS pop the dialog BEFORE calling `auth.signOut()`. GoRouter's redirect fires synchronously on auth state change -- if the dialog is still mounted, the route stack empties and crashes.
+
+```dart
+// CORRECT
+Navigator.pop(dialogContext);
+await ref.read(authProvider).signOut();
+
+// WRONG -- crash: redirect fires while dialog is mounted
+await ref.read(authProvider).signOut();
+Navigator.pop(dialogContext);
+```

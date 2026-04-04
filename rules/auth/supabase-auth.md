@@ -85,6 +85,32 @@ class AuthProvider extends ChangeNotifier {
 }
 ```
 
+## Dependency Injection
+
+Auth dependencies use a **typed DI container**, not direct Provider registration:
+
+1. `AuthInitializer.create(coreDeps)` returns an `AuthDeps` instance (`lib/features/auth/di/auth_initializer.dart`)
+2. `AuthDeps` is defined in `lib/core/di/app_dependencies.dart`
+3. Contains: `AuthService`, `AuthProvider`, `AppConfigProvider`, `CompanyLocalDatasource`
+4. `AuthDeps` is bundled into `AppDependencies` and wired into the provider tree by `buildAppProviders()`
+
+Do NOT construct auth services or providers ad-hoc. Always go through the `AuthDeps` container.
+
+## Use Cases
+
+The auth feature has a use case layer (`lib/features/auth/domain/usecases/`):
+
+| Use Case | Responsibility |
+|----------|---------------|
+| `SignInUseCase` | Email/password sign-in via AuthService |
+| `SignOutUseCase` | Sign-out + preference cleanup |
+| `SignUpUseCase` | New account registration |
+| `LoadProfileUseCase` | Fetch/cache user profile + company data |
+| `CheckInactivityUseCase` | Session timeout detection |
+| `MigratePreferencesUseCase` | Legacy preference migration on auth events |
+
+These are injected into `AuthProvider` by `AuthInitializer` -- not created inline.
+
 ## State Management
 
 This app uses the `provider` package (`ChangeNotifier` + `context.read` / `context.watch`).
@@ -136,10 +162,28 @@ Normal routing continues
 ```
 
 Key details:
+- `ConsentProvider` lives under **settings**, not auth: `lib/features/settings/presentation/providers/consent_provider.dart`
 - `ConsentProvider` is merged into `refreshListenable` so the router re-evaluates on consent change.
 - The `/consent` route is in `_onboardingRoutes` so the onboarding check does not block it.
 - `ConsentProvider` is optional (constructor default `null`) for backward compatibility with tests.
 - Once the user accepts, `ConsentProvider.hasConsented` returns `true` and the router redirects to the intended destination.
+
+## Auth State Listener (App-Level Side Effects)
+
+**CRITICAL:** The auth state listener that drives sync lifecycle lives in `AppInitializer`
+(`lib/core/bootstrap/app_initializer.dart`), NOT in the auth feature itself. It is wired via
+`authDeps.authProvider.addListener(...)` during initialization.
+
+Side effects by auth event:
+- **Sign-out:** clears `AppConfigProvider`, `ProjectSyncHealthProvider`, `ProjectImportRunner`,
+  `ProjectAssignmentProvider`; disposes `RealtimeHintHandler`; cancels FCM context
+- **Sign-in:** re-initializes `ProjectSettingsProvider` for the user; updates FCM context;
+  creates or rebinds `RealtimeHintHandler`; triggers startup sync if auth context is newly ready
+- **Company change (while authenticated):** rebinds `RealtimeHintHandler` to the new company channel;
+  triggers a follow-up sync
+
+When modifying sign-out or sign-in behavior, check BOTH the auth feature code AND
+`app_initializer.dart` for stateful wiring.
 
 ## Multi-Tenant Company Flow
 
@@ -238,8 +282,23 @@ com.fieldguideapp.inspector://login-callback
 - Clear on sign out
 
 ### Password Requirements
-- Minimum 8 characters
-- Handled by Supabase (configurable)
+- Enforced client-side by `PasswordValidator` (`lib/features/auth/services/password_validator.dart`)
+- Rules: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit
+- Mirrors `supabase/config.toml` settings (`password_requirements = "lower_upper_letters_digits"`)
+- Use `PasswordValidator.validate(value)` in form fields; do NOT rely on Supabase-side validation alone
+
+### Dialog Sign-Out Safety
+
+**CRITICAL:** When signing out from inside a dialog, ALWAYS `Navigator.pop(dialogContext)` BEFORE
+calling `auth.signOut()`. GoRouter's redirect fires synchronously on auth state change. If the
+dialog is still mounted when the route stack is replaced, the navigator crashes. Pattern:
+
+```dart
+Navigator.pop(dialogContext);
+context.read<AuthProvider>().signOut();
+```
+
+Never reverse this order.
 
 ### Rate Limiting
 - Configure in Supabase dashboard

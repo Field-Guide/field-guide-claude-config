@@ -15,7 +15,14 @@ lib/features/pdf/
 │   ├── models/          # PDF-related models
 │   └── datasources/     # Local data sources
 ├── services/            # PDF generation + extraction services
-│   ├── extraction/      # V2 pipeline stages
+│   ├── extraction/      # V2 pipeline (~81 Dart files)
+│   │   ├── models/      # Extraction data models
+│   │   ├── ocr/         # OCR engine (TesseractEngineV2)
+│   │   ├── pipeline/    # Pipeline orchestration
+│   │   ├── rules/       # Extraction rules
+│   │   ├── runner/      # ExtractionJobRunner (entry point)
+│   │   ├── shared/      # QualityThresholds, shared utilities
+│   │   └── stages/      # Pipeline stage implementations
 │   ├── mp/              # MP extraction (MpExtractionService)
 │   └── ocr/             # OCR engine helpers
 └── presentation/
@@ -110,6 +117,18 @@ else return ExtractedValue(value);
 
 Re-extraction loop: up to 2 retries at 400 DPI (PSM 3 then PSM 6). Best result by `overallScore` kept.
 
+### Key Extraction Classes
+
+**ExtractionJobRunner** (`lib/features/pdf/services/extraction/runner/extraction_job_runner.dart`)
+- Main orchestrator for the extraction pipeline (~17KB)
+- Coordinates all extraction stages end-to-end
+- Entry point for PDF form extraction
+
+**QualityThresholds** (`lib/features/pdf/services/extraction/shared/quality_thresholds.dart`)
+- Central class for extraction quality scoring constants
+- Used by pipeline, metrics, quality validator, and quality report
+- 5th most imported file in the codebase (89 importers via its models barrel)
+
 ### MP Document Extraction
 File: `lib/features/pdf/services/mp/mp_extraction_service.dart`
 
@@ -146,7 +165,7 @@ Files:
 - `lib/features/pdf/services/extraction/ocr/tesseract_engine_v2.dart` — executes OCR with a given `TesseractConfigV2` (PSM is caller-provided, not decided here)
 - `lib/features/pdf/services/extraction/stages/text_recognizer_v2.dart` — decides PSM per cell via `_determineRowPsm`
 
-Package: `flusseract` (Tesseract 5)
+Package: `flusseract` (Tesseract 5) -- embedded local package at `packages/flusseract/` (NOT a pub dependency). Flutter FFI plugin wrapping Tesseract 5 OCR, supports all 5 desktop+mobile platforms. Drives Android minSdk 31 requirement.
 
 **Grid pages** — cell-level cropping:
 - PSM per cell: row 0 (header) → PSM 6, tall rows (>1.8× median height) → PSM 6, data rows → PSM 7
@@ -172,6 +191,11 @@ Low-confidence threshold: **0.80**. Items below this counted in `items_below_0_8
 ### Math Backsolve (Stage 5)
 When `qty × unitPrice ≠ bidAmount`: derives `unitPrice = bidAmount / qty` (if round-trips within $0.02).
 Applies -0.03 confidence penalty.
+
+## Verification Tooling
+
+- `tools/verify_idr_mapping.py` -- Python script for IDR template field verification
+- `test/golden/pdf/` -- Golden tests for PDF rendering
 
 ## Common Issues
 

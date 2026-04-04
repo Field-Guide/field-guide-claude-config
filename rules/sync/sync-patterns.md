@@ -210,7 +210,6 @@ Key properties:
 | `CalculationHistoryAdapter` | calculation_history |
 | `ConsentRecordAdapter` | user_consent_records |
 | `SupportTicketAdapter` | support_tickets |
-| `TypeConverters` | (shared utility, not a table adapter) |
 
 ## Engine Components
 
@@ -226,6 +225,7 @@ Key properties:
 | `StorageCleanup` | `engine/storage_cleanup.dart` | Deletes local files after successful remote upload |
 | `ScopeType` | `engine/scope_type.dart` | Enum: `direct`, `viaProject`, `viaEntry`, `viaContractor` |
 | `SyncControlService` | `engine/sync_control_service.dart` | Circuit-breaker state + health metrics for UI |
+| `DirtyScopeTracker` | `engine/dirty_scope_tracker.dart` | Tracks remote change hints (project+table granular); degrades to company-wide at >=500 scopes; scopes expire after 2h; drives quick sync pull filtering |
 
 ## Application Layer
 
@@ -235,6 +235,52 @@ Key properties:
 | `SyncLifecycleManager` | `application/sync_lifecycle_manager.dart` | Triggers sync on app foreground / reconnect events |
 | `BackgroundSyncHandler` | `application/background_sync_handler.dart` | Schedules and runs background sync tasks |
 | `FcmHandler` | `application/fcm_handler.dart` | Processes FCM push notifications that signal remote changes |
+| `RealtimeHintHandler` | `application/realtime_hint_handler.dart` | Subscribes to Supabase Realtime channels; marks DirtyScopeTracker on hints; triggers quick sync |
+| `SyncEnrollmentService` | `application/sync_enrollment_service.dart` | Manages synced_projects enrollment/unenrollment when project_assignments are pulled |
+| `SyncEngineFactory` | `application/sync_engine_factory.dart` | Factory for creating SyncEngine instances (foreground + background); ensures adapters registered |
+| `SyncOrchestratorBuilder` | `application/sync_orchestrator_builder.dart` | Builder pattern for SyncOrchestrator; validates all required deps at build() time |
+| `SyncInitializer` | `application/sync_initializer.dart` | DI/initialization for sync feature; wires orchestrator, lifecycle, enrollment, FCM, and realtime in correct order |
+
+## SyncMode Enum
+
+Defined in `lib/features/sync/domain/sync_types.dart`:
+
+| Mode | Behavior |
+|------|----------|
+| `quick` | Push local changes + pull only dirty scopes (triggered by realtime hints) |
+| `full` | Push + pull all tables + maintenance (integrity check, orphan purge) |
+| `maintenance` | Pull + housekeeping (integrity check, orphan cleanup, pruning) |
+
+## SyncConfig Values
+
+Defined in `lib/features/sync/config/sync_config.dart`:
+
+| Constant | Value | Purpose |
+|----------|-------|---------|
+| `pushBatchLimit` | 500 | Max records per push batch |
+| `pullPageSize` | 100 | Records per pull page |
+| `circuitBreakerThreshold` | 1000 | Error count before circuit breaker trips |
+| `conflictPingPongThreshold` | 3 | Max consecutive local-wins before stopping re-push |
+| `integrityCheckInterval` | 4h | Min interval between integrity checks |
+| `staleLockTimeout` | 15min | Sync mutex lock expiry |
+| `dirtyScopeMaxAge` | 2h | Dirty scope expiry in DirtyScopeTracker |
+| `changeLogRetention` | 7d | Processed change_log entry retention |
+| `orphanMinAge` | 24h | Min age before orphan records are purged |
+
+## Trigger Suppression (`sync_control.pulling`)
+
+**CRITICAL**: All change_log triggers have a WHEN clause:
+```sql
+WHEN (SELECT value FROM sync_control WHERE key = 'pulling') = '0'
+```
+
+- Set to `'1'` during pull operations to prevent pull-writes from generating push entries (avoids echo loops)
+- MUST be set inside a try/finally block — always reset to `'0'` in the finally
+- Reset to `'0'` on every app startup in `DatabaseService.onOpen` to recover from crash-during-pull
+
+### is_builtin trigger guard
+
+`inspector_forms` triggers have an additional WHEN clause: `AND NEW.is_builtin != 1`. This skips server-seeded reference data (builtin form templates) so they never generate change_log entries. Without this guard, local touches to builtin rows create permanently failing push entries (RLS denies null project_id builtins). Configured via `SyncEngineTables.tablesWithBuiltinFilter`.
 
 ## Config, Domain, and DI
 
@@ -261,67 +307,82 @@ lib/features/sync/
 ├── adapters/                           # 22 table adapters + base
 │   ├── table_adapter.dart              # Abstract base class
 │   ├── type_converters.dart            # Shared type conversion utilities
-│   ├── project_adapter.dart
-│   ├── location_adapter.dart
-│   ├── contractor_adapter.dart
-│   ├── equipment_adapter.dart
-│   ├── personnel_type_adapter.dart
 │   ├── bid_item_adapter.dart
-│   ├── daily_entry_adapter.dart
-│   ├── entry_contractors_adapter.dart
-│   ├── entry_equipment_adapter.dart
-│   ├── entry_personnel_counts_adapter.dart
-│   ├── entry_quantities_adapter.dart
-│   ├── photo_adapter.dart
-│   ├── inspector_form_adapter.dart
-│   ├── form_response_adapter.dart
-│   ├── form_export_adapter.dart
-│   ├── entry_export_adapter.dart
-│   ├── document_adapter.dart
-│   ├── todo_item_adapter.dart
-│   ├── project_assignment_adapter.dart
 │   ├── calculation_history_adapter.dart
 │   ├── consent_record_adapter.dart
-│   └── support_ticket_adapter.dart
+│   ├── contractor_adapter.dart
+│   ├── daily_entry_adapter.dart
+│   ├── document_adapter.dart
+│   ├── entry_contractors_adapter.dart
+│   ├── entry_equipment_adapter.dart
+│   ├── entry_export_adapter.dart
+│   ├── entry_personnel_counts_adapter.dart
+│   ├── entry_quantities_adapter.dart
+│   ├── equipment_adapter.dart
+│   ├── form_export_adapter.dart
+│   ├── form_response_adapter.dart
+│   ├── inspector_form_adapter.dart
+│   ├── location_adapter.dart
+│   ├── personnel_type_adapter.dart
+│   ├── photo_adapter.dart
+│   ├── project_adapter.dart
+│   ├── project_assignment_adapter.dart
+│   ├── support_ticket_adapter.dart
+│   └── todo_item_adapter.dart
 │
 ├── engine/                             # Core sync engine
 │   ├── sync_engine.dart                # Main sync orchestration
 │   ├── change_tracker.dart             # Reads change_log table
 │   ├── conflict_resolver.dart          # Conflict resolution
+│   ├── dirty_scope_tracker.dart        # Remote change hint tracking
 │   ├── integrity_checker.dart          # Post-sync validation
-│   ├── sync_mutex.dart                 # Concurrency control
-│   ├── sync_registry.dart              # Ordered adapter registry
 │   ├── orphan_scanner.dart             # Orphan record detection
 │   ├── scope_type.dart                 # Sync scope enumeration
 │   ├── storage_cleanup.dart            # Post-sync file cleanup
-│   └── sync_control_service.dart       # Circuit-breaker + health UI
+│   ├── sync_control_service.dart       # Circuit-breaker + health UI
+│   ├── sync_mutex.dart                 # Concurrency control
+│   └── sync_registry.dart              # Ordered adapter registry
 │
 ├── domain/                             # Business rules & value types
 │   ├── domain.dart                     # Barrel export
-│   └── sync_types.dart                 # SyncResult, SyncAdapterStatus
+│   └── sync_types.dart                 # SyncResult, SyncAdapterStatus, SyncMode, DirtyScope
 │
 ├── data/                               # External data sources
 │   ├── data.dart                       # Barrel export
-│   └── adapters/
-│       ├── adapters.dart               # Barrel export
-│       └── mock_sync_adapter.dart      # Testing mock (no-network)
+│   ├── adapters/
+│   │   ├── adapters.dart               # Barrel export
+│   │   └── mock_sync_adapter.dart      # Testing mock (no-network)
+│   ├── datasources/
+│   │   └── local/
+│   │       ├── conflict_local_datasource.dart
+│   │       └── deletion_notification_local_datasource.dart
+│   └── repositories/
+│       ├── conflict_repository.dart
+│       └── deletion_notification_repository.dart
 │
 ├── application/                        # Use cases & orchestration
 │   ├── application.dart                # Barrel export
-│   ├── sync_orchestrator.dart          # Multi-backend router
-│   ├── sync_lifecycle_manager.dart     # App-lifecycle sync triggers
 │   ├── background_sync_handler.dart    # Background sync
-│   └── fcm_handler.dart               # FCM push notification handler
+│   ├── fcm_handler.dart                # FCM push notification handler
+│   ├── realtime_hint_handler.dart      # Supabase Realtime hint subscriber
+│   ├── sync_engine_factory.dart        # SyncEngine creation factory
+│   ├── sync_enrollment_service.dart    # synced_projects enrollment
+│   ├── sync_initializer.dart           # Sync subsystem initialization
+│   ├── sync_lifecycle_manager.dart     # App-lifecycle sync triggers
+│   ├── sync_orchestrator.dart          # Multi-backend router
+│   └── sync_orchestrator_builder.dart  # Builder for SyncOrchestrator
 │
 ├── config/
-│   └── sync_config.dart                # Sync configuration
+│   └── sync_config.dart                # Sync configuration thresholds
 │
 ├── di/
+│   ├── di.dart                         # Barrel export
 │   └── sync_providers.dart             # DI wiring for all sync components
 │
 └── presentation/                       # UI layer
     ├── presentation.dart               # Barrel export
     ├── providers/
+    │   ├── providers.dart              # Barrel export
     │   └── sync_provider.dart          # ChangeNotifier for UI
     ├── screens/
     │   ├── sync_dashboard_screen.dart

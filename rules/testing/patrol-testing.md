@@ -2,16 +2,54 @@
 paths:
   - "integration_test/**/*.dart"
   - "test/**/*.dart"
-  - "lib/shared/testing_keys/testing_keys.dart"
-  - "lib/shared/testing_keys/quantities_keys.dart"
-  - "lib/core/driver/**/*.dart"
+  - "lib/shared/testing_keys/**"
+  - "lib/core/driver/**"
   - "lib/test_harness.dart"
   - "lib/main_driver.dart"
 ---
 
 # Testing Guide
 
-Complete guide to testing in the Construction Inspector app: unit tests, Patrol E2E, widget harness, and PDF stage trace testing.
+Complete guide to testing in the Construction Inspector app: unit tests, HTTP test driver, widget harness, golden tests, and PDF stage trace testing.
+
+> **CI is the primary test runner.** Use `gh run view --log-failed` for failure details. Avoid local `flutter test` where possible -- use CI for environment parity.
+
+---
+
+## HTTP Test Driver (Primary E2E Mechanism)
+
+Full HTTP server for external test automation, replacing the removed Patrol stack.
+
+**Entrypoint:** `lib/main_driver.dart` (NOT `lib/main.dart`)
+
+### Architecture (`lib/core/driver/`)
+
+| File | Purpose |
+|------|---------|
+| `driver_server.dart` | HTTP server -- tap widgets, enter text, scroll, take screenshots |
+| `driver_setup.dart` | Wiring and initialization for driver mode |
+| `flow_registry.dart` | Multi-screen journey definitions |
+| `harness_seed_data.dart` | Inject test data via HTTP |
+| `screen_registry.dart` | Maps screen keys to widget builders |
+| `stub_router.dart` | Lightweight router for isolated screen testing |
+| `test_db_factory.dart` | In-memory SQLite for test isolation |
+| `test_photo_service.dart` | Stub photo service for offline testing |
+
+### Security (5 layers)
+
+1. **Compile-time flag** -- driver code stripped from release builds
+2. **Release mode check** -- server refuses to start in release mode
+3. **Loopback-only binding** -- listens on 127.0.0.1 only
+4. **Custom entrypoint** -- `main_driver.dart` is never the production entrypoint
+5. **build.ps1 gate** -- build tooling prevents driver entrypoint in release artifacts
+
+### Lifecycle Scripts
+
+```powershell
+pwsh -File tools/start-driver.ps1    # Launch app in driver mode
+pwsh -File tools/stop-driver.ps1     # Tear down driver process
+pwsh -File tools/wait-for-driver.ps1 # Block until server is ready
+```
 
 ---
 
@@ -34,119 +72,6 @@ pwsh -Command "flutter test test/features/pdf/extraction/ --name 'stage trace'"
 
 ---
 
-## Patrol E2E Testing
-
-> **DEPRECATED:** Patrol has been removed from this project. The section below is retained for historical reference only. See [Deprecated Testing Stacks](#deprecated-testing-stacks) at the bottom of this file.
-
-### Run Tests
-
-```bash
-# All tests
-patrol test
-
-# Specific test file
-patrol test integration_test/patrol/e2e_tests/navigation_flow_test.dart
-
-# Verbose output
-patrol test --verbose
-```
-
-### Test Structure
-
-```
-integration_test/patrol/
-├── e2e_tests/              # Full E2E flows registered in test_config.dart
-├── isolated/               # Standalone tests NOT in test_config.dart
-├── helpers/                # Shared test utilities
-├── test_config.dart        # Test registration for Patrol
-└── REQUIRED_UI_KEYS.md     # Widget key reference
-```
-
-### Test Bundle Registration
-
-To include a test in the bundle, add import and group() call to `test_config.dart`:
-
-```dart
-// Add import
-import 'patrol/e2e_tests/my_new_test.dart' as patrol__e2e_tests__my_new_test;
-
-// Add group in main()
-group('patrol.e2e_tests.my_new_test', patrol__e2e_tests__my_new_test.main);
-```
-
-**Note**: Files in `isolated/` are intentionally excluded for standalone execution.
-
-### Test Patterns
-
-#### Navigation Testing
-
-```dart
-import 'package:construction_inspector/shared/shared.dart';
-
-// Navigate using bottom navigation
-await $(TestingKeys.projectsNavButton).tap();
-await $(TestingKeys.calendarNavButton).tap();
-await $(TestingKeys.dashboardNavButton).tap();
-await $(TestingKeys.settingsNavButton).tap();
-```
-
-#### Dialog Testing
-
-```dart
-// Handle confirmation dialog
-await $(TestingKeys.confirmDialogButton).tap();  // Confirm
-await $(TestingKeys.cancelDialogButton).tap();   // Cancel (generic)
-await $(TestingKeys.confirmationDialogCancel).tap();  // Cancel (delete dialog)
-await $(TestingKeys.unsavedChangesCancel).tap();  // Cancel (unsaved changes)
-```
-
-#### Waiting for UI Updates
-
-```dart
-// Wait for visibility (preferred over delays)
-await $(TestingKeys.projectCard('project-123')).waitUntilVisible();
-
-// Wait for element to disappear
-await $(TestingKeys.confirmationDialog).waitUntilGone();
-```
-
-### Common Pitfalls
-
-#### Hardcoded Keys
-
-```dart
-// BAD
-await $(Key('my_button')).tap();
-
-// GOOD
-await $(TestingKeys.myButton).tap();
-```
-
-#### Hardcoded Delays
-
-```dart
-// BAD
-await Future.delayed(Duration(seconds: 2));
-
-// GOOD
-await $(TestingKeys.loadingIndicator).waitUntilGone();
-```
-
-#### Missing Mounted Checks
-
-```dart
-// BAD
-await someAsyncOperation();
-context.read<Provider>().doThing();
-
-// GOOD
-await someAsyncOperation();
-if (!mounted) return;
-context.read<Provider>().doThing();
-```
-
----
-
 ## Widget Test Harness (Isolated Screen Testing)
 
 Purpose: render one screen at a time with real providers backed by in-memory SQLite for faster, lower-load UI testing than full-app launch.
@@ -158,7 +83,7 @@ Purpose: render one screen at a time with real providers backed by in-memory SQL
    {"screen":"ProctorEntryScreen","data":{"responseId":"test-response-001"}}
    ```
 2. `pwsh -Command "flutter run -d windows -t lib/test_harness.dart"`
-3. Interact with the rendered screen manually or via Patrol tests
+3. Interact with the rendered screen manually or via the HTTP test driver
 
 ### Config Fields
 
@@ -203,51 +128,38 @@ Wires up real GoRouter routes so screens navigate naturally without relaunching 
 
 ---
 
-## Widget Keys -- TestingKeys Class
+## Widget Keys -- TestingKeys
 
-**All widget keys are centralized in `lib/shared/testing_keys/testing_keys.dart`.**
+16 feature-specific key files in `lib/shared/testing_keys/`, re-exported via barrel `testing_keys.dart`.
+
+**Pattern:** `FeatureTestingKeys.widgetName` assigned via `key:` parameter.
 
 ### Key Rules
 
 1. **Never** use hardcoded `Key('...')` strings in widgets or tests
-2. **Always** reference keys from the `TestingKeys` class
+2. **Always** reference keys from the appropriate `*Keys` class
 3. **Import** via: `import 'package:construction_inspector/shared/shared.dart';`
-4. **Add new keys** to TestingKeys when creating testable widgets
+4. **Add new keys** to the feature-specific file (e.g., `entries_keys.dart`, `photos_keys.dart`)
 
 ### Adding New Keys
 
 ```dart
-// 1. Add to lib/shared/testing_keys/testing_keys.dart
-class TestingKeys {
-  static const myNewButton = Key('my_new_button');
+// 1. Add to the feature-specific file, e.g. lib/shared/testing_keys/entries_keys.dart
+class EntriesTestingKeys {
+  static const myNewButton = Key('entries_my_new_button');
 }
 
 // 2. Use in widget
 ElevatedButton(
-  key: TestingKeys.myNewButton,
+  key: EntriesTestingKeys.myNewButton,
   onPressed: _handlePress,
   child: Text('Press Me'),
 )
-
-// 3. Use in Patrol test
-import 'package:construction_inspector/shared/shared.dart';
-
-await $(TestingKeys.myNewButton).tap();
 ```
 
-### Key Categories
+### Key Files
 
-See `integration_test/patrol/REQUIRED_UI_KEYS.md` for complete list:
-- Bottom Navigation
-- Floating Action Buttons
-- Confirmation Dialogs (3 cancel button variants)
-- Dashboard Cards
-- Settings Screen
-- Entry Wizard
-- Project Setup
-- Authentication
-- Photo Capture
-- Dynamic Key Helpers (for list items)
+`auth_keys.dart`, `common_keys.dart`, `consent_keys.dart`, `contractors_keys.dart`, `documents_keys.dart`, `entries_keys.dart`, `locations_keys.dart`, `navigation_keys.dart`, `photos_keys.dart`, `projects_keys.dart`, `quantities_keys.dart`, `settings_keys.dart`, `support_keys.dart`, `sync_keys.dart`, `testing_keys.dart` (barrel + legacy keys), `toolbox_keys.dart`
 
 ---
 
@@ -258,13 +170,47 @@ See `integration_test/patrol/REQUIRED_UI_KEYS.md` for complete list:
 
 ---
 
-## Testing Strategy (3-Tier)
+## Testing Strategy (4-Tier)
 
 1. **Unit tests** -- `test/` for models, repositories, providers, and services
-2. **Widget harness tests** -- `lib/test_harness.dart` + `harness_config.json` for isolated screen interaction
-3. **Patrol E2E** -- `integration_test/patrol/` for full integration tests with native platform interaction
+2. **Golden tests** -- `test/golden/` for pixel-level visual regression
+3. **Widget harness tests** -- `lib/test_harness.dart` + `harness_config.json` for isolated screen interaction
+4. **HTTP driver E2E** -- `lib/main_driver.dart` + `lib/core/driver/` for full integration automation
 
 UI test findings: `.claude/test-results/YYYY-MM-DD-ui-test-findings.md`
+
+## Golden Tests
+
+Visual regression tests comparing widget renders against baseline PNGs.
+
+- **Location:** `test/golden/` -- ~95 baseline PNGs in `test/golden/goldens/`
+- **PDF goldens:** `test/golden/pdf/` (failures dir; baselines pending)
+- **Helper:** `tools/build_golden_from_run.dart` -- rebuild baselines from CI artifacts
+
+### Organization
+
+```
+test/golden/
+├── themes/       # light_theme, dark_theme, high_contrast_theme
+├── components/   # form_fields, photo_grid, quantity_cards, dashboard_widgets
+├── states/       # empty_state, error_state, loading_state
+├── widgets/      # confirmation_dialog, entry_card, project_card, weather_widget
+├── pdf/          # PDF rendering goldens (failures/)
+├── goldens/      # Baseline PNGs (all themes/components/states/widgets)
+└── test_helpers.dart
+```
+
+### Run Commands
+
+```powershell
+# Run all golden tests
+pwsh -Command "flutter test test/golden/"
+
+# Update baselines (after intentional visual changes)
+pwsh -Command "flutter test test/golden/ --update-goldens"
+```
+
+---
 
 ## Sync Testing (Debug Server)
 
@@ -301,7 +247,9 @@ pwsh -Command "flutter test test/features/pdf/ --dart-define=PDF_PARSER_DIAGNOST
 pwsh -Command "flutter test test/features/pdf/services/<test_file>.dart"
 ```
 
-### Current Baseline
+### Current Baseline (snapshot -- may be stale)
+
+> Values below are a point-in-time snapshot. Run the pipeline report test to get current numbers.
 
 - **68 OK / 3 LOW / 0 BUG**
 - Quality: **0.993**
@@ -363,18 +311,19 @@ The report test generates a scorecard automatically. When presenting results, us
 
 ## Resources
 
-- TestingKeys: `lib/shared/testing_keys/testing_keys.dart`
-- UI Keys Reference: `integration_test/patrol/REQUIRED_UI_KEYS.md`
+- TestingKeys: `lib/shared/testing_keys/` (16 files, barrel: `testing_keys.dart`)
+- HTTP Driver: `lib/core/driver/` (8 files, entrypoint: `lib/main_driver.dart`)
+- Golden Baselines: `test/golden/goldens/` (~95 PNGs)
 - Pipeline Reports: `test/features/pdf/extraction/reports/` (gitignored, per-platform baselines)
 - Defects to Avoid: `gh issue list --label "{feature}" --state open` (GitHub Issues)
 - Screen Registry: `lib/core/driver/screen_registry.dart`
 
 
-## Deprecated Testing Stacks
+## Legacy: Deprecated Testing Stacks
 
 | Stack | Status | Replacement |
 |-------|--------|-------------|
-| Patrol | Removed | Unit/widget tests + manual ADB testing |
-| flutter_driver | Removed | Unit/widget tests + manual ADB testing |
+| Patrol | Removed | HTTP test driver + unit/widget/golden tests |
+| flutter_driver | Removed | HTTP test driver + unit/widget/golden tests |
 
-**Lint rule T6** blocks imports of `patrol` or `flutter_driver` packages.
+**Lint rule T6** blocks imports of `patrol` or `flutter_driver` packages. Do not copy Patrol-style code (`patrol test`, `$()` selectors, `integration_test/patrol/` paths) -- none of it exists in the codebase.
