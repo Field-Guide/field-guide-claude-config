@@ -6,7 +6,7 @@
 **Spec:** `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
 **Tailor:** `.claude/tailor/2026-04-04-private-sync-hint-channels-codex/`
 
-**Architecture:** Server issues opaque channel names via `register_sync_hint_channel()` RPC backed by a `sync_hint_subscriptions` table. SQL triggers call `invoke_daily_sync_push()` which invokes the `daily-sync-push` edge function. The edge function handles both FCM push AND per-device Broadcast fan-out (querying `sync_hint_subscriptions` for active channels). Client persists a `device_install_id` and registers on auth-ready startup, subscribing only to the returned opaque channel.
+**Architecture:** Server issues opaque channel names via `register_sync_hint_channel()` RPC backed by a `sync_hint_subscriptions` table. Exactly one active subscription row is allowed per `device_install_id`. SQL triggers call `invoke_daily_sync_push()` which invokes the `daily-sync-push` edge function. The edge function handles both FCM push AND per-device Broadcast fan-out by resolving eligible active channels through a server helper. Client persists a `device_install_id` and registers on auth-ready startup, subscribing only to the returned opaque channel.
 **Tech Stack:** PostgreSQL (Supabase), Dart/Flutter, Supabase Realtime Broadcast, SharedPreferences, Deno (edge function)
 **Blast Radius:** 5 direct (realtime_hint_handler, sync_initializer, app_initializer, broadcast_trigger.sql, preferences_service), 1 edge function (daily-sync-push/index.ts), 5 dependent (app_bootstrap, app_providers, main, main_driver, fcm_handler_test), 2 tests (realtime_hint_handler_test, new registration tests), 0 cleanup
 
@@ -50,9 +50,11 @@ CREATE INDEX idx_sync_hint_subs_company_active
   ON public.sync_hint_subscriptions (company_id)
   WHERE revoked_at IS NULL AND expires_at > now();
 
--- WHY: Registration upserts by user + device
-CREATE UNIQUE INDEX idx_sync_hint_subs_user_device
-  ON public.sync_hint_subscriptions (user_id, device_install_id)
+-- FROM SPEC: one active sync-hint channel per authenticated app installation
+-- WHY: Enforce a single active subscription row per physical install even if
+-- the device signs out and a different user signs in later.
+CREATE UNIQUE INDEX idx_sync_hint_subs_device_install
+  ON public.sync_hint_subscriptions (device_install_id)
   WHERE revoked_at IS NULL;
 
 ALTER TABLE public.sync_hint_subscriptions ENABLE ROW LEVEL SECURITY;
@@ -157,8 +159,8 @@ BEGIN
   v_refresh_after := now() + interval '6 hours';
 
   -- WHY: INSERT ... ON CONFLICT eliminates TOCTOU race between SELECT and INSERT
-  -- The partial unique index (user_id, device_install_id) WHERE revoked_at IS NULL
-  -- ensures upsert only hits active subscriptions
+  -- The partial unique index on device_install_id ensures there is only one
+  -- active row per install, even across user switches on shared devices.
   INSERT INTO public.sync_hint_subscriptions (
     user_id, company_id, device_install_id, channel_name,
     platform, app_version, expires_at
@@ -166,11 +168,23 @@ BEGIN
     v_user_id, v_company_id, p_device_install_id, v_channel_name,
     p_platform, p_app_version, v_expires_at
   )
-  ON CONFLICT (user_id, device_install_id) WHERE revoked_at IS NULL
+  ON CONFLICT (device_install_id) WHERE revoked_at IS NULL
   DO UPDATE SET
+    -- WHY: Same install may change users/companies after sign-out. Reassign the
+    -- subscription row to the current authenticated owner.
+    user_id = EXCLUDED.user_id,
     company_id = EXCLUDED.company_id,
+    -- WHY: Rotate the opaque channel when ownership/context changes. Keep the
+    -- existing channel for same-owner refreshes to avoid unnecessary resubscribe churn.
+    channel_name = CASE
+      WHEN sync_hint_subscriptions.user_id = EXCLUDED.user_id
+       AND sync_hint_subscriptions.company_id = EXCLUDED.company_id
+      THEN sync_hint_subscriptions.channel_name
+      ELSE EXCLUDED.channel_name
+    END,
     platform = COALESCE(EXCLUDED.platform, sync_hint_subscriptions.platform),
     app_version = COALESCE(EXCLUDED.app_version, sync_hint_subscriptions.app_version),
+    revoked_at = NULL,
     last_seen_at = now(),
     expires_at = EXCLUDED.expires_at,
     updated_at = now()
@@ -915,8 +929,9 @@ Future<void> _disposeNow() async {
   _refreshAfter = null;
 
   final channel = _channel;
-  if (channel == null) return;
-  await _supabaseClient.removeChannel(channel);
+  if (channel != null) {
+    await _supabaseClient.removeChannel(channel);
+  }
   _channel = null;
   _isSubscribed = false;
 
@@ -1315,6 +1330,11 @@ Add executable verification in repo-owned tests. Acceptable options:
 Minimum assertions to land in this plan:
 
 ```dart
+// registration / ownership
+// - one active subscription row is enforced per device_install_id
+// - re-registering the same install under a different authenticated user/company
+//   rotates channel ownership instead of leaving multiple active rows
+
 // cleanup_expired_sync_hint_subscriptions()
 // - deletes expired rows older than the 1-day grace window
 // - deletes revoked rows older than the 1-day grace window
@@ -1339,6 +1359,23 @@ test('auth loss disposes realtime hint handler and clears private channel bindin
 
   expect(content, contains('await handlerToDispose.dispose()'));
   expect(content, contains('activeRealtimeHintHandler = null'));
+});
+```
+
+#### Step 6.1.10: Add source-contract guardrail for one-active-row-per-install
+
+Extend `test/features/sync/application/server_hint_plumbing_test.dart` so the
+new migration cannot regress back to per-user device rows:
+
+```dart
+test('subscription migration enforces one active row per device install', () {
+  final source = File(
+    'supabase/migrations/20260405000000_sync_hint_subscriptions.sql',
+  ).readAsStringSync();
+
+  expect(source, contains('idx_sync_hint_subs_device_install'));
+  expect(source, contains('ON public.sync_hint_subscriptions (device_install_id)'));
+  expect(source, contains('ON CONFLICT (device_install_id) WHERE revoked_at IS NULL'));
 });
 ```
 
