@@ -2,7 +2,7 @@
 feature: sync
 type: overview
 scope: Cloud Synchronization & Multi-Backend Support
-updated: 2026-04-03
+updated: 2026-04-04
 ---
 
 # Sync Feature Overview
@@ -16,7 +16,7 @@ The Sync feature enables offline-first data synchronization between the local SQ
 - Keep incremental local push via `change_log`
 - Stop using broad full project-wide sync as the default foreground behavior
 - Split sync behavior into `Quick sync`, `Full sync`, and `Maintenance sync`
-- Use Supabase-originated foreground invalidation hints plus FCM background invalidation hints
+- Use Supabase-originated foreground invalidation hints over opaque private channels plus FCM background invalidation hints
 - Expose a global manual full-sync action in the shared app chrome
 
 ## Key Responsibilities
@@ -29,7 +29,7 @@ The Sync feature enables offline-first data synchronization between the local SQ
 - **Sync Status Tracking**: Maintain pending/synced/error state for all syncable entities
 - **Connectivity Monitoring**: Detect online/offline transitions and trigger deferred syncs
 - **Rate Limiting**: Debounce rapid sync requests to prevent excessive network traffic
-- **Remote Invalidation**: Use Supabase hints while the app is open and FCM data messages while it is backgrounded or closed
+- **Remote Invalidation**: Use private Supabase hint channels while the app is open and FCM data messages while it is backgrounded or closed
 
 ## Key Files
 
@@ -109,7 +109,7 @@ The Sync feature enables offline-first data synchronization between the local SQ
 - **AASHTOWare** (future): OpenAPI endpoint for MDOT mode
 - **Connectivity Service**: Device connectivity status for online/offline detection
 - **FCM**: Push notifications to wake sync on remote changes
-- **Supabase Broadcast / Realtime**: Foreground invalidation hints for remote changes
+- **Supabase Broadcast / Realtime**: Foreground invalidation hints for remote changes, but only over server-issued opaque per-device channels
 
 ## Integration Points
 
@@ -141,7 +141,7 @@ Sync is **fully offline-capable**. All local operations queue changes to SQLite 
 - Connectivity service detects online transition
 - Quick sync should handle common freshness work
 - FCM push can wake sync remotely for background/closed-app changes
-- Supabase-originated hints should drive targeted foreground catch-up
+- Supabase-originated hints should drive targeted foreground catch-up through private opaque channels, not predictable tenant channels
 - User can also manually trigger a broader full sync from the main app chrome or sync dashboard
 
 ## Edge Cases & Limitations
@@ -159,6 +159,7 @@ Sync is **fully offline-capable**. All local operations queue changes to SQLite 
 The current foundation for the next sync phase is documented in:
 
 - `.claude/specs/2026-04-03-sync-strategy-codex-spec.md`
+- `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
 - `.codex/plans/2026-04-03-startup-sync-performance-plan.md`
 
 ## Detailed Specifications

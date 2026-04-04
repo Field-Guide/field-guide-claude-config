@@ -2,7 +2,7 @@
 feature: sync
 type: architecture
 scope: Cloud Synchronization & Multi-Backend Support
-updated: 2026-04-03
+updated: 2026-04-04
 ---
 
 # Sync Feature Architecture
@@ -95,6 +95,7 @@ updated: 2026-04-03
 | `SyncLifecycleManager` | `sync_lifecycle_manager.dart` | `WidgetsBindingObserver`. Triggers sync on lifecycle transitions; should evolve toward one-shot startup quick sync plus resume freshness checks. |
 | `BackgroundSyncHandler` | `background_sync_handler.dart` | WorkManager task runner. Runs in a fresh Dart isolate on Android/iOS. |
 | `FcmHandler` | `fcm_handler.dart` | Initializes Firebase Messaging, stores FCM tokens, and handles background/closed-app invalidation hints. Current `daily_sync` behavior is a baseline, not the target final shape. |
+| `RealtimeHintHandler` | `realtime_hint_handler.dart` | Foreground invalidation handler. Directionally, it should bind only to server-issued opaque private hint channels. |
 
 `BucketCount` is a value class defined alongside `SyncOrchestrator`. It holds `total` and a per-table `breakdown` map for grouped pending-count display on the dashboard.
 
@@ -282,6 +283,7 @@ Target remote invalidation model:
 ### Foreground
 
 - Supabase Broadcast / Realtime emits change hints while the app is open
+- the client must subscribe only to server-issued opaque per-device channels
 - client marks company/project/table scopes dirty
 - quick sync pulls only affected scopes when possible
 
@@ -295,6 +297,20 @@ Target remote invalidation model:
 
 - manual full sync remains available from the shared app chrome
 - broad pull sweep remains the safety-net path
+
+## Private Hint Channel Direction
+
+Foreground invalidation must not use predictable tenant-wide channels like `sync_hints:{company_id}`.
+
+Target model:
+
+- client persists a local `device_install_id`
+- auth-ready startup registers a private sync-hint subscription through an authenticated RPC
+- server returns an opaque channel name
+- client subscribes only to that opaque channel
+- server-side trigger fan-out resolves active device subscriptions for the company and broadcasts to each device channel
+
+This keeps Broadcast advisory and SQLite-first while eliminating predictable tenant-channel metadata leakage.
 
 ## Change Tracking Pattern
 
@@ -327,6 +343,11 @@ The major remaining architectural mismatch is:
 - pull is still a broad cursor-driven per-table sweep because the client does not yet have a proper remote delta feed
 
 That is the main reason `Quick sync` vs `Full sync` now exists as an intended architectural split.
+
+## Related Specs
+
+- `.claude/specs/2026-04-03-sync-strategy-codex-spec.md`
+- `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
 
 ## Circuit Breaker
 

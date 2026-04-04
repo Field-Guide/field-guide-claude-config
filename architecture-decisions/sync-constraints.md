@@ -13,6 +13,8 @@
 - MUST NOT default startup/foreground auto-sync to a broad full project-wide `pushAndPull()` path
 - MUST keep manual full sync available as an explicit fallback / recovery action
 - MUST treat Supabase Broadcast / Realtime and FCM as invalidation-hint channels, not as sources of truth replacing normal sync writes
+- MUST NOT use predictable tenant-wide Broadcast channels for foreground invalidation
+- MUST use server-issued opaque private hint channels for foreground Broadcast delivery when Broadcast is enabled
 
 ## Soft Guidelines (Violations = Discuss)
 
@@ -24,7 +26,7 @@
 - Run `OrphanScanner` to detect local records with no valid FK parent
 - Prefer `Quick sync`, `Full sync`, and `Maintenance sync` as separate orchestration modes
 - Prefer targeted remote invalidation over broad cursor sweeps when enough scope information is available
-- Use Supabase-originated hints for foreground responsiveness and FCM data messages for background / closed-app wake-up
+- Use Supabase-originated private-channel hints for foreground responsiveness and FCM data messages for background / closed-app wake-up
 - Keep profile/member pull and other housekeeping work off the critical foreground freshness path whenever practical
 
 ## Core Components
@@ -41,6 +43,7 @@
 | `StorageCleanup` | `engine/storage_cleanup.dart` | Deletes local files after successful remote upload |
 | `SyncControlService` | `engine/sync_control_service.dart` | Circuit-breaker state + health metrics for UI |
 | `FcmHandler` | `application/fcm_handler.dart` | Processes FCM push notifications that signal remote changes |
+| `RealtimeHintHandler` | `application/realtime_hint_handler.dart` | Processes foreground invalidation hints delivered over private opaque channels |
 | `SyncOrchestrator` | `application/sync_orchestrator.dart` | Multi-backend router (Supabase now, AASHTOWare future) |
 | `SyncLifecycleManager` | `application/sync_lifecycle_manager.dart` | Triggers sync on app foreground / reconnect |
 | `BackgroundSyncHandler` | `application/background_sync_handler.dart` | Schedules and runs background sync tasks |
@@ -109,6 +112,13 @@ Adapters are registered in `SyncRegistry` in FK dependency order (parents before
 - RLS denials are tracked in `SyncEngineResult.rlsDenials` and surfaced in the sync dashboard UI
 - `ScopeType` enum controls how each table's pull query filters by tenant: `direct` (company_id on the table), `viaProject` (joined through projects), `viaEntry` (joined through daily_entries), `viaContractor`, etc.
 
+## Security: Foreground Invalidation Channels
+
+- Foreground Broadcast delivery must use opaque server-issued channels, not `sync_hints:{company_id}`
+- Channel assignment must come from an authenticated server-side registration flow
+- Broadcast hints remain metadata-only invalidation signals
+- Record contents still require normal auth + RLS-protected sync pull
+
 ## Performance Targets
 
 - Single record sync: < 500ms
@@ -131,3 +141,4 @@ Adapters are registered in `SyncRegistry` in FK dependency order (parents before
 - See `lib/features/sync/config/sync_config.dart` for all configurable thresholds
 - See `lib/features/sync/engine/` for engine component implementations
 - See `lib/features/sync/adapters/` for all 22 concrete adapters
+- See `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md` for the private foreground hint channel direction

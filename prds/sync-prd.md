@@ -9,7 +9,7 @@ Sync ensures that data created offline on a mobile device reaches the cloud and 
 - Sync must distinguish between user-facing freshness work and heavier maintenance work.
 - The system should become smarter about remote changes by combining:
   - local `change_log` for incremental push
-  - Supabase-originated foreground invalidation hints
+  - Supabase-originated foreground invalidation hints delivered over server-issued opaque private channels
   - FCM background invalidation hints for wake-up and catch-up
 - A manual full-sync action must be available in the main app chrome, not only in Settings.
 
@@ -23,7 +23,7 @@ Sync ensures that data created offline on a mobile device reaches the cloud and 
 - Post-sync integrity: `IntegrityChecker` verifies FK relationships after every sync run; `OrphanScanner` finds and handles orphaned records
 - Concurrency guard: `SyncMutex` ensures only one sync run executes at a time
 - Remote invalidation:
-  - Supabase Broadcast / Realtime hints for foreground responsiveness
+  - Supabase Broadcast / Realtime hints for foreground responsiveness through opaque per-device channels
   - FCM data messages for background/closed-app wake-up
 - Lifecycle integration: `SyncLifecycleManager` starts fast freshness sync when appropriate and suspends it cleanly on background
 - Status reporting: idle, syncing, success, error, offline, authRequired states surfaced through `SyncProvider`
@@ -70,7 +70,7 @@ Sync ensures that data created offline on a mobile device reaches the cloud and 
 
 ### Remote Invalidation
 - `FcmHandler` receives FCM data messages that act as invalidation hints for background/closed-app catch-up
-- Supabase-originated invalidation hints are the preferred foreground signal for “what changed remotely”
+- Supabase-originated invalidation hints are the preferred foreground signal for “what changed remotely,” but they must not use predictable tenant-wide channels
 - Invalidation signals should identify scope, not force a blind full sync
 - Broad full-sync remains available as a fallback and user-invoked action
 
@@ -101,7 +101,18 @@ The `change_log` table is the offline mechanism. When offline, all mutations acc
 ## Dependencies
 - Features: projects, entries, photos, auth (Supabase session required for push/pull)
 - Packages: `supabase_flutter`, `sqflite`, `connectivity_plus`, `firebase_messaging`
-- Services: Supabase Broadcast / Realtime for foreground invalidation, FCM for background invalidation
+- Services: Supabase Broadcast / Realtime for foreground invalidation through private per-device channels, FCM for background invalidation
+
+## Security Direction
+
+- Foreground hint channels must be opaque and server-issued, not derived from `company_id`
+- Broadcast hints remain advisory metadata only
+- Real data access continues to flow through normal auth + RLS-protected sync reads
+
+## Related Specs
+
+- `.claude/specs/2026-04-03-sync-strategy-codex-spec.md`
+- `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
 
 ## Owner Agent
 backend-supabase-agent (remote schema, RLS, FCM), backend-data-layer-agent (change_log triggers, adapters, integrity checks)

@@ -90,6 +90,12 @@ It should not be the default startup behavior.
 
 Use Supabase-originated change hints while the app is open.
 
+Update 2026-04-04:
+
+- foreground hints should no longer use predictable tenant channels
+- Supabase Broadcast remains acceptable only through server-issued opaque private channels
+- see `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
+
 Expected hint payload shape:
 
 - `company_id`
@@ -112,7 +118,7 @@ Expected FCM behavior:
 
 ### Why Both Are Needed
 
-- Supabase Broadcast is best for live foreground responsiveness
+- Supabase Broadcast over private opaque channels is best for live foreground responsiveness
 - FCM is best for background wake-up and closed-app catch-up
 
 They solve different delivery problems and should complement each other.
@@ -128,7 +134,7 @@ They solve different delivery problems and should complement each other.
 
 ### Foreground Remote Change While App Is Open
 
-- Supabase hint arrives
+- private Supabase hint arrives
 - client marks scope dirty
 - quick targeted sync runs
 
@@ -182,4 +188,5 @@ The future sync system should satisfy:
 - `.claude/docs/features/feature-sync-overview.md`
 - `.claude/docs/features/feature-sync-architecture.md`
 - `.claude/architecture-decisions/sync-constraints.md`
+- `.claude/specs/2026-04-04-private-sync-hint-channels-codex-spec.md`
 - `.codex/plans/2026-04-03-startup-sync-performance-plan.md`

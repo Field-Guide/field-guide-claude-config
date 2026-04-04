@@ -10,6 +10,42 @@
 **Tech Stack:** Flutter/Dart, SQLite (sqflite), Supabase Realtime Broadcast, Firebase Cloud Messaging, Provider
 **Blast Radius:** 12 direct, 31 dependent, 40+ tests, 2 cleanup targets
 
+## Intent Guardrails From Spec
+
+These points are normative for every phase below. If a local optimization or convenience conflicts with them, the spec intent wins.
+
+- Startup and foreground sync must default to `Quick sync`, not a broad full sweep.
+- `Full sync` must remain an explicit, user-visible recovery action in main app chrome.
+- Remote freshness must be hint-driven (`Supabase Realtime` in foreground, `FCM` for background/closed-app recovery), and hints are invalidation signals only.
+- The existing SQLite `change_log` remains the push source of truth. Do not introduce per-record rollback state or a duplicate sync queue.
+- Dirty-scope pull granularity should prefer `project + table` when adapters allow it, and degrade to broader scopes only when current adapter constraints require it.
+- Background work should use `Maintenance sync` by default. Hidden fallback full syncs are acceptable only for explicit recovery cases.
+
+## Non-Goals Carried Forward From Spec
+
+- Replacing SQLite trigger-based change capture.
+- Replacing the adapter-based sync architecture.
+- Introducing real-time collaborative editing semantics.
+- Eliminating `Full sync` entirely.
+
+## Observability Requirement
+
+The spec calls out observability as part of the problem statement, so this plan must preserve that intent:
+
+- Quick, full, and maintenance paths must be distinguishable in logs and verification steps.
+- Trigger source and fallback reason must be visible (`startup`, `resume`, `manual`, `FCM`, `Realtime`, recovery).
+- Sync timing should make phase cost legible enough to tell whether time was spent in push, targeted pull, broad pull, or maintenance work.
+
+## Acceptance Intent
+
+Implementation is only complete when these user-level outcomes are true:
+
+1. App open feels fresh without paying a full sync cost on every launch or resume.
+2. A user can force a `Full sync` from the main app chrome without visiting Settings.
+3. Foreground remote changes can mark scope dirty and trigger a quick targeted catch-up.
+4. Background or closed-app remote changes can wake or defer work without defaulting to broad full sync.
+5. Multi-project users do not pay a broad project-wide sweep on every app open.
+
 ---
 
 ## Phase 1: Domain Types & Config
@@ -3866,6 +3902,16 @@ Confirm all new testing keys are properly structured:
 - Used in `sync_dashboard_screen.dart` on the `FilledButton.icon`
 
 The implementing agent should verify the key is accessible from test files via the `SyncTestingKeys` class.
+
+#### Step 8.5.4: Verify observability intent was preserved
+
+Confirm the final implementation makes sync mode and trigger cost legible in runtime logs:
+- Quick/full/maintenance runs log their mode and trigger source.
+- Quick sync logs whether it was push-only, targeted dirty-scope pull, or escalated to broader recovery behavior.
+- Full sync logs that it is explicit user action or recovery fallback, not default startup behavior.
+- Maintenance sync logs its deferred/background nature and the work performed (integrity/orphan/prune/company-member refresh).
+
+The implementing agent does not need a new telemetry system for this phase, but the resulting logs must be specific enough that a developer can explain sync phase cost from a single captured run.
 
 ---
 
