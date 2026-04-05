@@ -18,68 +18,11 @@ Cross-platform mobile/desktop app for construction inspectors. Offline-first wit
 ## Project Structure
 ```
 lib/
-├── core/
-│   ├── analytics/       # Analytics barrel
-│   ├── bootstrap/       # 8-phase app initialization (AppInitializer, CoreServices, etc.)
-│   ├── config/          # Supabase, Sentry, test mode, app terminology
-│   ├── database/        # SQLite schema (v50, 36 tables) + schema verifier
-│   │   └── schema/      # 15 domain schema files + barrel
-│   ├── design_system/   # 24 reusable app components (AppScaffold, AppDialog, AppText, etc.)
-│   ├── di/              # DI root (AppBootstrap, AppProviders, AppDependencies)
-│   ├── driver/          # HTTP test driver infrastructure (8 files)
-│   ├── logging/         # Logger + route observer
-│   ├── router/          # go_router setup + 7 route files
-│   └── theme/           # Theme data, DesignConstants, FieldGuideColors
-├── shared/
-│   ├── datasources/     # Base local/remote datasource classes
-│   ├── domain/          # Shared domain barrel
-│   ├── models/          # Shared models (PagedResult)
-│   ├── providers/       # Base ChangeNotifier providers (BaseListProvider, PagedListProvider)
-│   ├── repositories/    # Base repository class
-│   ├── services/        # PreferencesService
-│   ├── testing_keys/    # 16 widget test key files organized by feature
-│   ├── utils/           # Date, enum, string, math, navigation, snackbar utilities
-│   ├── validation/      # Reusable validators
-│   └── widgets/         # Shared UI widgets (empty state, permission dialog, etc.)
-├── features/            # 17 features (see Feature Inventory below)
-└── services/            # Cross-cutting: document, image, permission, photo, soft_delete, startup_cleanup
+├── core/       # Cross-cutting: bootstrap, config, database (v50, 36 tables), design_system (24 components), di, driver, logging, router, theme
+├── shared/     # Base classes, utilities, testing_keys, validators, widgets
+├── features/   # 17 feature modules (auth, calculator, contractors, dashboard, entries, forms, gallery, locations, pdf, photos, projects, quantities, settings, sync, todos, toolbox, weather)
+└── services/   # Cross-cutting: document, image, permission, photo, soft_delete, startup_cleanup
 ```
-
-### Feature Inventory
-| Feature | Layers |
-|---------|--------|
-| auth | data, domain, presentation, di, services |
-| calculator | data, domain, presentation, di |
-| contractors | data, domain, presentation, di |
-| dashboard | domain, presentation |
-| entries | data, domain, presentation, di |
-| forms | data, domain, presentation, di |
-| gallery | domain, presentation, di |
-| locations | data, domain, presentation, di |
-| pdf | data, domain, presentation, di, services |
-| photos | data, domain, presentation, di |
-| projects | data, domain, presentation, di |
-| quantities | data, domain, presentation, di, utils |
-| settings | data, domain, presentation, di |
-| sync | data, domain, presentation, di, application, engine, adapters, config |
-| todos | data, domain, presentation, di |
-| toolbox | domain, presentation |
-| weather | domain, presentation, di, services |
-
-## Key Files
-| File | Purpose |
-|------|---------|
-| `lib/main.dart` | Production entry point (Sentry, zone-guarded bootstrap) |
-| `lib/main_driver.dart` | Test/driver entry point (HTTP driver server) |
-| `lib/core/di/app_providers.dart` | All providers composed in tier order (Tier 0-5) |
-| `lib/core/bootstrap/app_initializer.dart` | Phased dependency creation and auth listener |
-| `lib/core/router/app_router.dart` | go_router routes (shell + full-screen) |
-| `lib/core/database/database_service.dart` | SQLite schema v50, 36 tables |
-| `lib/core/design_system/` | 24 app-level UI components |
-| `lib/features/sync/` | 5-layer sync system (see Sync Architecture) |
-| `lib/features/sync/application/sync_coordinator.dart` | Sync entry point (replaces SyncOrchestrator) |
-| `lib/features/sync/application/sync_query_service.dart` | Dashboard query surface |
-| `lib/features/sync/adapters/simple_adapters.dart` | 13 data-driven adapter configs |
 
 ## Data Flow
 ```
@@ -118,35 +61,11 @@ Domain:       SyncResult, SyncStatus, SyncErrorKind, ClassifiedSyncError, SyncDi
 ## Custom Lint Package
 `fg_lint_packages/field_guide_lints/` — 52 rules in 4 categories: architecture (23), data safety (11), sync integrity (10), test quality (8). CI-enforced via `quality-gate.yml`.
 
-## CI/CD
-3 workflows in `.github/workflows/`:
-
-| Workflow | Jobs | Purpose |
-|----------|------|---------|
-| `quality-gate.yml` | Analyze+Test, Architecture Validation, Security Scan | Main pipeline (push + PR) |
-| `stale-branches.yml` | 1 | Auto-delete merged branches |
-| `labeler.yml` | 1 | Auto-label PRs |
-
 ## Database
 - **Engine**: sqflite (mobile) + sqflite_common_ffi (desktop)
 - **Schema version**: 50
 - **Tables**: 36 (core 5, entries 3, contractors 2, personnel 2, quantities 2, photos 1, documents 1, toolbox 4, exports 2, consent 1, support 1, sync 8, extraction 2, certifications 1, storage_cleanup 1)
 - **Supabase**: 57 migrations, 1 edge function (`daily-sync-push`), Postgres 17, Realtime enabled
-
-## Domain Rules (lazy-loaded via paths: frontmatter)
-| Rule | Loads When |
-|------|------------|
-| `rules/architecture.md` | Any lib/**/*.dart |
-| `rules/platform-standards.md` | Android/iOS config files |
-| `rules/frontend/flutter-ui.md` | lib/**/presentation/** |
-| `rules/frontend/ui-prototyping.md` | mockups/** |
-| `rules/backend/data-layer.md` | lib/**/data/** |
-| `rules/backend/supabase-sql.md` | Supabase work |
-| `rules/auth/supabase-auth.md` | lib/features/auth/** |
-| `rules/pdf/pdf-generation.md` | lib/features/pdf/** |
-| `rules/sync/sync-patterns.md` | lib/features/sync/** |
-| `rules/database/schema-patterns.md` | lib/core/database/** |
-| `rules/testing/patrol-testing.md` | test/**, integration_test/** |
 
 ## Quick Reference Commands
 
@@ -189,30 +108,15 @@ Domain:       SyncResult, SyncStatus, SyncErrorKind, ClassifiedSyncError, SyncDi
 ## Pointers (on-demand, NOT auto-loaded)
 | What | Where |
 |------|-------|
-| Agents (13 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
+| Agents (10 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
 | Skills (12 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
 | Directory structure | `.claude/docs/directory-reference.md` |
-| Platform requirements | `.claude/rules/platform-standards.md` |
-| UI prototyping workflow | `.claude/rules/frontend/ui-prototyping.md` |
-| Testing setup & harnesses | `.claude/rules/testing/patrol-testing.md` |
-| Detailed project knowledge | `.claude/memory/MEMORY.md` |
-| Archives | `.claude/logs/state-archive.md` |
-| Audit system (backlogged) | `.claude/backlogged-plans/2026-02-15-audit-system-design.md` |
 | Embedded OCR package | `packages/flusseract/` |
 | HTTP test driver | `lib/core/driver/` (8 files), entrypoint: `main_driver.dart` |
 | Debug log server | `tools/debug-server/server.js` |
 | Build & test scripts | `tools/*.ps1`, `scripts/*.ps1` |
 | Supabase rollbacks | `supabase/rollbacks/` (manual, partial coverage) |
 | Golden tests | `test/golden/` (~95 baseline PNGs) |
-
-## Repositories
-| Repo | URL |
-|------|-----|
-| App Code | https://github.com/Field-Guide/construction-inspector-tracking-app |
-| Claude Config | https://github.com/Field-Guide/field-guide-claude-config |
-| CodeMunch Fork | https://github.com/RobertoChavez2433/dart_tree_sitter_fork |
-
-`.claude/` is gitignored from app repo and tracked separately.
 
 ## Context Efficiency
 - **Prefer parallel Agent calls** over `run_in_background`.
