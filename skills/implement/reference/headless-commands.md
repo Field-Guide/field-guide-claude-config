@@ -24,7 +24,7 @@ env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN 
   --tools "Read,Edit,Write,Glob,Grep,Bash" \
   --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pwsh*)" \
   --permission-mode acceptEdits \
-  --max-turns 80 \
+  --max-turns 200 \
   --output-format json \
   --json-schema '<IMPLEMENTER_SCHEMA>' \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/skills/implement/reference/worker-rules.md" \
@@ -75,7 +75,7 @@ env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN 
   --tools "Read,Edit,Write,Glob,Grep,Bash" \
   --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pwsh*)" \
   --permission-mode acceptEdits \
-  --max-turns 80 \
+  --max-turns 200 \
   --output-format json \
   --json-schema '<FIXER_SCHEMA>' \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/skills/implement/reference/worker-rules.md" \
@@ -140,7 +140,7 @@ See `findings-schema.json` for the canonical schema.
 | `--tools` | Declares available tools per agent type |
 | `--allowedTools` | Auto-approved tools (no permission prompts) |
 | `--permission-mode` | `acceptEdits` for writers, `dontAsk` for read-only |
-| `--max-turns` | Prevents runaway agents (80 implementers/fixers, 40 reviewers) |
+| `--max-turns` | Prevents runaway agents (200 implementers/fixers, 40 reviewers) |
 | `--output-format json` | Structured JSON with `structured_output` field |
 | `--json-schema` | Structured output schema — agent returns typed JSON in `structured_output` |
 | `--append-system-prompt-file` | Injects static rules (worker/reviewer) + agent definition |
