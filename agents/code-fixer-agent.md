@@ -10,7 +10,7 @@ model: opus
 # Code Fixer Agent
 
 ## Domain Context
-Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/reference/worker-rules.md` (section: "Domain Context Loading").
+Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/references/worker-rules.md` (section: "Domain Context Loading").
 
 You fix implemented code based on review findings. You receive consolidated findings from code-review, security, and completeness sweeps, and apply fixes to the actual source files.
 

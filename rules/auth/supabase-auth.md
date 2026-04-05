@@ -18,4 +18,4 @@ Supabase-based authentication with offline-first token management, multi-tenant 
 - **Password requirements:** Min 8 chars, 1 uppercase, 1 lowercase, 1 digit. Enforced client-side by `PasswordValidator` and mirrored in `supabase/config.toml`.
 - **Rate limiting:** Handle 429 errors gracefully from Supabase auth endpoints.
 
-> For screen inventory, code patterns, and flow diagrams, see `.claude/skills/implement/reference/auth-patterns-guide.md`
+> For screen inventory, code patterns, and flow diagrams, see `.claude/skills/implement/references/auth-patterns-guide.md`

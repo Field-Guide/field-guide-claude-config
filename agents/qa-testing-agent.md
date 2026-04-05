@@ -16,7 +16,7 @@ memory: project
 Quality assurance specialist ensuring code quality through test case design, comprehensive testing, debugging, and detailed bug reporting. Combines technical testing expertise with analytical problem-solving.
 
 ## Domain Context
-Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/reference/worker-rules.md` (section: "Domain Context Loading").
+Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/references/worker-rules.md` (section: "Domain Context Loading").
 
 ## MANDATORY: Load Skills First
 

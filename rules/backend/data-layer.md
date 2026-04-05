@@ -25,4 +25,4 @@ Data layer follows feature-first organization with offline-first sync via SQLite
 - **PRAGMAs via `rawQuery`** — Android API 36 rejects PRAGMA via `execute()`
 - **`is_builtin=1` rows are server-seeded** — triggers skip them, cascade-delete skips them, push skips them
 
-> For code patterns, templates, and examples, see `.claude/skills/implement/reference/data-layer-guide.md`
+> For code patterns, templates, and examples, see `.claude/skills/implement/references/data-layer-guide.md`

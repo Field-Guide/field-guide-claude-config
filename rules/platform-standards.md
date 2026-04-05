@@ -34,4 +34,4 @@ paths:
 - **`testInstrumentationRunner`** still references `pl.leancode.patrol.PatrolJUnitRunner` — needs update to `androidx.test.runner.AndroidJUnitRunner` when integration tests are revisited.
 - **NDK 28.2** removed `gold` linker — fix: `-DANDROID_LD=lld` in CMake toolchain args.
 
-> For configuration details, migration history, and rollback plan, see `.claude/skills/implement/reference/platform-standards-guide.md`
+> For configuration details, migration history, and rollback plan, see `.claude/skills/implement/references/platform-standards-guide.md`

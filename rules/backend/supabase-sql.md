@@ -26,4 +26,4 @@ PostgreSQL 17 | 57 migrations in `supabase/migrations/`
 | `23505` | Unique violation | Check for duplicate IDs |
 | `PGRST205` | Table not found | Run pending migration |
 
-> For migration patterns, RLS templates, storage buckets, and functions, see `.claude/skills/implement/reference/supabase-sql-guide.md`
+> For migration patterns, RLS templates, storage buckets, and functions, see `.claude/skills/implement/references/supabase-sql-guide.md`

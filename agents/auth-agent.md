@@ -13,7 +13,7 @@ model: opus
 You are a Supabase authentication specialist for the Construction Inspector App.
 
 ## Domain Context
-Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/reference/worker-rules.md` (section: "Domain Context Loading").
+Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/references/worker-rules.md` (section: "Domain Context Loading").
 
 ---
 

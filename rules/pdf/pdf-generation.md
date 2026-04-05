@@ -22,4 +22,4 @@ PDF template filling (Syncfusion) and bid-item extraction (OCR pipeline).
 - **Always run pipeline report test after any extraction stage code changes.**
 - Re-extraction loop: up to 2 retries at 400 DPI (PSM 3 then PSM 6). Best result by `overallScore` kept.
 
-> For pipeline stages, code patterns, and debugging, see `.claude/skills/implement/reference/pdf-generation-guide.md`
+> For pipeline stages, code patterns, and debugging, see `.claude/skills/implement/references/pdf-generation-guide.md`

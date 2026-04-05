@@ -57,4 +57,4 @@ RLS denials (42501) are permanent and MUST NOT be retried — they indicate a se
 - Never use raw SQL or direct change_log inserts for test data — use app UI (triggers won't fire otherwise)
 - SyncProvider no longer exposes `get orchestrator` — use `SyncQueryService` for dashboard data
 
-> For detailed diagrams, class inventories, and procedures, see .claude/skills/implement/reference/sync-patterns-guide.md
+> For detailed diagrams, class inventories, and procedures, see `.claude/skills/implement/references/sync-patterns-guide.md`

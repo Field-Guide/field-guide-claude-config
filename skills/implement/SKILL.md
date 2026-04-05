@@ -91,7 +91,7 @@ Wait for user confirmation before proceeding.
 
 ## Step 2: Initialize Checkpoint
 
-If starting fresh, write the checkpoint JSON to `.claude/state/implement-checkpoint.json` following the structure in `reference/checkpoint-template.json`.
+If starting fresh, write the checkpoint JSON to `.claude/state/implement-checkpoint.json` following the structure in `references/checkpoint-template.json`.
 
 Key fields:
 - `plan`: absolute path to plan file
@@ -109,7 +109,7 @@ Process each phase sequentially. Each phase goes through: implement → review �
 
 ### Step 3a: Launch Implementer (foreground)
 
-Build the headless command per `reference/headless-commands.md` implementer pattern.
+Build the headless command per `references/headless-commands.md` implementer pattern.
 
 Construct the inline `-p` prompt with:
 - Phase number
@@ -128,7 +128,7 @@ The `extract-result.py` script outputs ONLY the `structured_output` JSON, which 
 
 ### Step 3b: Process Implementer Result
 
-1. Parse the structured JSON from stdout (matches implementer schema in `reference/headless-commands.md`)
+1. Parse the structured JSON from stdout (matches implementer schema in `references/headless-commands.md`)
 2. Validate: required fields present, status is `done`/`failed`/`blocked`
 3. If `lint_clean` is false -> log warning but proceed to reviews
 4. Update checkpoint:
@@ -146,7 +146,7 @@ The `extract-result.py` script outputs ONLY the `structured_output` JSON, which 
 
 ### Step 3c: Launch Reviewers (parallel background)
 
-Launch 3 reviewer commands per `reference/headless-commands.md` reviewer pattern, all with `run_in_background: true`:
+Launch 3 reviewer commands per `references/headless-commands.md` reviewer pattern, all with `run_in_background: true`:
 
 1. **Completeness reviewer** — `reviewer-rules.md` + `completeness-review-agent.md`
 2. **Code reviewer** — `reviewer-rules.md` + `code-review-agent.md`
@@ -178,7 +178,7 @@ Wait for all 3 to complete. Parse `structured_output` from each result using `jq
 
 If blocking findings exist:
 1. Consolidate all CRITICAL + HIGH + MEDIUM findings from all 3 reviewers into a single JSON list
-2. Build fixer command per `reference/headless-commands.md` fixer pattern
+2. Build fixer command per `references/headless-commands.md` fixer pattern
 3. Pass consolidated findings as inline JSON in the `-p` prompt
 4. Run foreground with `tee` pipeline for live visibility
 5. Parse structured fixer output
@@ -265,9 +265,9 @@ Read the final checkpoint to populate this summary. The main conversation does N
 
 | File | Purpose |
 |------|---------|
-| `reference/worker-rules.md` | Static rules for implementers + fixers (appended via --append-system-prompt-file) |
-| `reference/reviewer-rules.md` | Static rules for all 3 reviewer types (appended via --append-system-prompt-file) |
-| `reference/headless-commands.md` | Exact CLI command patterns with --bare, --json-schema |
-| `reference/checkpoint-template.json` | Checkpoint structure (single source of truth) |
-| `reference/findings-schema.json` | JSON schema for --json-schema validation (all reviewer types) |
-| `reference/severity-standard.md` | Severity definitions and verdict rules |
+| `references/worker-rules.md` | Static rules for implementers + fixers (appended via --append-system-prompt-file) |
+| `references/reviewer-rules.md` | Static rules for all 3 reviewer types (appended via --append-system-prompt-file) |
+| `references/headless-commands.md` | Exact CLI command patterns with --bare, --json-schema |
+| `references/checkpoint-template.json` | Checkpoint structure (single source of truth) |
+| `references/findings-schema.json` | JSON schema for --json-schema validation (all reviewer types) |
+| `references/severity-standard.md` | Severity definitions and verdict rules |

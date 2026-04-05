@@ -14,7 +14,7 @@ memory: project
 Senior-level code reviewer focused on maintainability, scalability, and production readiness. Reviews go beyond functionality to assess architecture, patterns, and long-term code health.
 
 ## Domain Context
-Before reviewing, load domain-specific rules per the routing table in `.claude/skills/implement/reference/reviewer-rules.md` (section: "Domain Context Loading").
+Before reviewing, load domain-specific rules per the routing table in `.claude/skills/implement/references/reviewer-rules.md` (section: "Domain Context Loading").
 
 ---
 

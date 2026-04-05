@@ -1,5 +1,5 @@
 ---
-description: "Deep semantic audit of .claude/ docs against the current codebase. Validates paths, class references, security invariants, and generates doc-drift-map.json."
+description: "Deep semantic audit of .claude/ docs against the current codebase. Validates paths, class references, security invariants, and generates .claude/doc-drift-map.json."
 ---
 
 # /audit-docs
@@ -8,7 +8,7 @@ One-command deep audit of `.claude/` configuration against the live codebase. Re
 
 ## Flags
 
-- `--regen-map` — Skip phases 2-6, jump directly to phase 7 (regenerate mapping only)
+- `--regen-map` — Skip phases 2-5 and jump directly to phase 6 (regenerate mapping only)
 
 ## Iron Law
 
@@ -86,13 +86,13 @@ These checks are **immutable** — they cannot be auto-fixed, only reported.
 
 ## Phase 6: Regenerate Mapping
 
-Build fresh `doc-drift-map.json` from scan results:
+Build fresh `.claude/doc-drift-map.json` from scan results:
 
-1. Read existing `doc-drift-map.json` from app repo root (if present)
+1. Read existing `.claude/doc-drift-map.json` (if present)
 2. Rebuild `zones` from routing table + discovered patterns
 3. Rebuild `path_references` by grepping `.claude/` docs for explicit `lib/` paths
 4. Rebuild `global_checks` (new feature dirs, new agents/skills, workflow changes)
-5. Write to app repo root as `doc-drift-map.json`
+5. Write to `.claude/doc-drift-map.json`
 
 If `--regen-map` flag: skip phases 2-5, jump here directly.
 
@@ -135,7 +135,7 @@ If `--regen-map` flag: skip phases 2-5, jump here directly.
 ## Undocumented Patterns
 [pattern — location — suggested gotcha text]
 
-## doc-drift-map.json
+## .claude/doc-drift-map.json
 [regenerated/unchanged — zone count — path_references count]
 ```
 

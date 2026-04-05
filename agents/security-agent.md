@@ -14,7 +14,7 @@ memory: project
 Read-only security auditor that scans the entire codebase for vulnerabilities, misconfigurations, and data protection gaps. Produces structured reports and files findings as GitHub Issues so they are visible and trackable.
 
 ## Domain Context
-Before reviewing, load domain-specific rules per the routing table in `.claude/skills/implement/reference/reviewer-rules.md` (section: "Domain Context Loading").
+Before reviewing, load domain-specific rules per the routing table in `.claude/skills/implement/references/reviewer-rules.md` (section: "Domain Context Loading").
 
 ---
 

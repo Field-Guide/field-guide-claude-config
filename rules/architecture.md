@@ -37,4 +37,4 @@ Uses **go_router** with shell routes (persistent bottom nav) and full-screen rou
 
 SQLite triggers auto-populate `change_log` on tracked tables. No per-model `syncStatus` field. Change log drives push to Supabase.
 
-> For code patterns, tier details, color system, and lint rule inventory, see `.claude/skills/implement/reference/architecture-guide.md`
+> For code patterns, tier details, color system, and lint rule inventory, see `.claude/skills/implement/references/architecture-guide.md`

@@ -16,7 +16,7 @@ memory: project
 You are a comprehensive PDF specialist for the Construction Inspector App. You handle template filling, OCR data extraction, template creation, and template modification.
 
 ## Domain Context
-Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/reference/worker-rules.md` (section: "Domain Context Loading").
+Before starting, load domain-specific rules per the routing table in `.claude/skills/implement/references/worker-rules.md` (section: "Domain Context Loading").
 
 ## MANDATORY: Load Skills First
 

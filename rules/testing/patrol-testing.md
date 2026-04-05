@@ -36,4 +36,4 @@ Testing infrastructure for unit, golden, widget harness, and HTTP driver E2E tes
 | `lib/core/driver/screen_registry.dart` | Screen key -> widget builder mapping |
 | `lib/core/driver/flow_registry.dart` | Multi-screen journey definitions |
 
-> For run commands, harness setup, and flow details, see `.claude/skills/implement/reference/testing-guide.md`
+> For run commands, harness setup, and flow details, see `.claude/skills/implement/references/testing-guide.md`

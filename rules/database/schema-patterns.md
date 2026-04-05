@@ -22,4 +22,4 @@ paths:
 - **Use parameterized queries** — never hardcoded IDs in SQL strings.
 - Schema changes touch 5 files: `database_service.dart`, `schema/*.dart`, `schema_verifier.dart`, + 2 test files.
 
-> For code examples, migration templates, and debugging, see `.claude/skills/implement/reference/schema-patterns-guide.md`
+> For code examples, migration templates, and debugging, see `.claude/skills/implement/references/schema-patterns-guide.md`

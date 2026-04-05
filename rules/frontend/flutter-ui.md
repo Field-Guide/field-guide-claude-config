@@ -34,4 +34,4 @@ Lint rules A18–A23 enforce design system usage:
 ## Responsive Breakpoints
 - Mobile: < 600px | Tablet: 600–1200px | Desktop: > 1200px
 
-> For code patterns, UI examples, and component inventory, see `.claude/skills/implement/reference/flutter-ui-guide.md`
+> For code patterns, UI examples, and component inventory, see `.claude/skills/implement/references/flutter-ui-guide.md`
