@@ -41,6 +41,26 @@ Fix any violations before reporting completion. NEVER suppress with // ignore:.
 - No silent catch blocks (add Logger call)
 - No db.delete() (use soft-delete via datasource)
 
+## Domain Context Loading
+Before starting work, read the applicable rule files based on the files you will modify:
+
+| File pattern | Read before working |
+|-------------|-------------------|
+| lib/**/data/** | .claude/rules/backend/data-layer.md |
+| lib/core/database/** | .claude/rules/database/schema-patterns.md |
+| lib/**/presentation/**, lib/shared/widgets/** | .claude/rules/frontend/flutter-ui.md |
+| lib/features/sync/** | .claude/rules/sync/sync-patterns.md |
+| lib/features/auth/** | .claude/rules/auth/supabase-auth.md |
+| lib/features/pdf/** | .claude/rules/pdf/pdf-generation.md |
+| test/**, integration_test/** | .claude/rules/testing/patrol-testing.md |
+| .github/workflows/** | .claude/rules/ci-cd.md |
+| lib/core/di/**, lib/core/bootstrap/**, lib/core/router/** | .claude/rules/architecture.md |
+| supabase/** | .claude/rules/backend/supabase-sql.md |
+| android/**, ios/**, windows/** | .claude/rules/platform-standards.md |
+
+This is mandatory. Read the matching rule files before writing any code. After loading, print:
+[CONTEXT] Domain rules loaded: <filenames>
+
 ## Progress Reporting
 Print a status line after each sub-step:
 ```

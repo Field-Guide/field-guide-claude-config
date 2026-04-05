@@ -265,13 +265,13 @@ Expected: No issues
 
 | File Pattern | Agent |
 |-------------|-------|
-| `lib/**/presentation/**` | `frontend-flutter-specialist-agent` |
-| `lib/**/data/**` | `backend-data-layer-agent` |
-| `lib/core/database/**` | `backend-data-layer-agent` |
+| `lib/**/presentation/**` | `code-fixer-agent` |
+| `lib/**/data/**` | `code-fixer-agent` |
+| `lib/core/database/**` | `code-fixer-agent` |
 | `lib/features/auth/**` | `auth-agent` |
 | `lib/features/pdf/**` | `pdf-agent` |
-| `lib/features/sync/**` | `backend-supabase-agent` |
-| `supabase/**` | `backend-supabase-agent` |
+| `lib/features/sync/**` | `code-fixer-agent` |
+| `supabase/**` | `code-fixer-agent` |
 | `test/**`, `integration_test/**` | `qa-testing-agent` |
 | Multiple domains or `.claude/` config | `general-purpose` |
 

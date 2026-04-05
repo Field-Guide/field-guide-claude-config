@@ -341,7 +341,7 @@ On resume (after compaction or `--resume`):
 When a flow fails with 404 (widget not found):
 1. Record the missing key name
 2. Continue executing remaining flows in the tier
-3. After tier completes, spawn a **background** Task agent (`frontend-flutter-specialist-agent`) to:
+3. After tier completes, spawn a **background** Task agent (`code-fixer-agent`) to:
    - Find the widget in presentation code
    - Add the key constant to the appropriate `testing_keys/*.dart` file
    - Add the `Key` to the widget

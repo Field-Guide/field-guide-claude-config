@@ -1,7 +1,7 @@
 ---
 name: interface-design
 description: Flutter design system and UI tokens
-agent: frontend-flutter-specialist-agent
+agent: code-fixer-agent
 ---
 
 # Interface Design Skill
