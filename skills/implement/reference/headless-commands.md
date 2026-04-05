@@ -4,48 +4,48 @@ Exact CLI commands for each agent type. All paths MUST be absolute.
 
 **Base path**: `C:/Users/rseba/Projects/Field_Guide_App`
 
-**Output model**: All agents use `--bare` for clean headless execution and `--json-schema` for
-structured output. No files are written by agents — everything flows through stdout.
+**Auth model**: All agents use `-p` (print mode) which inherits OAuth credentials from the
+logged-in `claude` CLI. `--bare` is NOT used because it skips OAuth and requires `ANTHROPIC_API_KEY`.
 
-**Live visibility**: Foreground agents pipe through `tee` to show tool calls on terminal via
-`stream-filter.py`, then `extract-result.py` extracts only the `structured_output` JSON.
+**Output model**: All agents use `--output-format json` with `--json-schema` for structured output.
+The orchestrator extracts `structured_output` from the JSON result using `jq '.structured_output'`.
 
-**Background agents**: Use `--output-format json` (not stream-json) since there's no terminal
-to stream to. Parse `structured_output` from the JSON result directly.
+**Nested session bypass**: `env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN`
+removes parent-session env vars so the child `claude` process starts a clean session with its own OAuth auth.
 
 ---
 
-## Implementer (foreground, live visibility)
+## Implementer (foreground)
 
 ```bash
-CLAUDECODE= claude --bare \
-  -p "You are implementing Phase N. Read the plan at <PLAN_PATH> (lines X-Y for your phase). Read the spec at <SPEC_PATH>. Implement exactly as specified. Run lint verification before completing." \
+env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN claude \
+  -p "PROMPT_HERE" \
   --model sonnet \
   --tools "Read,Edit,Write,Glob,Grep,Bash" \
   --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pwsh*)" \
   --permission-mode acceptEdits \
   --max-turns 80 \
-  --output-format stream-json \
-  --verbose \
+  --output-format json \
   --json-schema '<IMPLEMENTER_SCHEMA>' \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/skills/implement/reference/worker-rules.md" \
   --no-session-persistence \
-  2>&1 | tee >(python3 .claude/tools/stream-filter.py > /dev/tty) \
-  | python3 .claude/tools/extract-result.py
+  2>&1
 ```
 
-Replace `N` with the phase number, `<PLAN_PATH>` and `<SPEC_PATH>` with absolute paths,
-and `X-Y` with the line range for the phase in the plan file.
+The orchestrator parses `structured_output` from the JSON result via:
+```bash
+... | python3 -c "import sys,json; d=json.loads(sys.stdin.read()); print(json.dumps(d.get('structured_output',{})))"
+```
 
-The `-p` prompt is constructed inline by the orchestrator — no prompt files.
+Replace the prompt with the phase-specific instructions. The `-p` prompt is constructed inline by the orchestrator — no prompt files.
 
 ---
 
 ## Reviewer (background, parallel x3)
 
 ```bash
-CLAUDECODE= claude --bare \
-  -p "Review Phase N implementation. Plan: <PLAN_PATH> (lines X-Y). Spec: <SPEC_PATH>. Files to review: <FILE_LIST>. You are the <TYPE> reviewer." \
+env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN claude \
+  -p "PROMPT_HERE" \
   --model opus \
   --tools "Read,Glob,Grep" \
   --allowedTools "Read,Glob,Grep" \
@@ -55,7 +55,8 @@ CLAUDECODE= claude --bare \
   --json-schema '<FINDINGS_SCHEMA>' \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/skills/implement/reference/reviewer-rules.md" \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/agents/<TYPE>-agent.md" \
-  --no-session-persistence
+  --no-session-persistence \
+  2>&1
 ```
 
 Replace `<TYPE>` with one of:
@@ -63,29 +64,24 @@ Replace `<TYPE>` with one of:
 - `code-review` (uses `code-review-agent.md`)
 - `security` (uses `security-agent.md`)
 
-Reviewers use `--output-format json` (not stream-json) since they run in background.
-Result is compact findings JSON parsed from `structured_output`.
-
 ---
 
-## Fixer (foreground, live visibility)
+## Fixer (foreground)
 
 ```bash
-CLAUDECODE= claude --bare \
-  -p "Fix these findings. Plan: <PLAN_PATH>. Spec: <SPEC_PATH>. Only fix CRITICAL, HIGH, and MEDIUM findings. Skip LOW. Findings: <CONSOLIDATED_FINDINGS_JSON>" \
+env -u CLAUDECODE -u CLAUDE_CODE_ENTRYPOINT -u CLAUDE_CODE_SESSION_ACCESS_TOKEN claude \
+  -p "PROMPT_HERE" \
   --model sonnet \
   --tools "Read,Edit,Write,Glob,Grep,Bash" \
   --allowedTools "Read,Edit,Write,Glob,Grep,Bash(pwsh*)" \
   --permission-mode acceptEdits \
   --max-turns 80 \
-  --output-format stream-json \
-  --verbose \
+  --output-format json \
   --json-schema '<FIXER_SCHEMA>' \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/skills/implement/reference/worker-rules.md" \
   --append-system-prompt-file "C:/Users/rseba/Projects/Field_Guide_App/.claude/agents/code-fixer-agent.md" \
   --no-session-persistence \
-  2>&1 | tee >(python3 .claude/tools/stream-filter.py > /dev/tty) \
-  | python3 .claude/tools/extract-result.py
+  2>&1
 ```
 
 ---
@@ -138,16 +134,14 @@ See `findings-schema.json` for the canonical schema.
 
 | Flag | Purpose |
 |------|---------|
-| `CLAUDECODE=` | Bypass nested-session protection (replaces `unset CLAUDECODE`) |
-| `--bare` | Headless mode — no interactive UI, clean context |
+| `env -u CLAUDECODE ...` | Remove parent-session env vars so child authenticates independently |
+| `-p` | Print mode — non-interactive, inherits OAuth from `~/.claude/.credentials.json` |
 | `--model` | `sonnet` for implementers/fixers, `opus` for reviewers |
 | `--tools` | Declares available tools per agent type |
 | `--allowedTools` | Auto-approved tools (no permission prompts) |
 | `--permission-mode` | `acceptEdits` for writers, `dontAsk` for read-only |
 | `--max-turns` | Prevents runaway agents (80 implementers/fixers, 40 reviewers) |
-| `--output-format` | `stream-json` (foreground) or `json` (background) |
-| `--verbose` | Include tool calls in stream (foreground only) |
-| `--json-schema` | Structured output schema — agent returns typed JSON |
+| `--output-format json` | Structured JSON with `structured_output` field |
+| `--json-schema` | Structured output schema — agent returns typed JSON in `structured_output` |
 | `--append-system-prompt-file` | Injects static rules (worker/reviewer) + agent definition |
 | `--no-session-persistence` | Ephemeral — don't pollute session history |
-| `tee >(...) \| extract-result.py` | Live visibility + clean structured output extraction |
