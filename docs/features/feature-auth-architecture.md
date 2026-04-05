@@ -218,7 +218,7 @@ New users pass through: `ProfileSetupScreen` → `CompanySetupScreen` → either
 
 | Feature | Relationship |
 |---------|-------------|
-| **Sync** | Auth provides user context (`userId`, `companyId`) required by the sync orchestrator for row-level ownership and filtering |
+| **Sync** | Auth provides user context (`userId`, `companyId`) required by the sync coordinator / engine for row-level ownership and filtering |
 | **Settings** | Settings screens display and edit user profile fields; `AdminProvider` (wired here) drives the company member management UI |
 | **Entries** | `UserAttributionRepository` + `UserAttributionText` widget provide display names for log entry attribution |
 | **All features** | `AuthProvider.isAuthenticated` gates navigation — unauthenticated users are redirected to `LoginScreen` by the router |

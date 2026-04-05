@@ -55,15 +55,20 @@ syncService.onProgressUpdate = (int processed, int? total) {
 };
 ```
 
-### Using with Orchestrator
+### Using with SyncCoordinator
 
 ```dart
-import 'package:construction_inspector/features/sync/application/sync_orchestrator.dart';
+import 'package:construction_inspector/features/sync/application/sync_coordinator_builder.dart';
 
-final orchestrator = SyncOrchestrator(databaseService);
-await orchestrator.initialize();
+final coordinator = SyncCoordinatorBuilder()
+  ..dbService = databaseService
+  ..supabaseClient = supabase
+  ..syncContextProvider = () => (companyId: companyId, userId: userId);
 
-orchestrator.onProgressUpdate = (processed, total) {
+final syncCoordinator = coordinator.build();
+await syncCoordinator.initialize();
+
+syncCoordinator.onProgressUpdate = (processed, total) {
   // Update UI progress indicator
   setState(() {
     _syncProgress = total != null ? processed / total : null;
@@ -71,13 +76,20 @@ orchestrator.onProgressUpdate = (processed, total) {
   });
 };
 
-await orchestrator.syncLocalAgencyProjects();
+await syncCoordinator.syncLocalAgencyProjects();
 ```
 
 ### UI Progress Indicator Example
 
 ```dart
 class SyncProgressWidget extends StatefulWidget {
+  const SyncProgressWidget({
+    super.key,
+    required this.syncCoordinator,
+  });
+
+  final SyncCoordinator syncCoordinator;
+
   @override
   State<SyncProgressWidget> createState() => _SyncProgressWidgetState();
 }
@@ -91,7 +103,7 @@ class _SyncProgressWidgetState extends State<SyncProgressWidget> {
     super.initState();
 
     // Wire up progress callback
-    context.read<SyncProvider>().syncOrchestrator.onProgressUpdate =
+    widget.syncCoordinator.onProgressUpdate =
       (processed, total) {
         if (mounted) {
           setState(() {
@@ -211,7 +223,7 @@ final result = await syncService.syncAll();
 | `lib/features/sync/data/adapters/` (adapter base) | Added `onProgressUpdate` callback |
 | `lib/features/sync/engine/sync_engine.dart` | Wired progress to engine (Supabase I/O handled directly) |
 | `lib/features/sync/data/adapters/mock_sync_adapter.dart` | Added progress stub |
-| `lib/features/sync/application/sync_orchestrator.dart` | Added progress passthrough |
+| `lib/features/sync/application/sync_coordinator.dart` | Progress callback passthrough |
 
 ### Key Methods
 
