@@ -6,9 +6,13 @@
 **Spec:** `.claude/specs/2026-04-04-sync-engine-refactor-spec.md`
 **Tailor:** `.claude/tailor/2026-04-04-sync-engine-refactor/`
 
-**Architecture:** Extract SyncEngine into PushHandler, PullHandler, SupabaseSync, LocalSyncStore, FileSyncHandler, SyncErrorClassifier, EnrollmentHandler, FkRescueHandler, and MaintenanceHandler. Consolidate triple status tracking into immutable SyncStatus with stream. Refactor SyncOrchestrator into SyncCoordinator with extracted control-plane abstractions (SyncRetryPolicy, ConnectivityProbe, SyncTriggerPolicy, PostSyncHooks). Reduce 24 adapter files to ~15 via data-driven AdapterConfig.
+**Architecture:** Extract SyncEngine into PushHandler, PullHandler, SupabaseSync, LocalSyncStore, FileSyncHandler, SyncErrorClassifier, EnrollmentHandler, FkRescueHandler, and MaintenanceHandler. Consolidate triple status tracking into immutable SyncStatus with stream. Refactor SyncOrchestrator into SyncCoordinator with extracted control-plane abstractions (SyncRetryPolicy, ConnectivityProbe, SyncTriggerPolicy, PostSyncHooks). Reduce 24 adapter files to the approved ~12 target by moving 13 simple adapters to data-driven AdapterConfig registration.
 **Tech Stack:** Dart/Flutter, sqflite, supabase_flutter, provider
 **Blast Radius:** 42 direct files, 68 total (2-hop), 77 existing test files, 296 dead code cleanup targets
+
+**Scope guardrail:** This plan follows the approved spec as-written. If implementation analysis proves any approved target cannot be met exactly (for example, adapter reduction, ownership boundaries, or verification gates), stop and raise an explicit spec addendum for approval instead of silently weakening this plan.
+
+**Standards alignment note:** The approved spec intentionally introduces sync-specific I/O boundary classes (`LocalSyncStore`, `SupabaseSync`) under `lib/features/sync/engine/` even though the generic backend rule normally places local/remote I/O under feature `data/`. Treat that as an explicit sync exception that must be documented in Phase 9; do not silently re-home or re-scope those boundary classes without an approved spec addendum.
 
 ---
 
@@ -25,7 +29,8 @@
 - Tests use `buildNullSupabase()` from `test/helpers/sync/sync_engine_test_helpers.dart` for placeholder Supabase client
 - Tests import the CURRENT monolith classes directly -- no mocks for the system under test
 - Each test file is a standalone `void main()` with `setUpAll(sqfliteFfiInit)`, `setUp`, `tearDown`
-- No `flutter test` steps -- verification is via `pwsh -Command "flutter analyze"` and CI
+- Run targeted `flutter test` for each characterization file as it is written; `flutter analyze` is necessary but not sufficient for Layer 1
+- Each characterization phase exits only when the new characterization file actually passes locally and then remains green in CI
 
 ---
 
@@ -236,7 +241,11 @@ void main() {
 }
 ```
 
-**Verification**: `pwsh -Command "flutter analyze --no-fatal-infos"`
+**Implementation guardrail:** The scaffold above is illustrative, not the phase exit. The final characterization file must intercept and assert the exact outbound upsert payload for every registered adapter/table, including file adapters and any custom per-table routing. Trigger-creation smoke tests and `convertForRemote()` spot checks alone do **not** satisfy the approved Layer 1 contract.
+
+**Verification**:
+- `pwsh -Command "flutter test test/features/sync/characterization/characterization_push_upsert_test.dart"`
+- `pwsh -Command "flutter analyze --no-fatal-infos"`
 
 ---
 
@@ -1137,7 +1146,11 @@ void main() {
 }
 ```
 
-**Verification**: `pwsh -Command "flutter analyze --no-fatal-infos"`
+**Implementation guardrail:** The final characterization file must assert the exact Supabase-side filter/query inputs produced for every adapter and scope shape, not only adapter metadata (`scopeType`, `pullFilter`, `skipPull`). Metadata-only assertions are insufficient for the approved Layer 1 contract.
+
+**Verification**:
+- `pwsh -Command "flutter test test/features/sync/characterization/characterization_pull_scope_test.dart"`
+- `pwsh -Command "flutter analyze --no-fatal-infos"`
 
 ---
 
@@ -4257,7 +4270,7 @@ The existing SyncEngine, SyncOrchestrator, and SyncProvider are completely untou
 
 ## Phase 2: Extract I/O Boundaries (LocalSyncStore + SupabaseSync)
 
-Phase 2 creates the two foundational I/O boundary classes that every subsequent handler depends on. After this phase, no class outside `LocalSyncStore` touches `Database` for sync operations, and no class outside `SupabaseSync` touches `SupabaseClient` for sync row I/O.
+Phase 2 creates the two foundational I/O boundary classes that every subsequent handler depends on. The approved end state is stricter than the current code: no class in `lib/features/sync/engine/` may depend directly on `Database` or `SupabaseClient` except `LocalSyncStore` and `SupabaseSync`. Any currently well-scoped helper that still takes raw handles after extraction must be wrapped behind narrower collaborators or updated before the overall refactor closes.
 
 **Prerequisite**: Phase 1 complete (SyncErrorClassifier, ClassifiedSyncError, SyncErrorKind exist in `lib/features/sync/engine/sync_error_classifier.dart` and `lib/features/sync/domain/sync_error.dart`).
 
@@ -5168,11 +5181,9 @@ class LocalSyncStore {
   //
   // NOTE (Finding 27): The enrollment query logic below (reconcileSyncedProjects,
   // enrollProjectsFromAssignments) contains domain-level decisions (which projects
-  // to enroll, orphan cleanup thresholds). In a follow-up, this logic should
-  // migrate from LocalSyncStore to EnrollmentHandler, keeping LocalSyncStore
-  // as a thin SQL wrapper. LocalSyncStore would retain only the raw SQL methods
-  // (enrollProject, loadSyncedProjectIds) while EnrollmentHandler owns the
-  // orchestration logic.
+  // to enroll, orphan cleanup thresholds). Phase 4 completes this migration:
+  // LocalSyncStore ends as a thin SQL wrapper, while EnrollmentHandler owns the
+  // orchestration and policy decisions before the phase can close.
 
   /// Reconcile synced_projects from current assignments.
   /// FROM SPEC: SyncEngine._reconcileSyncedProjects (sync_engine.dart:2097-2128)
@@ -8865,6 +8876,8 @@ SyncEngine createEngine({
 }
 ```
 
+**Boundary guardrail:** The factory sketch above is an intermediate assembly view, not permission for the final merged engine layer to keep raw `Database` / `SupabaseClient` dependencies outside `LocalSyncStore` and `SupabaseSync`. Before the refactor closes, any helper that still needs raw access must either move behind those boundaries or depend on narrower collaborators/interfaces that preserve the spec's engine-ownership rule.
+
 Also update `SyncEngine.createForBackgroundSync` (now a factory function that uses the same handler construction pattern).
 
 #### Step 5.2.3: Update SyncOrchestrator to work with new SyncEngine
@@ -8947,7 +8960,7 @@ Expected: Only pre-existing engine classes that pre-date the I/O boundary should
 
 Phase 6 extracts four focused classes from SyncOrchestrator and SyncLifecycleManager that encapsulate retry policy, connectivity checking, lifecycle trigger decisions, and post-sync hooks. These classes make the control-plane behavior testable and injectable, breaking the implicit callback mesh that currently couples the application layer.
 
-**Depends on**: Phase 5 (SyncEngine slim coordinator complete)
+**Depends on**: Phase 5 merged (SyncEngine slim coordinator complete)
 
 **Verification gate**: All characterization tests green, all existing sync tests green via CI, all new contract + isolation tests green, `flutter analyze` zero violations.
 
@@ -8958,6 +8971,7 @@ Phase 6 extracts four focused classes from SyncOrchestrator and SyncLifecycleMan
 **Files:**
 - Create: `lib/features/sync/application/sync_retry_policy.dart`
 - Test: `test/features/sync/application/sync_retry_policy_contract_test.dart`
+- Test: `test/features/sync/application/sync_retry_policy_test.dart`
 
 **Agent**: backend-supabase-agent
 
@@ -9319,6 +9333,7 @@ class SupabaseConnectivityProbe implements ConnectivityProbe {
 **Files:**
 - Create: `lib/features/sync/application/sync_trigger_policy.dart`
 - Test: `test/features/sync/application/sync_trigger_policy_contract_test.dart`
+- Test: `test/features/sync/application/sync_trigger_policy_test.dart`
 
 **Agent**: backend-supabase-agent
 
@@ -9759,6 +9774,8 @@ Key changes in the file:
 - Import `sync_trigger_policy.dart` and `connectivity_probe.dart`
 - Replace the inline staleness/mode decision tree in `_handleResumed()` with a call to `SyncTriggerPolicy.evaluateResume()`
 - Replace `_syncOrchestrator.checkDnsReachability()` with `_connectivityProbe.checkReachability()`
+- Preserve the existing `onAppResumed` security/config preflight and keep it strictly before any sync-policy evaluation or startup/resume trigger
+- Preserve `consumePendingBackgroundHintMode()` semantics, including the persisted handoff from `fcm_background_callback.dart`, dirty-scope rehydration, and clearing of `fcm_background_hint_*` state after consumption
 
 IMPORTANT: The `SyncLifecycleManager` constructor signature changes from `SyncLifecycleManager(this._syncOrchestrator)` to accept an optional `ConnectivityProbe` parameter. This preserves backward compatibility since `ConnectivityProbe` is an interface with a default implementation.
 
@@ -9782,7 +9799,7 @@ Run all existing sync lifecycle manager tests and characterization tests to conf
 
 #### Step 6.6.2: Run all sync tests via CI
 
-Push branch, open PR, verify CI green (all characterization tests, all existing tests, all new P6 contract tests).
+Push branch, open PR, verify CI green (all characterization tests, all existing tests, all new P6 contract tests, all new P6 isolation tests).
 
 ---
 
@@ -9790,7 +9807,9 @@ Push branch, open PR, verify CI green (all characterization tests, all existing 
 
 Phase 7 eliminates the remaining layer violations: SQL queries in the orchestrator, raw orchestrator exposure in the provider, Postgres error code matching in the presentation layer, and upward dependencies from sync into auth. It introduces SyncQueryService for dashboard queries, replaces SyncOrchestrator with SyncCoordinator, and refactors SyncProvider to subscribe to typed status/diagnostics rather than owning independent state.
 
-**Depends on**: Phase 6 (control-plane abstractions complete)
+**Phase-order rule:** Every dependency in this phase means the prerequisite phase PR is merged, not merely code-complete on a branch. Do not begin a later phase until the prior phase merge gate from the approved spec is satisfied.
+
+**Depends on**: Phase 6 merged (control-plane abstractions complete)
 
 **Verification gate**: All characterization tests green, all existing sync tests green via CI, all new tests green, `flutter analyze` zero violations.
 
@@ -9860,13 +9879,10 @@ import 'package:construction_inspector/shared/utils/safe_row.dart';
 /// SyncQueryService provides a clean query surface that SyncProvider and dashboard
 /// screens can consume without reaching through the orchestrator.
 ///
-/// NOTE (Finding 12): The spec dependency diagram shows SyncQueryService -> LocalSyncStore
-/// -> Database. During the transition, SyncQueryService depends on DatabaseService
-/// directly because LocalSyncStore does not yet expose all needed query methods
-/// (pending buckets grouped by bucket, integrity JSON parsing, conflict counts).
-/// The implementing agent should add these query methods to LocalSyncStore and
-/// migrate SyncQueryService to depend on LocalSyncStore instead of DatabaseService
-/// as a follow-up within this phase or in a subsequent PR.
+/// NOTE (Finding 12): The approved end state is SyncQueryService -> LocalSyncStore
+/// -> Database. If DatabaseService is used for an intermediate compileable step
+/// inside this phase, the phase does not exit until the required query methods
+/// exist on LocalSyncStore and SyncQueryService depends on LocalSyncStore only.
 class SyncQueryService {
   final DatabaseService _dbService;
 
@@ -10053,12 +10069,25 @@ class SyncQueryService {
 
 **Verify**: `pwsh -Command "flutter analyze lib/features/sync/application/sync_query_service.dart"` -- expected: 0 issues found.
 
+#### Step 7.1.3: Collapse remaining query access behind LocalSyncStore
+
+Before Phase 7 can close, move any temporary `DatabaseService` reads used by `SyncQueryService` into explicit `LocalSyncStore` query methods so the final ownership matches the approved architecture:
+
+- `getPendingBuckets()`
+- `getIntegrityResults()`
+- `getUndismissedConflictCount()`
+- `getLastSyncTime()`
+- any persisted diagnostics inputs used by `assembleDiagnostics()`
+
+Phase-exit requirement: `SyncQueryService` depends on `LocalSyncStore`, not `DatabaseService`, in the merged state.
+
 ---
 
 ### Sub-phase 7.2: Create SyncCoordinator (replaces SyncOrchestrator)
 
 **Files:**
 - Create: `lib/features/sync/application/sync_coordinator.dart`
+- Test: `test/features/sync/application/sync_coordinator_test.dart`
 - Modify: `lib/features/sync/application/sync_orchestrator.dart` (add deprecation, delegate to SyncCoordinator or retain temporarily as facade)
 
 **Agent**: backend-supabase-agent
@@ -10083,6 +10112,7 @@ The implementing agent must:
 5. Replace `checkDnsReachability()` body with `_connectivityProbe.checkReachability()`
 6. Replace post-sync hook code (lines 324-349) with `_postSyncHooks.runAfterSuccess()`
 7. Keep: `_createEngine()`, `syncLocalAgencyProjects()`, `_syncWithRetry()` (using new retry policy), `_doSync()`, callback fields, `dispose()`
+8. Add a dedicated `sync_coordinator_test.dart` covering retry/backoff delegation, status-store updates, post-sync hook execution, cancellation of scheduled background retry on manual sync, and callback forwarding so the new class meets the spec's per-class test requirement
 
 IMPORTANT: During the transition, `SyncOrchestrator` must remain importable (16 production files + 14 test files depend on it). The strategy is:
 - Create `SyncCoordinator` as the clean replacement
@@ -10093,6 +10123,8 @@ IMPORTANT: During the transition, `SyncOrchestrator` must remain importable (16 
 Target: `lib/features/sync/application/sync_coordinator.dart` at approximately 220 lines (down from 730 in SyncOrchestrator).
 
 **Verify**: `pwsh -Command "flutter analyze lib/features/sync/application/sync_coordinator.dart"` -- expected: 0 issues found.
+
+**Test gate**: `pwsh -Command "flutter test test/features/sync/application/sync_coordinator_test.dart"`
 
 #### Step 7.2.2: Add deprecation facade to SyncOrchestrator
 
@@ -10128,9 +10160,9 @@ Modify `lib/features/sync/presentation/providers/sync_provider.dart`:
 
 5. **Remove the `BucketCount` re-export** from line 7 (`export '../../application/sync_orchestrator.dart' show BucketCount;`) and replace with import from `sync_query_service.dart`.
 
-6. **Update `isOnline` getter** to read from `ConnectivityProbe` (via SyncCoordinator) instead of `_syncOrchestrator.isSupabaseOnline`.
+6. **Update `isOnline` getter** to read from the subscribed `SyncStatus` value (`SyncStatus.isOnline`) instead of reaching through to `ConnectivityProbe` or the coordinator.
 
-7. **Update `lastSyncTime` getter** to read from SyncQueryService or SyncCoordinator's tracked value instead of falling back to `_syncOrchestrator.lastSyncTime`.
+7. **Update `lastSyncTime` getter** to read from the subscribed `SyncStatus.lastSyncedAt`. `SyncQueryService` remains for diagnostics/query data, not transport state.
 
 Key changes to the constructor signature:
 ```dart
@@ -10149,6 +10181,7 @@ Key changes to `_setupListeners()`:
 - Wire `_coordinator.onCircuitBreakerTrip` (same as before)
 - Wire `_coordinator.onStatusChanged` (same as before)
 - Wire `_coordinator.onSyncComplete` -- replace `_sanitizeSyncError(raw)` with using the user-safe message that the SyncResult now carries (via ClassifiedSyncError enrichment from P1)
+- Subscribe to the coordinator/status store stream and keep a local current `SyncStatus` snapshot so all transport getters (`isSyncing`, `isOnline`, `lastSyncTime`, current error summary) flow from the single source of truth required by the spec
 
 Key changes to sync trigger methods:
 ```dart
@@ -10165,6 +10198,25 @@ Future<SyncResult> fullSync() async {
 
 **Verify**: `pwsh -Command "flutter analyze lib/features/sync/presentation/providers/sync_provider.dart"` -- expected: 0 issues found.
 
+### Sub-phase 7.3b: Update dashboard diagnostics consumers
+
+**Files:**
+- Modify: `lib/features/sync/presentation/screens/sync_dashboard_screen.dart`
+
+**Agent**: frontend-flutter-specialist-agent
+
+#### Step 7.3b.1: Remove dashboard dependence on `SyncProvider.orchestrator`
+
+Update `lib/features/sync/presentation/screens/sync_dashboard_screen.dart` so it no longer reaches through `syncProvider.orchestrator` after the getter is removed:
+
+1. Read pending buckets from `SyncProvider` as before
+2. Read integrity/conflict diagnostics through new provider/query-service-backed getters or a typed diagnostics surface, not raw orchestrator exposure
+3. Preserve existing loading/error handling and dashboard card behavior
+
+Phase-exit requirement: no presentation-layer production code references `SyncProvider.orchestrator` after Phase 7.
+
+**Verify**: `pwsh -Command "flutter analyze lib/features/sync/presentation/screens/sync_dashboard_screen.dart"` -- expected: 0 issues found.
+
 ---
 
 ### Sub-phase 7.4: Update DI wiring
@@ -10173,6 +10225,7 @@ Future<SyncResult> fullSync() async {
 - Modify: `lib/features/sync/di/sync_providers.dart`
 - Modify: `lib/features/sync/application/sync_initializer.dart`
 - Modify: `lib/features/sync/application/sync_orchestrator_builder.dart` (rename to `sync_coordinator_builder.dart` or update to build SyncCoordinator)
+- Modify: `lib/core/bootstrap/app_initializer.dart`
 
 **Agent**: backend-supabase-agent
 
@@ -10183,8 +10236,9 @@ Modify `lib/features/sync/application/sync_initializer.dart`:
 1. Replace `SyncOrchestratorBuilder` usage with a builder for `SyncCoordinator`
 2. Create `SyncRetryPolicy`, `ConnectivityProbe`, `PostSyncHooks` instances
 3. Wire `PostSyncHooks` with the `_appConfigProvider.recordSyncSuccess()` and `_userProfileSyncDatasource.pullCompanyMembers()` callbacks that were previously inline in the orchestrator
-4. Create `SyncQueryService` with `dbService`
+4. Create `SyncQueryService` with `LocalSyncStore` as the final merged dependency. If `dbService` is used for a short-lived intermediate compileable step inside this phase, collapse that wiring before the phase exits per Step 7.1.3.
 5. Return `SyncCoordinator` instead of `SyncOrchestrator` in the result record
+6. Preserve startup follow-up sync wiring, realtime hint rebinding, and `SyncDeps` assembly currently owned by `lib/core/bootstrap/app_initializer.dart`; update that bootstrap path in the same phase so startup remains compileable and behaviorally equivalent
 
 Change the return type from:
 ```dart
@@ -10267,10 +10321,39 @@ Update all references to `syncDeps.syncOrchestrator` -> `syncDeps.syncCoordinato
 
 ---
 
+### Sub-phase 7.4b: Wire remaining control-plane entrypoints
+
+**Files:**
+- Modify: `lib/features/sync/application/realtime_hint_handler.dart`
+- Modify: `lib/features/sync/application/fcm_handler.dart`
+- Modify: `lib/features/sync/application/background_sync_handler.dart`
+- Modify: `lib/features/sync/application/background_sync_callback.dart`
+- Modify: `lib/features/sync/application/fcm_background_callback.dart`
+
+**Agent**: backend-supabase-agent
+
+#### Step 7.4b.1: Remove residual SyncOrchestrator-owned control-plane behavior
+
+Update the remaining control-plane entrypoints so the approved scope is fully captured outside the deleted orchestrator internals:
+
+1. `RealtimeHintHandler` routes hint-driven sync requests through `SyncCoordinator` and preserves dirty-scope marking, quick-sync throttling, the queued follow-up sync behavior characterized in P0, and the private hint-channel lifecycle (`register_sync_hint_channel`, `subscription_id` / `channel_name` / `refresh_after`, scheduled refresh/rotation, and deactivation on teardown).
+2. `FcmHandler` uses the same coordinator-facing surface as realtime hints instead of reaching into deprecated orchestrator internals, while preserving token lifecycle behavior (`updateContext`, initial token registration, `onTokenRefresh`, and `_saveFcmToken`) so device delivery does not regress.
+3. `fcm_background_callback.dart` remains the closed-app handoff boundary that persists background hint payloads; `SyncLifecycleManager.consumePendingBackgroundHintMode()` and `SyncInitializer` must continue to rehydrate/clear that state before startup sync runs.
+4. `BackgroundSyncHandler` plus `background_sync_callback.dart` route background maintenance/sync requests through the extracted control-plane boundaries and preserve foreground/background overlap guards, WorkManager isolate bootstrap, desktop timer fallback with jitter, and the shared post-maintenance profile-refresh / `last_synced_at` housekeeping path (or its extracted replacement).
+5. `SyncLifecycleManager` keeps the `onAppResumed` security/config preflight ahead of all sync-policy decisions.
+6. `SyncInitializer` remains the only place that wires these entrypoints together so callback behavior stays explicit and injectable.
+
+Phase-exit requirement: no runtime control-plane behavior depends on hidden `SyncOrchestrator` internals; the remaining handlers and top-level callbacks talk to `SyncCoordinator` and the extracted policy classes, and the persisted background-hint/startup handoff remains intact.
+
+**Verify**: `pwsh -Command "flutter analyze lib/features/sync/application/realtime_hint_handler.dart lib/features/sync/application/fcm_handler.dart lib/features/sync/application/background_sync_handler.dart lib/features/sync/application/background_sync_callback.dart lib/features/sync/application/fcm_background_callback.dart"` -- expected: 0 issues found.
+
+---
+
 ### Sub-phase 7.5: Update all SyncOrchestrator importers
 
-**Files (16 production):**
+**Files (22 production):**
 - Modify: `lib/core/di/app_dependencies.dart` -- change SyncDeps field type
+- Modify: `lib/core/bootstrap/app_initializer.dart` -- replace bootstrap usage of `syncResult.orchestrator` with `syncResult.coordinator`
 - Modify: `lib/core/driver/driver_server.dart` -- change field type and method calls
 - Modify: `lib/core/router/scaffold_with_nav_bar.dart` -- change `context.read<SyncOrchestrator>()` to `context.read<SyncCoordinator>()`
 - Modify: `lib/features/projects/di/projects_providers.dart` -- change parameter type
@@ -10279,13 +10362,18 @@ Update all references to `syncDeps.syncOrchestrator` -> `syncDeps.syncCoordinato
 - Modify: `lib/features/projects/presentation/screens/project_setup_screen.dart` -- change `context.read<SyncOrchestrator>()`
 - Modify: `lib/features/settings/presentation/screens/admin_dashboard_screen.dart` -- change `context.read<SyncOrchestrator>()` to `context.read<SyncCoordinator>()` for DNS check
 - Modify: `lib/features/settings/presentation/widgets/sign_out_dialog.dart` -- change `context.read<SyncOrchestrator>()`
+- Modify: `lib/features/sync/presentation/screens/sync_dashboard_screen.dart` -- stop using `syncProvider.orchestrator`
 - Modify: `lib/features/sync/application/fcm_handler.dart` -- change constructor parameter type
+- Modify: `lib/features/sync/application/fcm_background_callback.dart` -- keep startup hint handoff compileable after coordinator migration
 - Modify: `lib/features/sync/application/realtime_hint_handler.dart` -- change constructor parameter type
+- Modify: `lib/features/sync/application/background_sync_callback.dart` -- keep background maintenance bootstrap compileable after coordinator/hook extraction
 - Modify: `lib/features/sync/application/sync_enrollment_service.dart` -- change constructor parameter type
 - Modify: `lib/features/sync/application/sync_initializer.dart` -- already updated in 7.4.1
+- Modify: `lib/features/sync/application/application.dart` -- export `sync_coordinator.dart`, remove `sync_orchestrator.dart`
 - Modify: `lib/features/sync/application/sync_orchestrator_builder.dart` -- rename to build SyncCoordinator
 - Modify: `lib/features/sync/di/sync_providers.dart` -- already updated in 7.4.2
 - Modify: `lib/features/sync/presentation/providers/sync_provider.dart` -- already updated in 7.3.1
+- Modify: `lib/features/sync/sync.dart` -- update feature-level exports for `SyncCoordinator`
 
 **Files (15 test):**
 - Modify: `test/features/sync/application/fcm_handler_test.dart`
@@ -10323,6 +10411,9 @@ Special cases:
 - **`sign_out_dialog.dart`**: Calls `dispose()` on the orchestrator. SyncCoordinator retains `dispose()`.
 - **`realtime_hint_handler.dart`**: References `_syncOrchestrator.dirtyScopeTracker`, `_syncOrchestrator.isSyncing`, `_syncOrchestrator.syncLocalAgencyProjects()`. All must exist on SyncCoordinator.
 - **`fcm_handler.dart`**: References `_syncOrchestrator?.dirtyScopeTracker`, `_syncOrchestrator?.isSyncing`, `_syncOrchestrator?.syncLocalAgencyProjects()`. All must exist on SyncCoordinator.
+- **`sync_dashboard_screen.dart`**: Must stop reaching through `syncProvider.orchestrator` and consume diagnostics via `SyncProvider`/`SyncQueryService`.
+- **`app_initializer.dart`**: Must replace all `syncResult.orchestrator` usage, including startup follow-up sync, realtime handler wiring, and final `SyncDeps` assembly.
+- **`application.dart` / `sync.dart`**: Must update exports in the same phase so deleting `sync_orchestrator.dart` does not break package surfaces.
 
 IMPORTANT: Where external files (outside `features/sync/`) need to call `getPendingBuckets()`, `getIntegrityResults()`, or `getUndismissedConflictCount()`, they should use `SyncQueryService` instead. The provider will expose these via getters that delegate to SyncQueryService.
 
@@ -10367,9 +10458,9 @@ Push branch, open PR, verify CI green. All characterization tests must pass (equ
 
 Phase 8 reduces the 24 adapter files to approximately 12 by replacing 13 simple adapters with data-driven `AdapterConfig` instances. Complex adapters with custom logic remain as class files. The registration order is preserved to maintain FK dependency ordering.
 
-**Depends on**: Phase 5 (SyncEngine slim coordinator complete)
+**Depends on**: Phase 5 merged (SyncEngine slim coordinator complete)
 
-**Verification gate**: All characterization tests green, all existing sync tests green via CI, `flutter analyze` zero violations, adapter count reduced from 24 to ~12.
+**Verification gate**: All characterization tests green, all existing sync tests green via CI, all new contract + isolation tests touched by this phase green, `flutter analyze` zero violations, adapter count reduced from 24 to ~12.
 
 ---
 
@@ -10431,21 +10522,30 @@ void main() {
     });
 
     test('supports file adapter fields', () {
-      // WHY: EntryExportAdapter is classified as simple because buildStoragePath
-      // uses a standard pattern. But actually it has a CUSTOM buildStoragePath,
-      // so it stays as a class. This test verifies config CAN express file fields
-      // for potential future simple file adapters.
+      // WHY: EntryExportAdapter and FormExportAdapter stay config-backed by
+      // expressing their storage-path logic declaratively. This test verifies
+      // AdapterConfig can carry file-adapter storage path behavior without
+      // keeping boilerplate class files.
       final config = AdapterConfig(
         table: 'simple_files',
         scope: ScopeType.viaEntry,
         fkDeps: const ['daily_entries'],
         isFileAdapter: true,
         storageBucket: 'simple-files',
+        buildStoragePath: (record) =>
+            'entries/${record['entry_id']}/${record['filename']}',
       );
       final adapter = config.toAdapter();
 
       expect(adapter.isFileAdapter, isTrue);
       expect(adapter.storageBucket, 'simple-files');
+      expect(
+        adapter.buildStoragePath({
+          'entry_id': 'entry-1',
+          'filename': 'report.pdf',
+        }),
+        'entries/entry-1/report.pdf',
+      );
     });
 
     test('supports custom converters', () {
@@ -10528,6 +10628,12 @@ class AdapterConfig {
   /// Whether to strip EXIF GPS data.
   final bool stripExifGps;
 
+  /// Declarative storage path construction for simple file adapters.
+  ///
+  /// This is how EntryExportAdapter/FormExportAdapter stay config-driven while
+  /// preserving their current path formats.
+  final String Function(Map<String, dynamic> record)? buildStoragePath;
+
   /// Whether this table is insert-only.
   final bool insertOnly;
 
@@ -10562,6 +10668,7 @@ class AdapterConfig {
     this.isFileAdapter = false,
     this.storageBucket = '',
     this.stripExifGps = false,
+    this.buildStoragePath,
     this.insertOnly = false,
     this.skipPull = false,
     this.skipIntegrityCheck = false,
@@ -10663,7 +10770,7 @@ class _ConfiguredAdapter extends TableAdapter {
 
 This file declares the 13 simple adapter configurations, replacing 13 separate class files.
 
-IMPORTANT: Before implementing, the implementing agent MUST read each of the 13 adapter files to verify that every override is captured in the config. The tailor analysis classified these as simple, but some have `extractRecordName` overrides or `naturalKeyColumns` that must be preserved.
+IMPORTANT: Before implementing, the implementing agent MUST read each of the 13 adapter files to verify that every override is captured in the config. The tailor analysis classified these as simple, but some have `extractRecordName`, `naturalKeyColumns`, or declarative `buildStoragePath` overrides that must be preserved.
 
 Based on actual source review, here is what each "simple" adapter actually needs:
 
@@ -10679,20 +10786,11 @@ Based on actual source review, here is what each "simple" adapter actually needs
 | TodoItemAdapter | converters (BoolIntConverter, TodoPriorityConverter), **extractRecordName** |
 | ProjectAdapter | converters (BoolIntConverter), naturalKeyColumns |
 | ProjectAssignmentAdapter | (none beyond fkDependencies) |
-| EntryExportAdapter | **Complex** -- has custom buildStoragePath, extractRecordName, localOnlyColumns, isFileAdapter. Must REMAIN as class. |
-| FormExportAdapter | **Complex** -- has custom buildStoragePath, extractRecordName. Must REMAIN as class. |
+| EntryExportAdapter | isFileAdapter, storageBucket, localOnlyColumns, extractRecordName, **buildStoragePath** |
+| FormExportAdapter | isFileAdapter, storageBucket, localOnlyColumns, extractRecordName, **buildStoragePath** |
 | CalculationHistoryAdapter | converters (JsonMapConverter x2), **extractRecordName** |
 
-REVISION: EntryExportAdapter and FormExportAdapter have custom `buildStoragePath()` methods with path construction logic. These cannot be expressed as simple config fields. They must remain as class files.
-
-Revised count: **11 simple adapters** become configs, **11 complex adapters** remain as classes. File count: 24 -> ~14 (still a meaningful reduction).
-
-NOTE (Finding 21): The spec says "~12 adapter files" but actual count is ~14 because
-EntryExportAdapter and FormExportAdapter need custom `buildStoragePath()` methods
-that cannot be expressed as declarative AdapterConfig fields. This is a spec update
-needed -- the spec estimate was based on the assumption that all export adapters
-were simple, but their storage path construction uses entry/form-specific logic.
-Update spec to say "~14 adapter files" after implementation confirms the exact count.
+Scope guard: the approved target remains **13 simple adapters** promoted to config and an overall adapter-file count of approximately **12**. If source review shows another adapter truly cannot be expressed declaratively, stop and raise a spec addendum instead of silently weakening Phase 8.
 
 ```dart
 // lib/features/sync/adapters/simple_adapters.dart
@@ -10708,6 +10806,10 @@ import 'package:construction_inspector/features/sync/engine/scope_type.dart';
 /// IMPORTANT: Registration order MUST match FK dependency order. The sync engine
 /// processes tables in this order for push (FK parents first) and pull.
 /// FROM SPEC: sync_registry.dart:29-54 — registerSyncAdapters() order is load-bearing.
+///
+/// NOTE: Representative excerpt only. The final file includes all 13 simple
+/// configs, including `entry_exports` and `form_exports` using declarative
+/// `buildStoragePath` functions.
 const simpleAdapters = <AdapterConfig>[
   // WHY: Projects is the root table — no FK dependencies.
   // FROM SPEC: ProjectAdapter (project_adapter.dart)
@@ -10860,23 +10962,21 @@ String _extractCalcHistoryName(Map<String, dynamic> record) {
 
 Modify `lib/features/sync/engine/sync_registry.dart` to:
 1. Import `simple_adapters.dart` and `adapter_config.dart`
-2. Replace the 11 simple adapter class instantiations with `AdapterConfig.toAdapter()` calls
-3. Keep the 11 complex adapter class instantiations unchanged
+2. Replace the 13 simple adapter class instantiations with `AdapterConfig.toAdapter()` calls
+3. Keep the 9 complex adapter class instantiations unchanged
 4. Maintain the exact same FK dependency order
 
 ```dart
 // lib/features/sync/engine/sync_registry.dart — updated registerSyncAdapters()
 import 'package:construction_inspector/features/sync/adapters/adapter_config.dart';
 import 'package:construction_inspector/features/sync/adapters/simple_adapters.dart';
-// ... keep imports for 11 complex adapters ...
+// ... keep imports for 9 complex adapters ...
 import 'package:construction_inspector/features/sync/adapters/equipment_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/daily_entry_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/photo_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/entry_equipment_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/inspector_form_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/form_response_adapter.dart';
-import 'package:construction_inspector/features/sync/adapters/form_export_adapter.dart';
-import 'package:construction_inspector/features/sync/adapters/entry_export_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/document_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/support_ticket_adapter.dart';
 import 'package:construction_inspector/features/sync/adapters/consent_record_adapter.dart';
@@ -10913,8 +11013,8 @@ void registerSyncAdapters() {
     simpleByTable['entry_personnel_counts']!, // was: EntryPersonnelCountsAdapter()
     InspectorFormAdapter(),                 // COMPLEX: shouldSkipPush, includesNullProjectBuiltins
     FormResponseAdapter(),                  // COMPLEX: jsonb converters
-    FormExportAdapter(),                    // COMPLEX: custom buildStoragePath
-    EntryExportAdapter(),                   // COMPLEX: custom buildStoragePath
+    simpleByTable['form_exports']!,         // was: FormExportAdapter()
+    simpleByTable['entry_exports']!,        // was: EntryExportAdapter()
     DocumentAdapter(),                      // COMPLEX: custom buildStoragePath, file adapter
     simpleByTable['todo_items']!,           // was: TodoItemAdapter()
     simpleByTable['calculation_history']!,  // was: CalculationHistoryAdapter()
@@ -10941,13 +11041,15 @@ void registerSyncAdapters() {
 - Delete: `lib/features/sync/adapters/todo_item_adapter.dart`
 - Delete: `lib/features/sync/adapters/project_adapter.dart`
 - Delete: `lib/features/sync/adapters/project_assignment_adapter.dart`
+- Delete: `lib/features/sync/adapters/entry_export_adapter.dart`
+- Delete: `lib/features/sync/adapters/form_export_adapter.dart`
 - Delete: `lib/features/sync/adapters/calculation_history_adapter.dart`
 
 **Agent**: backend-supabase-agent
 
-#### Step 8.3.1: Delete 11 simple adapter files
+#### Step 8.3.1: Delete 13 simple adapter files
 
-Delete the 11 files listed above. These are fully replaced by the `simpleAdapters` list in `simple_adapters.dart`.
+Delete the 13 files listed above. These are fully replaced by the `simpleAdapters` list in `simple_adapters.dart`.
 
 After deletion, verify no remaining imports reference the deleted files.
 
@@ -10956,9 +11058,9 @@ After deletion, verify no remaining imports reference the deleted files.
 #### Step 8.3.2: Update barrel exports
 
 If `lib/features/sync/adapters/` has a barrel export file, update it to:
-- Remove exports for the 11 deleted adapter files
+- Remove exports for the 13 deleted adapter files
 - Add export for `adapter_config.dart` and `simple_adapters.dart`
-- Keep exports for the 11 remaining complex adapter files
+- Keep exports for the 9 remaining complex adapter files
 
 ---
 
@@ -10982,10 +11084,10 @@ Count files in `lib/features/sync/adapters/`:
 - `table_adapter.dart` (base class)
 - `type_converters.dart` (shared converters)
 - `adapter_config.dart` (config data class)
-- `simple_adapters.dart` (11 configs)
-- 11 complex adapter class files
+- `simple_adapters.dart` (13 configs)
+- 9 complex adapter class files
 
-Total: 15 files (down from 24). The spec target of "~12" was aspirational; 15 is the correct count given that EntryExportAdapter and FormExportAdapter have custom `buildStoragePath()` logic.
+Total: 13 files (down from 24): `table_adapter.dart`, `type_converters.dart`, `adapter_config.dart`, `simple_adapters.dart`, plus 9 remaining complex adapter class files. This satisfies the approved "~12" target band.
 
 ---
 
@@ -10993,7 +11095,7 @@ Total: 15 files (down from 24). The spec target of "~12" was aspirational; 15 is
 
 Phase 9 performs end-to-end integration verification using the test driver infrastructure and updates all sync-related documentation to reflect the new architecture.
 
-**Depends on**: Phase 7 (layer violations fixed) and Phase 8 (adapters simplified)
+**Depends on**: Phase 7 merged (layer violations fixed) and Phase 8 merged (adapters simplified)
 
 **Verification gate**: All 10 test driver flows pass, all documentation updated, `flutter analyze` zero violations, CI green.
 
@@ -11096,7 +11198,7 @@ The following 10 test driver flows verify the complete refactored system end-to-
 
 #### Step 9.1.7: Flow 7 — Circuit-Breaker-Recovery
 
-**Purpose**: Verify circuit breaker trips and recovery work after SyncControlService extraction.
+**Purpose**: Verify circuit breaker trips and recovery work across the refactored engine/control-plane boundaries while `SyncControlService` remains unchanged per spec.
 
 **Steps**:
 1. Create a conflict scenario that will ping-pong (both devices edit same field repeatedly)
@@ -11145,8 +11247,9 @@ The following 10 test driver flows verify the complete refactored system end-to-
 5. Restore backend connectivity
 6. Trigger manual sync (should cancel background timer)
 7. Verify: Manual sync succeeds, timer cancelled
+8. Verify: typed diagnostics snapshot / event output reflects retry scheduling, exhaustion, cancellation, and final recovery
 
-**Success criteria**: Retry exhaustion, background timer scheduled, manual sync cancels timer.
+**Success criteria**: Retry exhaustion, background timer scheduled, manual sync cancels timer, typed diagnostics/event output preserved.
 
 ---
 
@@ -11163,10 +11266,10 @@ Rewrite `.claude/rules/sync/sync-patterns.md` to reflect the new architecture:
 
 1. **Layer Diagram**: Update to show the new class structure:
    - Presentation: SyncProvider (subscribes to SyncStatus, reads SyncQueryService)
-   - Application: SyncCoordinator, SyncLifecycleManager, SyncRetryPolicy, ConnectivityProbe, SyncTriggerPolicy, PostSyncHooks, SyncQueryService, BackgroundSyncHandler, FcmHandler, RealtimeHintHandler
+   - Application: SyncCoordinator, SyncLifecycleManager, SyncRetryPolicy, ConnectivityProbe, SyncTriggerPolicy, PostSyncHooks, SyncQueryService, BackgroundSyncHandler, FcmHandler, RealtimeHintHandler, and the top-level background callback entrypoints
    - Engine: SyncEngine (slim coordinator), PushHandler, PullHandler, SupabaseSync, LocalSyncStore, FileSyncHandler, SyncErrorClassifier, EnrollmentHandler, FkRescueHandler, MaintenanceHandler
    - Existing engine: ChangeTracker, ConflictResolver, IntegrityChecker, DirtyScopeTracker, OrphanScanner, StorageCleanup, SyncMutex, SyncRegistry
-   - Adapters: AdapterConfig (11 simple), 11 complex adapter classes, TableAdapter base
+   - Adapters: AdapterConfig (13 simple), 9 complex adapter classes, TableAdapter base
    - Domain: SyncResult, SyncStatus, SyncErrorKind, ClassifiedSyncError, SyncDiagnosticsSnapshot, SyncEvent, SyncMode, DirtyScope
 
 2. **Data Flow**: Update push/pull flow diagrams to show PushHandler/PullHandler routing through SupabaseSync and LocalSyncStore
@@ -11175,7 +11278,7 @@ Rewrite `.claude/rules/sync/sync-patterns.md` to reflect the new architecture:
 
 4. **Engine Components Table**: Add all new classes with file paths and purposes
 
-5. **Application Layer Table**: Replace SyncOrchestrator with SyncCoordinator and add all new control-plane classes
+5. **Application Layer Table**: Replace SyncOrchestrator with SyncCoordinator and add all new control-plane classes, including persisted background-hint and WorkManager callback boundaries
 
 6. **Adapter Section**: Document the AdapterConfig data-driven pattern and list which adapters are simple vs complex
 
@@ -11186,6 +11289,7 @@ Rewrite `.claude/rules/sync/sync-patterns.md` to reflect the new architecture:
 9. **File Organization**: Update the directory tree
 
 10. **Enforced Invariants**: Add the new testability guarantees from spec section 4.7
+11. **Architecture exception note**: document the approved sync-specific exception to the generic backend data-layer rule so `LocalSyncStore` / `SupabaseSync` living under `features/sync/engine/` is explicit, not accidental
 
 ---
 
@@ -11207,14 +11311,14 @@ Presentation: SyncProvider, SyncDashboardScreen, ConflictViewerScreen
 Application:  SyncCoordinator, SyncLifecycleManager, SyncRetryPolicy, ConnectivityProbe, SyncTriggerPolicy, PostSyncHooks, SyncQueryService, BackgroundSyncHandler, FcmHandler, RealtimeHintHandler
 Engine:       SyncEngine (slim), PushHandler, PullHandler, SupabaseSync, LocalSyncStore, FileSyncHandler, SyncErrorClassifier, EnrollmentHandler, FkRescueHandler, MaintenanceHandler
 Unchanged:    ChangeTracker, ConflictResolver, IntegrityChecker, DirtyScopeTracker, OrphanScanner, StorageCleanup, SyncMutex
-Adapters:     11 AdapterConfig (data-driven) + 11 complex classes (22 total; declare FK ordering + scope type)
+Adapters:     13 AdapterConfig (data-driven) + 9 complex classes (22 total; declare FK ordering + scope type)
 Domain:       SyncResult, SyncStatus, SyncErrorKind, ClassifiedSyncError, SyncDiagnosticsSnapshot, SyncEvent, SyncMode, DirtyScope
 ```
 
 Update the Key Files table to add:
 - `lib/features/sync/application/sync_coordinator.dart` -- Replaces SyncOrchestrator
 - `lib/features/sync/application/sync_query_service.dart` -- Dashboard query surface
-- `lib/features/sync/adapters/simple_adapters.dart` -- 11 data-driven adapter configs
+- `lib/features/sync/adapters/simple_adapters.dart` -- 13 data-driven adapter configs
 
 Update Gotchas to note:
 - SyncOrchestrator no longer exists -- use SyncCoordinator
@@ -11237,7 +11341,7 @@ Update the sync feature directory listing to reflect:
 - New files in `application/` (sync_coordinator.dart, sync_retry_policy.dart, connectivity_probe.dart, sync_trigger_policy.dart, post_sync_hooks.dart, sync_query_service.dart)
 - New files in `domain/` (sync_status.dart, sync_error.dart, sync_diagnostics.dart, sync_event.dart)
 - New files in `adapters/` (adapter_config.dart, simple_adapters.dart)
-- Deleted files in `adapters/` (11 simple adapter files)
+- Deleted files in `adapters/` (13 simple adapter files)
 - Deleted file: `sync_orchestrator.dart` (replaced by sync_coordinator.dart)
 
 ---
@@ -11284,12 +11388,12 @@ Create `.claude/docs/guides/implementation/sync-architecture.md` as a durable gu
    - Characterization tests (Layer 1) — behavior contracts
    - Interface contract tests (Layer 2) — TDD before implementation
    - Equivalence testing (Layer 3) — per-extraction CI gate
-   - Isolation tests (Layer 4) ��� per-class deep coverage
+   - Isolation tests (Layer 4) -- per-class deep coverage
    - Integration verification (Layer 5) — 10 test driver flows
 
 6. **Adapter Pattern**:
-   - AdapterConfig for simple adapters (11)
-   - Class files for complex adapters (11)
+   - AdapterConfig for simple adapters (13)
+   - Class files for complex adapters (9)
    - Registration order = FK dependency order
 
 ---
@@ -11300,6 +11404,7 @@ Create `.claude/docs/guides/implementation/sync-architecture.md` as a durable gu
 - Modify: `.claude/docs/INDEX.md`
 - Modify: `.codex/CLAUDE_CONTEXT_BRIDGE.md`
 - Modify: `.claude/test-flows/sync/framework.md`
+- Modify: `.claude/rules/backend/data-layer.md`
 
 **Agent**: general-purpose
 
@@ -11325,6 +11430,13 @@ Update `.claude/test-flows/sync/framework.md` to reference the new class boundar
 - Add section on characterization test locations (`test/features/sync/characterization/`)
 - Add section on contract test locations (`test/features/sync/engine/`, `test/features/sync/application/`)
 - Add section on isolation test locations and test group descriptions
+
+#### Step 9.5b.4: Update backend data-layer rule with explicit sync exception
+
+Update `.claude/rules/backend/data-layer.md` to note the approved sync-specific exception:
+- `LocalSyncStore` and `SupabaseSync` remain sync-boundary wrappers under `lib/features/sync/engine/` per the approved sync architecture
+- generic feature CRUD/data-source guidance still applies elsewhere
+- this exception exists to preserve the sync engine's functional-core / imperative-shell boundary and the spec's explicit ownership rules
 
 ---
 
@@ -11354,10 +11466,14 @@ Check against spec section 8 success metrics:
 | SyncEngine lines | 2,374 | <250 | `wc -l lib/features/sync/engine/sync_engine.dart` |
 | Largest sync class | 2,374 | <500 | Check all new files |
 | `@visibleForTesting` methods | 9 | 0 | `grep -r '@visibleForTesting' lib/features/sync/` |
-| Adapter files | 24 | ~15 | `ls lib/features/sync/adapters/ \| wc -l` |
+| Adapter files | 24 | ~12 | `ls lib/features/sync/adapters/ \| wc -l` |
 | Status sources of truth | 3 | 1 | Verify only SyncStatus exists |
+| Diagnostics sources of truth | implicit / scattered | 1 | Verify `SyncDiagnosticsSnapshot` + `SyncQueryService` are the only typed diagnostics surfaces |
 | Error classifier locations | 3 | 1 | Verify only SyncErrorClassifier |
 | Untestable code paths | 6 | 0 | All have dedicated tests |
+| Untyped sync callback mesh | 5+ ad hoc callbacks/timers | 0 | Verify control-plane responsibilities now sit behind extracted policy/hook/diagnostics boundaries |
+| Test files (sync) | 77 | ~105 | Count sync test files after merge |
+| Test cases (sync) | 683 | ~1,000+ | Count/assert final sync test case inventory |
 
 #### Step 9.6.4: Merge PR
 
