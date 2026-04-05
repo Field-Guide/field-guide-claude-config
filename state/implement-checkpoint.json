@@ -25,8 +25,8 @@
         "2"
       ],
       "label": "Phase 2 — Extract I/O Boundaries",
-      "status": "pending",
-      "test_gate": "pending"
+      "status": "done",
+      "test_gate": "pass"
     },
     {
       "group": 4,
@@ -34,8 +34,8 @@
         "3"
       ],
       "label": "Phase 3 — Extract Push + File Handlers",
-      "status": "pending",
-      "test_gate": "pending"
+      "status": "done",
+      "test_gate": "pass"
     },
     {
       "group": 5,
@@ -43,8 +43,8 @@
         "4"
       ],
       "label": "Phase 4 — Extract Pull + Enrollment + FK Rescue",
-      "status": "pending",
-      "test_gate": "pending"
+      "status": "done",
+      "test_gate": "pass"
     },
     {
       "group": 6,
@@ -52,8 +52,8 @@
         "5"
       ],
       "label": "Phase 5 — Maintenance Handler + Slim Engine",
-      "status": "pending",
-      "test_gate": "pending"
+      "status": "done",
+      "test_gate": "pass"
     },
     {
       "group": 7,
@@ -174,127 +174,218 @@
     },
     {
       "name": "Phase 2: Extract I/O Boundaries (LocalSyncStore + SupabaseSync)",
-      "status": "pending",
+      "status": "done",
+      "files_created": [
+        "lib/features/sync/engine/local_sync_store.dart",
+        "lib/features/sync/engine/supabase_sync.dart",
+        "test/features/sync/engine/local_sync_store_contract_test.dart",
+        "test/features/sync/engine/supabase_sync_contract_test.dart"
+      ],
+      "files_modified": [
+        "lib/features/sync/engine/sync_engine.dart",
+        "lib/features/sync/application/sync_engine_factory.dart",
+        "test/features/sync/engine/sync_engine_lww_test.dart",
+        "test/features/sync/engine/sync_engine_delete_test.dart"
+      ],
       "reviews": {
         "completeness": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
+          "high": 2,
+          "medium": 2,
+          "low": 1,
+          "tests_verified": true,
+          "fix_cycles": 1
         },
         "code_review": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "high": 2,
+          "medium": 4,
+          "low": 2,
+          "fix_cycles": 1
         },
         "security": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "medium": 3,
+          "low": 5,
+          "fix_cycles": 1
         }
-      }
+      },
+      "lint_gate": "pass"
     },
     {
       "name": "Phase 3: Extract Push + File Handlers",
-      "status": "pending",
+      "status": "done",
+      "files_created": [
+        "lib/features/sync/engine/push_handler.dart",
+        "lib/features/sync/engine/file_sync_handler.dart",
+        "lib/features/sync/engine/lww_checker.dart",
+        "lib/features/sync/engine/push_error_handler.dart",
+        "test/features/sync/engine/push_handler_contract_test.dart",
+        "test/features/sync/engine/push_handler_test.dart",
+        "test/features/sync/engine/file_sync_handler_contract_test.dart",
+        "test/features/sync/engine/file_sync_handler_test.dart",
+        "test/helpers/sync/fake_supabase_sync.dart",
+        "test/helpers/sync/test_sync_adapters.dart"
+      ],
+      "files_modified": [
+        "lib/features/sync/engine/sync_registry.dart",
+        "lib/features/sync/engine/local_sync_store.dart",
+        "test/helpers/sync/sync_test_helpers.dart"
+      ],
       "reviews": {
         "completeness": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
+          "high": 1,
+          "medium": 5,
           "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
+          "tests_verified": true,
+          "fix_cycles": 1
         },
         "code_review": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "medium": 4,
+          "low": 6,
+          "fix_cycles": 1
         },
         "security": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "medium": 2,
+          "low": 5,
+          "fix_cycles": 1
         }
+      },
+      "lint_gate": "pass",
+      "substeps": {
+        "3.1.1": "done",
+        "3.1.2": "done",
+        "3.1.3": "done",
+        "3.1.4": "done",
+        "3.2.0": "done",
+        "3.2.1": "done",
+        "3.2.2": "done",
+        "3.2.3": "done"
       }
     },
     {
       "name": "Phase 4: Extract Pull + Enrollment + FK Rescue",
-      "status": "pending",
+      "status": "done",
+      "files_created": [
+        "lib/features/sync/engine/pull_handler.dart",
+        "lib/features/sync/engine/enrollment_handler.dart",
+        "lib/features/sync/engine/fk_rescue_handler.dart",
+        "test/features/sync/engine/pull_handler_contract_test.dart",
+        "test/features/sync/engine/pull_handler_test.dart",
+        "test/features/sync/engine/enrollment_handler_contract_test.dart",
+        "test/features/sync/engine/enrollment_handler_test.dart",
+        "test/features/sync/engine/fk_rescue_handler_contract_test.dart",
+        "test/features/sync/engine/fk_rescue_handler_test.dart"
+      ],
+      "files_modified": [
+        "lib/features/sync/engine/local_sync_store.dart",
+        "test/helpers/sync/fake_supabase_sync.dart",
+        "test/helpers/sync/test_sync_adapters.dart"
+      ],
       "reviews": {
         "completeness": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
+          "medium": 3,
+          "low": 2,
+          "tests_verified": true,
+          "fix_cycles": 1
         },
         "code_review": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "medium": 3,
+          "low": 3,
+          "fix_cycles": 1
         },
         "security": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
           "medium": 0,
           "low": 0,
           "fix_cycles": 0
         }
+      },
+      "lint_gate": "pass",
+      "substeps": {
+        "4.1.1": "done",
+        "4.1.2": "done",
+        "4.1.3": "done",
+        "4.1.4": "done",
+        "4.2.1": "done",
+        "4.2.2": "done",
+        "4.2.3": "done",
+        "4.2.4": "done",
+        "4.3.1": "done",
+        "4.3.2": "done",
+        "4.3.3": "done",
+        "4.3.4": "done"
       }
     },
     {
       "name": "Phase 5: Maintenance Handler + Slim Engine",
-      "status": "pending",
+      "status": "done",
+      "files_created": [
+        "lib/features/sync/engine/maintenance_handler.dart",
+        "lib/features/sync/engine/sync_engine_result.dart",
+        "test/features/sync/engine/maintenance_handler_contract_test.dart",
+        "test/features/sync/engine/maintenance_handler_test.dart",
+        "test/helpers/sync/maintenance_test_helpers.dart"
+      ],
+      "files_modified": [
+        "lib/features/sync/engine/sync_engine.dart",
+        "lib/features/sync/engine/push_handler.dart",
+        "lib/features/sync/engine/pull_handler.dart",
+        "lib/features/sync/application/sync_engine_factory.dart",
+        "lib/features/sync/application/background_sync_callback.dart",
+        "test/features/sync/engine/sync_engine_test.dart",
+        "test/features/sync/engine/sync_engine_lww_test.dart",
+        "test/features/sync/engine/sync_engine_delete_test.dart",
+        "test/features/sync/characterization/characterization_push_company_id_test.dart"
+      ],
       "reviews": {
         "completeness": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
-          "high": 0,
-          "medium": 0,
-          "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
+          "high": 1,
+          "medium": 2,
+          "low": 4,
+          "tests_verified": true,
+          "fix_cycles": 1
         },
         "code_review": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
-          "medium": 0,
-          "low": 0,
-          "fix_cycles": 0
+          "medium": 5,
+          "low": 7,
+          "fix_cycles": 1
         },
         "security": {
-          "status": "pending",
+          "status": "pass",
           "critical": 0,
           "high": 0,
           "medium": 0,
-          "low": 0,
+          "low": 5,
           "fix_cycles": 0
         }
-      }
+      },
+      "lint_gate": "pass"
     },
     {
       "name": "Phase 6: Control Plane Abstractions",
@@ -452,7 +543,36 @@
     "lib/features/sync/engine/sync_status_store.dart",
     "lib/features/sync/engine/sync_error_classifier.dart",
     "test/features/sync/characterization/sync_error_classifier_contract_test.dart",
-    "test/features/sync/characterization/sync_status_contract_test.dart"
+    "test/features/sync/characterization/sync_status_contract_test.dart",
+    "lib/features/sync/engine/local_sync_store.dart",
+    "lib/features/sync/engine/supabase_sync.dart",
+    "test/features/sync/engine/local_sync_store_contract_test.dart",
+    "test/features/sync/engine/supabase_sync_contract_test.dart",
+    "lib/features/sync/engine/sync_engine.dart",
+    "lib/features/sync/application/sync_engine_factory.dart",
+    "test/features/sync/engine/sync_engine_lww_test.dart",
+    "test/features/sync/engine/sync_engine_delete_test.dart",
+    "lib/features/sync/engine/push_handler.dart",
+    "lib/features/sync/engine/file_sync_handler.dart",
+    "lib/features/sync/engine/lww_checker.dart",
+    "lib/features/sync/engine/push_error_handler.dart",
+    "test/features/sync/engine/push_handler_contract_test.dart",
+    "test/features/sync/engine/push_handler_test.dart",
+    "test/features/sync/engine/file_sync_handler_contract_test.dart",
+    "test/features/sync/engine/file_sync_handler_test.dart",
+    "test/helpers/sync/fake_supabase_sync.dart",
+    "test/helpers/sync/test_sync_adapters.dart",
+    "lib/features/sync/engine/sync_registry.dart",
+    "test/helpers/sync/sync_test_helpers.dart",
+    "lib/features/sync/engine/pull_handler.dart",
+    "lib/features/sync/engine/enrollment_handler.dart",
+    "lib/features/sync/engine/fk_rescue_handler.dart",
+    "test/features/sync/engine/pull_handler_contract_test.dart",
+    "test/features/sync/engine/pull_handler_test.dart",
+    "test/features/sync/engine/enrollment_handler_contract_test.dart",
+    "test/features/sync/engine/enrollment_handler_test.dart",
+    "test/features/sync/engine/fk_rescue_handler_contract_test.dart",
+    "test/features/sync/engine/fk_rescue_handler_test.dart"
   ],
   "build": "pass",
   "analyze_and_test": "pass",
@@ -482,7 +602,14 @@
       "fix_cycles": 0
     }
   },
-  "decisions": [],
+  "decisions": [
+    "Phase 3: LwwChecker extracted to shared utility (used by both PushHandler and FileSyncHandler)",
+    "Phase 3: PushErrorHandler extracted from PushHandler to keep PushHandler under 500 lines",
+    "Phase 3: childFkColumnsFor() added to SyncRegistry (dynamic from adapter metadata)",
+    "Phase 3: FakeSupabaseSync and test adapters extracted to shared test helpers",
+    "Phase 3: _assertSafeTableName changed from assert() to runtime check in LocalSyncStore",
+    "Phase 3: Cycle 2 reviewers reported stale findings (review prompts not updated with new files) — verified fixes manually"
+  ],
   "fix_attempts": [],
   "blocked": []
 }
