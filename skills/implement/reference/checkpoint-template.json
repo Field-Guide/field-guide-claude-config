@@ -1,0 +1,49 @@
+{
+  "plan": "<absolute path to plan file>",
+  "spec": "<absolute path to spec file>",
+  "started_at": "<ISO timestamp>",
+  "batches": [
+    {
+      "id": 1,
+      "phases": [1, 2],
+      "status": "pending",
+      "lint_gate": "pending"
+    }
+  ],
+  "phases": {
+    "1": {
+      "name": "Phase 1 title",
+      "status": "pending",
+      "batch": 1,
+      "implementation": {
+        "started_at": null,
+        "completed_at": null,
+        "files_created": [],
+        "files_modified": [],
+        "decisions": [],
+        "notes": ""
+      },
+      "reviews": {
+        "completeness": {
+          "status": "pending",
+          "findings_count": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+          "fix_cycles": 0
+        },
+        "code_review": {
+          "status": "pending",
+          "findings_count": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+          "fix_cycles": 0
+        },
+        "security": {
+          "status": "pending",
+          "findings_count": { "critical": 0, "high": 0, "medium": 0, "low": 0 },
+          "fix_cycles": 0
+        }
+      },
+      "total_fix_cycles": 0
+    }
+  },
+  "modified_files": [],
+  "decisions": [],
+  "blocked": []
+}

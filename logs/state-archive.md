@@ -6,6 +6,16 @@ Session history archive. See `.claude/autoload/_state.md` for current state (las
 
 ## April 2026
 
+### Session 732 (2026-04-04)
+**Work**: Analyzed 2268 lint violations, ran dart fix (1214 eliminated), wrote spec+tailor+plan for remaining 1054. 3-reviewer adversarial review cycle with all findings fixed. New abstractions: SafeRow, SafeAction mixin, RepositoryResult.safeCall, _resolveParam<T>().
+**Decisions**: No // ignore for lint suppression. Type-promotion helper for copyWith instead. Sync engine catches must use catch(Object e) not on Exception. SafeAction/safeCall are DRY phases (violations fixed mechanically first, then refactored).
+**Next**: /implement 6-phase analyzer-zero plan.
+
+### Session 731 (2026-04-04)
+**Work**: Full CLAUDE.md + 11 rule files overhaul. CodeMunch-powered architecture verification. 20 agents total (6 research, 11 implementation, 3 review). Personal final review caught 4 agent errors.
+**Decisions**: CLAUDE.md is map/pointer not encyclopedia. Gotchas section for cross-cutting AI pitfalls. Rule files are the detailed reference. Lint category counts verified (23/11/10/8=52).
+**Next**: /implement 3 plans → commit S726 changes → merge PR #140.
+
 ### Session 730 (2026-04-04)
 **Work**: Tailor + writing-plans for Private Sync Hint Channels. 3-cycle adversarial review (31+ findings across 3 cycles → all fixed). All 3 reviewers APPROVE.
 **Decisions**: Fan-out in edge function (not SQL triggers). DRY _callRegistrationRpc extraction. RLS 4-policy split. Async ensureDeviceInstallId. ON CONFLICT upsert. 10-sub limit.

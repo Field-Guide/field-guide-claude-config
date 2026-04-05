@@ -182,7 +182,7 @@ Domain/Data:  SyncResult, SyncMode (full/quick/maintenance), DirtyScope model
 ## Pointers (on-demand, NOT auto-loaded)
 | What | Where |
 |------|-------|
-| Agents (14 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
+| Agents (13 definitions) | `.claude/agents/` — loaded via skills: frontmatter |
 | Skills (12 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
 | Directory structure | `.claude/docs/directory-reference.md` |
 | Platform requirements | `.claude/rules/platform-standards.md` |

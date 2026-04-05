@@ -1,113 +1,74 @@
 ---
 name: implement
-description: "Spawn an orchestrator agent to autonomously implement a plan file phase-by-phase using specialized agents, with quality gates, checkpoint recovery, and context handoff support."
+description: "Execute implementation plans via headless Claude instances with real-time checkpoint visibility and batch-level quality gates."
 user-invocable: true
 ---
 
 # /implement Skill
 
-Autonomous plan execution via `claude --agent implement-orchestrator`. The supervisor (this conversation) controls the **phase loop** — launching one orchestrator per phase (or phase group), verifying checkpoint progress between launches.
+Execute implementation plans using headless `claude -p` instances. The main conversation IS the orchestrator — it dispatches, monitors, merges state, and reports progress between every batch. The user sees what's happening and can intervene at any point.
 
 ## Architecture
 
 ```
-This conversation (supervisor)
-  │
-  ├─ Reads plan, builds phase dispatch list
-  ├─ Initializes checkpoint JSON
-  ├─ FOR EACH dispatch group:
-  │     ├─ Launches: claude --agent implement-orchestrator --print (via Bash)
-  │     │     └─ Orchestrator does: implement → build → reviews → fix → checkpoint
-  │     ├─ Reads checkpoint to verify phase(s) marked done + reviews passed
-  │     ├─ Reports progress to user
-  │     └─ Handles: DONE → next group, HANDOFF → re-launch same group, BLOCKED → user prompt
-  └─ Final summary when all groups complete
+Main conversation (supervisor + orchestrator)
+  |
+  +- Reads plan, dependency analysis, groups into batches (max 4 phases/batch)
+  +- Initializes/resumes checkpoint
+  |
+  +- FOR EACH BATCH:
+  |     +- Writes prompt files per phase
+  |     +- Launches N headless implementers (claude -p, parallel via Bash background)
+  |     |     +- Tools: Read, Edit, Write, Glob, Grep (NO Bash)
+  |     |     +- Each writes .claude/outputs/phase-N-state.json
+  |     +- Waits for all, reads state files, merges into checkpoint, reports
+  |     |
+  |     +- Runs batch-level lint: flutter analyze + dart run custom_lint
+  |     |     +- If violations -> launches headless lint-fixer -> re-lints (max 3 cycles)
+  |     |
+  |     +- Launches 3xN headless reviewers (all parallel)
+  |     |     +- Completeness (opus) + Code Review (opus) + Security (opus)
+  |     |     +- Each writes .claude/outputs/phase-N-{type}-findings.json
+  |     +- If findings -> launches headless fixer per phase -> re-reviews ALL 3 (max 3 cycles)
+  |     |
+  |     +- Updates checkpoint, reports batch complete
+  |
+  +- Final summary
 ```
 
-The orchestrator runs as a **separate main-thread CLI process** (not a subagent). This gives it:
-- Agent tool access (can dispatch implementers, reviewers, fixers)
-- Its own context window (doesn't consume ours)
-- Behavioral self-restriction from its system prompt (won't use Edit/Write/Bash directly)
-- `permissionMode: bypassPermissions` (no interactive prompts)
+## IRON LAW
 
----
+The main conversation NEVER edits source files directly. It only writes:
+- Checkpoint JSON (`.claude/state/implement-checkpoint.json`)
+- Prompt files (`.claude/outputs/phase-N-*.md`)
+- Output directory files (`.claude/outputs/`)
 
-## IRON LAW (Supervisor)
-
-NEVER use Edit or Write on source files. The ONLY file you may Write is `.claude/state/implement-checkpoint.json`. Allowed tools: Read, Write (checkpoint only), Bash (orchestrator launch only), and asking the user questions.
+Allowed tools: Read, Write (checkpoint/prompts only), Bash (headless launches + lint only).
 
 NEVER run `flutter clean`. It is prohibited.
 
 ---
 
-## Supervisor Workflow
+## Step 1: Accept & Parse Plan
 
-### Step 1: Accept the Plan
-
-1. The user invokes `/implement <plan-path>`. If no path is provided, ask for it.
-2. If the user gave a bare filename (e.g. `my-plan.md`), search `.claude/plans/` for the file.
-3. Read the plan file. Extract the phase list (names only) so you can present them to the user.
-4. **Build dispatch groups**: By default, each phase is its own dispatch group. However, lightweight phases (verification-only, run-a-command phases) can be grouped together. Present the grouping to the user for approval.
-5. Check for an existing checkpoint at `.claude/state/implement-checkpoint.json`:
-   - File does not exist → start fresh.
-   - File exists and `"plan"` matches the requested plan path → ask the user: "Resume from checkpoint (phases already done: X) or start fresh?"
-   - File exists but `"plan"` is a different plan → delete it and start fresh.
-6. If starting fresh, initialize the checkpoint now (Write the file):
-
-```json
-{
-  "plan": "<plan file path>",
-  "dispatch_groups": [
-    {"phases": [1], "status": "pending", "test_gate": "pending"},
-    {"phases": [2], "status": "pending", "test_gate": "pending"},
-    {"phases": [3, 4, 5, 6], "status": "pending", "test_gate": "pending"}
-  ],
-  "phases": [
-    {
-      "name": "Phase N title",
-      "status": "pending",
-      "reviews": {
-        "completeness": {
-          "status": "pending",
-          "critical": 0, "high": 0, "medium": 0, "low": 0,
-          "tests_verified": false,
-          "fix_cycles": 0
-        },
-        "code_review": {
-          "status": "pending",
-          "critical": 0, "high": 0, "medium": 0, "low": 0,
-          "fix_cycles": 0
-        },
-        "security": {
-          "status": "pending",
-          "critical": 0, "high": 0, "medium": 0, "low": 0,
-          "fix_cycles": 0
-        }
-      }
-    }
-  ],
-  "modified_files": [],
-  "build": "pending",
-  "analyze_and_test": "pending",
-  "integration_reviews": {
-    "completeness": {"status": "pending", "critical": 0, "high": 0, "medium": 0, "low": 0, "fix_cycles": 0},
-    "code_review": {"status": "pending", "critical": 0, "high": 0, "medium": 0, "low": 0, "fix_cycles": 0},
-    "security": {"status": "pending", "critical": 0, "high": 0, "medium": 0, "low": 0, "fix_cycles": 0}
-  },
-  "decisions": [],
-  "fix_attempts": [],
-  "blocked": []
-}
-```
-
-7. Present the plan with dispatch groups and ask for confirmation:
+1. User invokes `/implement <plan-path> [phase-numbers]`
+2. If bare filename -> search `.claude/plans/` for the file
+3. Read plan, extract phase list (names + file lists)
+4. Extract spec path from plan header (`**Spec:**` line)
+5. Set checkpoint path: `.claude/state/implement-checkpoint.json`
+6. Check for existing checkpoint:
+   - File does not exist -> start fresh
+   - File exists and `"plan"` matches -> ask: "Resume from checkpoint (phases done: X) or start fresh?"
+   - File exists but different plan -> delete and start fresh
+7. Present phases to user for confirmation:
 
 ```
 Plan: [plan filename]
-Dispatch Groups:
-  Group 1: Phase 1 — [Phase 1 name]
-  Group 2: Phase 2 — [Phase 2 name]
-  Group 3: Phases 3-6 — [Phase 3 name], [Phase 4 name], ...
+Spec: [spec filename]
+Phases:
+  Phase 1 — [name]
+  Phase 2 — [name]
+  ...
 
 Start implementation? (yes / no / adjust)
 ```
@@ -116,147 +77,199 @@ Wait for user confirmation before proceeding.
 
 ---
 
-### Step 2: Phase Loop (Supervisor-Controlled)
+## Step 2: Dependency Analysis & Batching
 
-The supervisor iterates over dispatch groups sequentially. For each group:
-
-#### 2a: Launch the Orchestrator
-
-Build the phase-specific prompt. The key difference from the old approach: the orchestrator is told to execute **ONLY the specified phases**, then return.
-
-```bash
-unset CLAUDECODE && claude --agent implement-orchestrator --print --output-format text "Execute ONLY the specified phases of the implementation plan, then return.
-
-PLAN_PATH: <absolute path to plan file>
-CHECKPOINT_PATH: <absolute path to checkpoint JSON>
-PHASES_TO_EXECUTE: <comma-separated phase numbers, e.g. '1' or '3,4,5,6'>
-
-Read the plan and checkpoint. Implement ONLY the listed phases following your Implementation Loop. For each phase: dispatch implementer, run build, run reviews, fix issues, update checkpoint. Do NOT proceed to phases not in PHASES_TO_EXECUTE. When all listed phases are done, return STATUS: DONE. If context runs low, return STATUS: HANDOFF with current progress." 2>&1 | tee .claude/outputs/implement-orchestrator-output.txt
-```
-
-**Launch parameters:**
-- `unset CLAUDECODE` — bypasses nested-session protection
-- `--print` — non-interactive headless mode
-- `--output-format text` — plain text output (parseable)
-- `| tee .claude/outputs/implement-orchestrator-output.txt` — capture output to file AND display
-- `run_in_background: true` — always run as background task (no timeout limit)
-
-After launching, tell the user:
-```
-Group N launched (Phases X-Y). Running in background.
-```
-
-#### 2b: Wait for Completion
-
-Wait for the background task to complete. Once done, read the output file.
-
-#### 2c: Verify Checkpoint
-
-After the orchestrator returns, **always read the checkpoint file** to verify:
-- Each phase in the group has `"status": "done"`
-- All review statuses show `"pass"` (or have findings addressed)
-- `modified_files` has been updated
-
-This is the **trust-but-verify** step that prevents fabricated stats.
-
-#### 2c-verify: End-of-Group Analyze Gate
-
-After checkpoint verification passes, run flutter analyze ONCE for the group:
-
-1. Run: `pwsh -Command "flutter analyze"`
-2. If no issues → update checkpoint: set `dispatch_groups[N].test_gate = "pass"` → proceed to 2d
-3. If issues found → launch code-fixer-agent with:
-   - The analyze output
-   - The list of ALL files modified in this group (from `checkpoint.modified_files`)
-   - "Fix the analysis issues. Run `pwsh -Command 'flutter analyze'` after fixing to verify no regressions. NEVER run flutter clean."
-4. Re-run analyze. Max 3 cycles.
-
-> **NOTE:** Do NOT run `flutter test` locally. Testing runs in CI only via PR quality gate.
-5. If still failing after 3 cycles → present to user as BLOCKED with test output
-
-Skip the test gate if no files were modified in this group (checkpoint.modified_files unchanged from before the group started).
-
-#### 2d: Handle Result
-
-| Status | Action |
-|--------|--------|
-| `STATUS: DONE` + checkpoint verified | Report to user, advance to next dispatch group. |
-| `STATUS: DONE` but checkpoint NOT updated | The orchestrator lied. Report to user, ask how to proceed. |
-| `STATUS: HANDOFF` | Re-launch the same group (orchestrator will resume from checkpoint). |
-| `STATUS: BLOCKED` | Present the blocked issue to the user. Ask: "Fix it manually and continue, skip this phase, or adjust the plan?" |
-
-**Handoff loop**: keep re-launching the same group until it completes or the user stops.
-
-#### 2e: Report Progress
-
-After each group completes, report to the user:
+1. For each phase, extract file lists from plan text (files to create/modify)
+2. **Shared file rule**: If two phases touch ANY of these, they go to different batches:
+   - `app_providers.dart`
+   - `database_service.dart`
+   - `app_router.dart`
+   - Barrel/index files (any file that only re-exports)
+   - `pubspec.yaml`
+3. Group into parallel batches:
+   - No file overlap within a batch
+   - Max 4 phases per batch
+4. If a phase's file list cannot be determined -> treat as overlapping with all (sequential fallback)
+5. Report batch plan to user:
 
 ```
-Group N complete (Phases X-Y).
-  Phase X: DONE — Reviews: completeness=PASS, code=PASS, security=PASS
-  Phase Y: DONE — Reviews: completeness=PASS, code=PASS, security=PASS
-  Test gate: PASS
-  Files modified: [list]
-
-Proceeding to Group N+1...
+Batch Plan:
+  Batch 1: Phases 1, 3 (parallel — no file overlap)
+  Batch 2: Phase 2 (sequential — shares app_providers.dart with Phase 1)
+  Batch 3: Phases 4, 5, 6 (parallel — no file overlap)
 ```
 
 ---
 
-### Step 3: Final Summary
+## Step 3: Initialize Checkpoint
 
-After ALL dispatch groups complete, print this summary:
+If starting fresh, write the checkpoint JSON to `.claude/state/implement-checkpoint.json` following the structure in `reference/checkpoint-template.json`.
+
+Key fields:
+- `plan`: absolute path to plan file
+- `spec`: absolute path to spec file
+- `batches`: array of batch definitions with phase assignments
+- `phases`: object keyed by phase number with status, implementation details, and review results
+- `modified_files`: cumulative list across all phases
+- `decisions`: cumulative decisions list
+- `blocked`: array of blocked items
+
+---
+
+## Step 4: Batch Execution Loop
+
+Process each batch sequentially. Within each batch, phases run in parallel.
+
+### Step 4a: Prepare Prompt Files
+
+For each phase in the batch:
+1. Read the full phase text from the plan
+2. Write the implementer system prompt to `.claude/outputs/phase-N-prompt.md`
+3. Use the implementer template from `reference/prompt-templates.md`
+4. Fill in placeholders: `{{PHASE_NUMBER}}`, `{{PLAN_PATH}}`, `{{SPEC_PATH}}`, `{{PHASE_TEXT}}`, `{{STATE_FILE_PATH}}`
+5. **All paths MUST be absolute** (Windows path resolution issues with relative paths)
+
+### Step 4b: Launch Implementers
+
+Build headless commands per `reference/headless-commands.md` implementer pattern.
+
+- **Batch size 1**: Run in foreground (`Bash` tool, `timeout: 600000`)
+- **Batch size 2-4**: Run each with `Bash` tool, `run_in_background: true`
+- Wait for all to complete (background tasks notify on completion)
+
+### Step 4c: Verify & Merge State
+
+1. Read each `.claude/outputs/phase-N-state.json`
+2. Validate: file exists, valid JSON, required fields present, status is `done`/`failed`/`blocked`
+3. If state file missing or malformed -> mark phase as failed
+4. Merge into master checkpoint:
+   - Set phase status
+   - Append `files_created` and `files_modified` to checkpoint's `modified_files` (dedup)
+   - Record decisions
+5. Report to user:
+   ```
+   Batch N implementation complete.
+     Phase X: 4 files created, 2 modified
+     Phase Y: 3 files created, 1 modified
+   ```
+6. If any phase failed -> ask user: retry / skip / stop
+
+### Step 4d: Batch-Level Lint
+
+1. Run `pwsh -Command "flutter analyze"` (foreground, `timeout: 300000`)
+2. If violations -> also run `pwsh -Command "dart run custom_lint"` to check both
+3. If any violations from either:
+   a. Write lint-fixer prompt to `.claude/outputs/batch-N-lint-fixer-prompt.md` containing:
+      - All violation text from both commands
+      - List of all files from the batch
+      - Instruction: "Fix lint violations only. Do not change behavior."
+   b. Launch ONE headless lint-fixer per `reference/headless-commands.md` lint-fixer pattern
+   c. After fixer returns, re-run both lint commands
+   d. Max 3 cycles -> BLOCKED if still failing
+4. If both clean -> proceed to reviews
+
+### Step 4e: Launch Reviews (all parallel)
+
+For each phase in the batch, write 3 reviewer prompt files using templates from `reference/prompt-templates.md`:
+- `.claude/outputs/phase-N-review-completeness-prompt.md`
+- `.claude/outputs/phase-N-review-code-prompt.md`
+- `.claude/outputs/phase-N-review-security-prompt.md`
+
+Include in each:
+- The spec path and plan path
+- The list of files to review (from phase state's `files_created` + `files_modified`)
+- The severity standard from `reference/severity-standard.md`
+- The findings output path: `.claude/outputs/phase-N-{type}-findings.json`
+
+Launch 3xN headless reviewer commands (all `run_in_background: true`) per `reference/headless-commands.md` reviewer pattern.
+
+Wait for all to complete.
+
+### Step 4f: Consolidate & Fix Loop (max 3 cycles)
+
+1. Read all findings files: `.claude/outputs/phase-N-{type}-findings.json`
+2. Parse JSON, check `verdict` field
+3. If ALL verdicts are `"approve"` -> mark reviews passed, continue to Step 4g
+4. If ANY findings:
+   a. For each phase with findings: write fixer prompt to `.claude/outputs/phase-N-fixer-prompt.md` with consolidated findings from all 3 reviewers for that phase
+   b. Launch headless fixer per phase (parallel across phases, since no file overlap in batch) per `reference/headless-commands.md` review-fixer pattern
+   c. After fixers complete, re-run batch-level lint (Step 4d logic, single pass)
+   d. Re-launch ALL 3 reviewers for ALL phases that had findings (all reviews re-run to catch cross-type regressions)
+   e. Check findings again
+   f. Max 3 cycles total -> BLOCKED if still failing, show remaining findings to user
+
+### Step 4g: Update Checkpoint
+
+1. Mark all batch phases as `"done"`
+2. Record per-phase review results (finding counts, fix cycles)
+3. Update batch status and lint_gate
+4. Write updated checkpoint to disk
+5. Report batch complete to user:
+
+```
+Batch N complete.
+  Phase X — DONE
+    Completeness: PASS | Code Review: PASS | Security: PASS
+    Fix cycles: 0
+    Files: [list]
+  Phase Y — DONE
+    Completeness: PASS | Code Review: PASS | Security: PASS
+    Fix cycles: 1
+    Files: [list]
+  Lint gate: PASS
+
+Proceeding to Batch N+1...
+```
+
+---
+
+## Step 5: Final Summary
+
+After ALL batches complete, print:
 
 ```
 ## Implementation Complete
 
 **Plan**: [plan filename]
-**Orchestrator launches**: N (M handoffs)
-**Total test runs**: N (1 per group + retries)
+**Batches**: N
 
 ### Phases
-1. [Phase name] — DONE
-   - Completeness: PASS (C:0, H:0, M:0, L:0) | Tests verified
-   - Code Review:  PASS (C:0, H:0, M:0, L:0)
-   - Security:     PASS (C:0, H:0, M:0, L:0)
-   - Fix cycles: N
-2. [Phase name] — DONE
-   ...
-
-### Groups
-- Group 1 (Phases X): Test gate PASS
-- Group 2 (Phases X-Y): Test gate PASS (1 retry)
-- ...
+Phase 1 — DONE
+  Completeness: PASS | Code Review: PASS | Security: PASS | Fix cycles: N
+  Files: [list]
+Phase 2 — DONE
+  ...
 
 ### Files Modified
-- [file list from checkpoint]
+[deduped list from checkpoint]
 
 ### Decisions Made
-- [list]
+[from checkpoint]
 
 Ready to review and commit.
 ```
 
-Read the final checkpoint to populate this summary. The supervisor does NOT commit or push.
+Read the final checkpoint to populate this summary. The main conversation does NOT commit or push.
 
 ---
 
-## Troubleshooting
+## Step 6: Error Handling
 
-### Orchestrator runs phases outside its assigned group
-The orchestrator's prompt says "ONLY the listed phases." If it ignores this, strengthen the instruction in the prompt or add a checkpoint verification that rejects work on unassigned phases.
+| Failure | Detection | Recovery |
+|---------|-----------|----------|
+| Implementer crash | No state file or malformed JSON | Mark phase failed, ask user |
+| Implementer timeout | Bash tool timeout / background never completes | Use `--max-turns 80` as guardrail |
+| Lint fix loops | 3 cycles of lint-fix without clean | BLOCKED, show violations to user |
+| Review fix loops | 3 cycles of review-fix without clean reviews | BLOCKED, show remaining findings to user |
+| Reviewer crash | No findings file or malformed JSON | Re-run that reviewer only |
+| Mid-batch partial failure | Some phases done, some failed | Review succeeded phases, ask about failed ones |
 
-### Orchestrator uses Edit/Write directly instead of dispatching
-The orchestrator's system prompt behaviorally restricts it to Read/Glob/Grep/Agent. If it violates this, the agent file at `.claude/agents/implement-orchestrator.md` needs prompt strengthening.
+---
 
-### Orchestrator can't find agents
-Custom agents must exist in `.claude/agents/`. Verify the files exist with Glob.
+## Step 7: Troubleshooting
 
-### Output file empty
-Check that `unset CLAUDECODE` is included in the Bash command. Without it, the nested session check blocks the launch.
-
-### Checkpoint not updated (fabrication detection)
-If the orchestrator returns DONE but checkpoint phases are still "pending", the orchestrator skipped checkpoint writes. Report this to the user immediately. Do NOT proceed to the next group.
-
-### Timeout
-A single phase can take 30-60 minutes (implement + build + reviews + fix cycles). **Always use `run_in_background: true`** for the Bash call — background tasks have no timeout. Each dispatch group gets its own launch, so context exhaustion within a single group is rare.
+- **`unset CLAUDECODE` not working**: Try `CLAUDECODE= claude -p ...` instead
+- **Empty output from headless**: Check `tee` path is absolute
+- **Permission denied**: Verify `--permission-mode dontAsk` + `--allowedTools` covers needed tools
+- **Rate limits**: Headless retries automatically (up to 10 times). If persistent, reduce parallel count.
+- **State file not written**: Implementer may have hit max-turns. Check output JSON for truncation.
