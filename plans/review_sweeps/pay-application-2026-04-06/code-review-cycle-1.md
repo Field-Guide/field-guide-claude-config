@@ -1,42 +1,31 @@
-# Code Review — Pay Application Implementation Plan
+## Code Review
 
-**Date**: 2026-04-06
-**Plan**: `.claude/plans/2026-04-05-pay-application.md`
-**Verdict**: **REJECT** — 7 Critical, 7 High, 6 Medium, 5 Low findings
+**Plan:** `.claude/plans/2026-04-05-pay-application.md`  
+**Spec:** `.claude/specs/2026-04-05-pay-application-spec.md`  
+**Verdict:** REJECT
 
-## Critical Issues
+### Findings
 
-1. **AppScaffold API mismatch** — `title:` and `actions:` params don't exist. Use `appBar: AppBar(...)` pattern.
-2. **Provider-Repository method name mismatches** — `findByExactRange` vs `findByDateRange`, `getNextNumber` vs `getNextApplicationNumber`, `numberExists` vs `isNumberUsed`.
-3. **Provider-Repository type mismatches** — Provider passes DateTime, repository expects String.
-4. **Provider `findOverlapping` return type** — Treats List as nullable. Should check `isNotEmpty`.
-5. **Duplicate route/TestingKeys across Phases 7 and 10** — Consolidate into Phase 10 only.
-6. **Test code uses non-existent APIs** — `generate()` params, `computeSummary()`, `ContractorImportParser`.
-7. **Widget tests use non-existent widget/provider APIs** — Dialog as widget vs static show(), wrong param names.
+severity: HIGH  
+category: code-quality  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 7239  
+finding: The plan built the pay-app export machinery but never wired the actual `Export Pay App` entry point from the pay-items screen, so the primary spec flow was not implementable end-to-end.  
+fix_guidance: Add the pay-items-screen AppBar action, dialog orchestration, overlap/replace handling, number review, and save/share follow-through.  
+spec_reference: Sections 4-5, Pay Application Export Flow / Entry Points
 
-## High Issues
+severity: HIGH  
+category: code-quality  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 3235  
+finding: Same-range replacement logic partially reused identity but still chained new exports from the wrong baseline and did not clearly constrain chronology for new exports.  
+fix_guidance: Reuse the existing pay-app number by default, resolve `previous_application_id` from the prior chronological pay app for the selected range, and block non-replacement ranges that do not continue chronology.  
+spec_reference: Sections 1-3, chaining / chronological numbering / replace semantics
 
-8. **Raw `ScaffoldMessenger` bypasses `SnackBarHelper`** — Use `SnackBarHelper.show*()`.
-9. **`ProjectAnalyticsProvider` uses `dynamic` casts** — Type the `Future.wait` results properly.
-10. **`_bidItemLabel()` ignores AppTerminology** — Use `AppTerminology.bidItemPlural.toLowerCase()`.
-11. **Overlap date comparison string format inconsistency** — Ensure consistent ISO format.
-12. **Delete flow incomplete** — Soft-delete cascade doesn't propagate between tables.
-13. **Test calls `findOverlapping` with non-existent `excludeExactMatch` param**.
-14. **`ExportPayAppUseCase` exists but is never used** — Dead code, provider reimplements inline.
-
-## Medium Issues
-
-15. Discrepancy computation compares bid quantities instead of actual tracked quantities.
-16. Unused `DailyEntryRepository` dependency in provider.
-17. `sourceRecordId` never set — breaks history list navigation.
-18. Pre-existing `entry_personnel_counts` in `tablesWithDirectProjectId` issue (not plan's fault).
-19. `REAL` type for monetary columns — consistent with existing but Postgres could use NUMERIC.
-20. Test expects ASC order but datasource defaults to DESC.
-
-## Low Issues
-
-- Duplicated `scheduledValue` computation — extract to BidItem getter.
-- `excel` package version not verified against SDK.
-- `file_picker` not added to pubspec.yaml.
-- Contractor parsers have TODO stubs.
-- `ContractorLineItem.copyWith` can't clear `matchedBidItemId` to null.
+severity: MEDIUM  
+category: code-quality  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 2004  
+finding: The planned pay-app filename interpolated raw `DateTime` values, which would produce invalid Windows filename characters and break the export path in practice.  
+fix_guidance: Format start/end as date-only safe strings before building the `.xlsx` filename.  
+spec_reference: Section 4, Generation + Save/Share flow

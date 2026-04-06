@@ -1,36 +1,39 @@
-# Completeness Review — Pay Application Implementation Plan
+## Completeness Review
 
-**Date**: 2026-04-06
-**Verdict**: **REJECT** — 5 Critical, 6 High, 5 Medium, 2 Low
+**Spec:** `.claude/specs/2026-04-05-pay-application-spec.md`  
+**Reviewed:** `.claude/plans/2026-04-05-pay-application.md`  
+**Verdict:** REJECT
 
-## Critical Findings
+### Findings
 
-1. **Provider-Repository method name mismatches** — `findByExactRange` vs `findByDateRange`, `getNextNumber` vs `getNextApplicationNumber`, `numberExists` vs `isNumberUsed`. Compile failures.
-2. **PayAppExcelExporter never called from provider** — Provider reimplements export inline without actual file generation. G703 xlsx file never created.
-3. **exportDiscrepancyPdf creates no actual PDF** — No PDF builder service exists. Only creates metadata record.
-4. **ProjectAnalyticsProvider never registered** — Defined but not in provider tree. Runtime crash.
-5. **Zero integration tests** — Spec requires 12 integration test scenarios. Plan has none.
+severity: CRITICAL  
+category: completeness  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 7239  
+finding: The plan did not wire the spec’s primary `Pay Items screen -> Export Pay App` flow. Dialogs, providers, and export use cases existed, but the actual screen entry point was missing.  
+fix_guidance: Add the AppBar action on `quantities_screen.dart` and route it through range selection, replace confirmation, number review, export, and save/share.  
+spec_reference: Sections 4-5, Entry Points / Pay Application Export Flow
 
-## High Findings
+severity: CRITICAL  
+category: completeness  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 7471  
+finding: The plan created an exported-history widget but did not integrate it into the real Forms UX, so the spec’s requirement that exported Forms history remain separate from editable saved responses was not captured in the implementation path.  
+fix_guidance: Modify `FormGalleryScreen` to load exported artifacts alongside saved responses and surface a distinct exported-history pane/tab.  
+spec_reference: Sections 1, 4, 5
 
-6. **ExportPayAppUseCase is dead code** — Properly implemented but never wired into DI or called by provider.
-7. **XlsxContractorParser is a stub** — Returns empty list. Primary import format non-functional.
-8. **_bidItemLabel() hardcoded** — Ignores AppTerminology, always returns 'pay items'.
-9. **Delete cascade incomplete** — Doesn't delete PayApplication row or local/remote files.
-10. **Missing barrel files** — screens.dart, repositories.dart, providers.dart barrels referenced but never created.
-11. **Test import path wrong** — Tests import from domain/services/ but exporter is at data/services/.
-12. **Missing test flow doc updates** — 6 doc files required by spec Section 9 not updated.
+severity: HIGH  
+category: completeness  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 709  
+finding: The plan treated `ExportArtifactRepository` as if it only read the new `export_artifacts` table, which would drop existing form/entry/photo export records from the unified exported-history browser.  
+fix_guidance: Add a compatibility bridge that maps legacy `form_exports`, `entry_exports`, and photo-export records into the exported-history read model until direct convergence is complete.  
+spec_reference: Sections 1-2, unified export-history architecture
 
-## Medium Findings
-
-13. Zero-quantity warning missing for empty date ranges.
-14. Daily discrepancy section unimplemented (hasDailyDetail always false).
-15. Re-compare prompt missing when importing again in same session.
-16. Export convergence not addressed (spec Section 12).
-17. No isolate for Excel generation performance.
-18. ManualMatchEditor edit button is a placeholder.
-
-## Low Findings
-
-19. getLastPayApp reads stale cache instead of querying repository.
-20. sourceRecordId never set on ExportArtifact — breaks history list navigation.
+severity: HIGH  
+category: completeness  
+file: `.claude/plans/2026-04-05-pay-application.md`  
+line: 3235  
+finding: The replacement flow did not fully preserve spec intent around same-range identity and chronology. Reused identity was only partially captured, and the plan did not explicitly block out-of-sequence non-replacement ranges.  
+fix_guidance: Preserve same-range number by default, chain from the prior chronological pay app for that range, and block non-replacement ranges that do not continue chronology.  
+spec_reference: Sections 1-3, same-range replace + chronological rules

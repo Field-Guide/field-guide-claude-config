@@ -6,11 +6,11 @@
 **Spec:** `.claude/specs/2026-04-05-pay-application-spec.md`
 **Tailor:** `.claude/tailor/2026-04-05-pay-application/`
 
-**Architecture:** Two new SQLite tables (`export_artifacts`, `pay_applications`) establish a unified export-history layer. Pay applications are exported-artifact snapshots persisted only on export. Contractor comparison is ephemeral — imported files are not retained, only the discrepancy PDF may be exported. Project analytics aggregates from bid items, quantities, and pay applications.
+**Architecture:** Two new SQLite tables (`export_artifacts`, `pay_applications`) establish a unified export-history layer. Pay applications are exported-artifact snapshots persisted only on export, and exact-range replacement preserves the pay-app's logical identity rather than creating divergent edit history. Contractor comparison is ephemeral — imported files are not retained, only the discrepancy PDF may be exported. Project analytics aggregates from bid items, quantities, and pay applications, and the Forms exported-history surface stays separate from editable saved responses while converging legacy and pay-app export records into one browser.
 
 **Tech Stack:** Flutter/Dart, SQLite (sqflite), Supabase (sync + RLS + storage), provider (ChangeNotifier), go_router, excel package for .xlsx generation, pdf package for discrepancy reports.
 
-**Blast Radius:** 17 direct files, 3 dependent files, 20+ test files, 0 cleanup
+**Blast Radius:** 21+ direct files, 6+ dependent files, 24+ test/docs files, 0 cleanup
 
 ---
 
@@ -682,7 +682,10 @@ abstract class ExportArtifactRepository implements BaseRepository<ExportArtifact
   /// Create a new export artifact with validation.
   Future<RepositoryResult<ExportArtifact>> create(ExportArtifact artifact);
 
-  /// Get all artifacts for a project.
+  /// Get unified exported-history artifacts for a project.
+  /// IMPORTANT: This read path must merge native export_artifacts rows with
+  /// mapped legacy form_exports, entry_exports, and photo-export records until
+  /// the older export writers are migrated to direct export_artifacts writes.
   Future<List<ExportArtifact>> getByProjectId(String projectId);
 
   /// Get artifacts filtered by type (e.g., 'pay_application', 'entry_pdf').
@@ -724,13 +727,24 @@ import 'package:construction_inspector/shared/repositories/base_repository.dart'
 import 'package:construction_inspector/shared/models/paged_result.dart';
 import 'package:construction_inspector/features/pay_applications/data/models/export_artifact.dart';
 import 'package:construction_inspector/features/pay_applications/data/datasources/local/export_artifact_local_datasource.dart';
+import 'package:construction_inspector/features/forms/data/models/form_export.dart';
+import 'package:construction_inspector/features/entries/data/models/entry_export.dart';
+import 'package:construction_inspector/features/forms/domain/repositories/form_export_repository.dart';
+import 'package:construction_inspector/features/entries/domain/repositories/entry_export_repository.dart';
 
 // WHY: Wraps datasource with RepositoryResult error handling.
 // NOTE: Follows FormExportRepositoryImpl pattern.
 class ExportArtifactRepositoryImpl implements ExportArtifactRepository {
   final ExportArtifactLocalDatasource _localDatasource;
+  final FormExportRepository _formExportRepository;
+  final EntryExportRepository _entryExportRepository;
 
-  ExportArtifactRepositoryImpl(this._localDatasource);
+  ExportArtifactRepositoryImpl(
+    this._localDatasource, {
+    required FormExportRepository formExportRepository,
+    required EntryExportRepository entryExportRepository,
+  })  : _formExportRepository = formExportRepository,
+        _entryExportRepository = entryExportRepository;
 
   @override
   Future<ExportArtifact?> getById(String id) async {
@@ -806,24 +820,45 @@ class ExportArtifactRepositoryImpl implements ExportArtifactRepository {
   }
 
   @override
-  Future<List<ExportArtifact>> getByProjectId(String projectId) {
-    return _localDatasource.getByProjectId(projectId);
+  Future<List<ExportArtifact>> getByProjectId(String projectId) async {
+    final nativeArtifacts = await _localDatasource.getByProjectId(projectId);
+    final legacyFormExports = await _formExportRepository.getByProjectId(projectId);
+    final legacyEntryExports = await _entryExportRepository.getByProjectId(projectId);
+
+    // FROM SPEC Section 1 + 5: Exported Forms history is unified even while
+    // legacy form/entry/photo export writers still persist to older tables.
+    final bridgedArtifacts = <ExportArtifact>[
+      ...nativeArtifacts,
+      ..._mapLegacyFormExports(legacyFormExports),
+      ..._mapLegacyEntryExports(legacyEntryExports),
+      ..._mapLegacyPhotoExports(legacyEntryExports),
+    ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return bridgedArtifacts;
   }
 
   @override
-  Future<List<ExportArtifact>> getByType(String projectId, String artifactType) {
-    return _localDatasource.getByType(projectId, artifactType);
+  Future<List<ExportArtifact>> getByType(String projectId, String artifactType) async {
+    final artifacts = await getByProjectId(projectId);
+    return artifacts.where((a) => a.artifactType == artifactType).toList();
   }
 
   @override
-  Future<List<ExportArtifact>> getByTypes(String projectId, List<String> types) {
-    return _localDatasource.getByTypes(projectId, types);
+  Future<List<ExportArtifact>> getByTypes(String projectId, List<String> types) async {
+    final artifacts = await getByProjectId(projectId);
+    return artifacts.where((a) => types.contains(a.artifactType)).toList();
   }
 
   @override
   Future<ExportArtifact?> getBySourceRecordId(String sourceRecordId) {
     return _localDatasource.getBySourceRecordId(sourceRecordId);
   }
+
+  // NOTE: These helpers adapt legacy rows into the new history model so the
+  // Forms exported-history browser is complete before direct-write convergence.
+  List<ExportArtifact> _mapLegacyFormExports(List<FormExport> exports) => /* ... */;
+  List<ExportArtifact> _mapLegacyEntryExports(List<EntryExport> exports) => /* ... */;
+  List<ExportArtifact> _mapLegacyPhotoExports(List<EntryExport> exports) => /* ... */;
 }
 ```
 
@@ -1998,30 +2033,55 @@ class ExportPayAppUseCase {
       await exportDir.create(recursive: true);
     }
     // SEC-F05: Sanitized filename — no user input in the path component.
-    final filename = 'PayApp_${applicationNumber}_${periodStart}_$periodEnd.xlsx';
+    // IMPORTANT: Use date-only labels so Windows filenames do not contain
+    // spaces or colons from DateTime.toString().
+    final startLabel = DateFormat('yyyy-MM-dd').format(periodStart);
+    final endLabel = DateFormat('yyyy-MM-dd').format(periodEnd);
+    final filename = 'PayApp_${applicationNumber}_${startLabel}_$endLabel.xlsx';
     final localPath = await _excelExporter.saveToFile(
       bytes,
       directory: exportDir.path,
       filename: filename,
     );
 
-    // Step 8: If replacing, soft-delete the prior artifact + pay app.
-    if (existingPayAppIdToReplace != null) {
-      final existingPayApp = await _payApplicationRepository.getById(existingPayAppIdToReplace);
-      if (existingPayApp != null) {
-        await _payApplicationRepository.delete(existingPayApp.id);
-        await _exportArtifactRepository.delete(existingPayApp.exportArtifactId);
-        Logger.db(
-          '[ExportPayAppUseCase] Replaced existing pay app ${existingPayApp.id}',
+    // Step 8: Resolve create-vs-replace persistence strategy.
+    // IMPORTANT: Exact-range replacement must preserve the pay-app's identity,
+    // number, and previous_application_id chain. Update the existing rows
+    // in place instead of soft-deleting and recreating them.
+    PayApplication? existingPayApp;
+    ExportArtifact? existingArtifact;
+    final isReplacing = existingPayAppIdToReplace != null;
+    if (isReplacing) {
+      existingPayApp = await _payApplicationRepository.getById(
+        existingPayAppIdToReplace,
+      );
+      if (existingPayApp == null) {
+        throw StateError(
+          'Replacement requested but pay application $existingPayAppIdToReplace was not found.',
         );
+      }
+      existingArtifact = await _exportArtifactRepository.getById(
+        existingPayApp.exportArtifactId,
+      );
+      // Best-effort cleanup of the superseded local file before updating the
+      // artifact row to point at the new export.
+      if (existingArtifact?.localPath != null &&
+          existingArtifact!.localPath != localPath &&
+          File(existingArtifact.localPath!).existsSync()) {
+        try {
+          await File(existingArtifact.localPath!).delete();
+        } on Exception catch (_) {
+          // NOTE: File-sync cleanup still has the updated row as the source of truth.
+        }
       }
     }
 
     // Step 9: Persist ExportArtifact + PayApplication rows.
     // FROM SPEC: "Persist ExportArtifact + PayApplication rows"
-    // NOTE (H10 fix): Pre-generate payApp ID so we can set sourceRecordId on artifact.
-    final artifactId = const Uuid().v4();
-    final payAppId = const Uuid().v4();
+    // IMPORTANT: Replacements reuse the existing IDs so downstream references
+    // and chronology remain intact.
+    final artifactId = existingArtifact?.id ?? const Uuid().v4();
+    final payAppId = existingPayApp?.id ?? const Uuid().v4();
     final artifact = ExportArtifact(
       id: artifactId,
       projectId: projectId,
@@ -2033,11 +2093,15 @@ class ExportPayAppUseCase {
       mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       createdByUserId: createdByUserId,
     );
-    final artifactResult = await _exportArtifactRepository.create(artifact);
-    if (!artifactResult.isSuccess) {
-      throw StateError(
-        'Failed to save export artifact: ${artifactResult.error}',
-      );
+    if (isReplacing) {
+      await _exportArtifactRepository.save(artifact);
+    } else {
+      final artifactResult = await _exportArtifactRepository.create(artifact);
+      if (!artifactResult.isSuccess) {
+        throw StateError(
+          'Failed to save export artifact: ${artifactResult.error}',
+        );
+      }
     }
 
     // Step 10: Persist PayApplication row.
@@ -2055,13 +2119,20 @@ class ExportPayAppUseCase {
       notes: notes,
       createdByUserId: createdByUserId,
     );
-    final payAppResult = await _payApplicationRepository.create(payApp);
-    if (!payAppResult.isSuccess) {
-      // WHY: Roll back artifact if pay app save fails.
-      await _exportArtifactRepository.delete(artifactId);
-      throw StateError(
-        'Failed to save pay application: ${payAppResult.error}',
+    if (isReplacing) {
+      await _payApplicationRepository.save(payApp);
+      Logger.db(
+        '[ExportPayAppUseCase] Replaced existing pay app $payAppId in place',
       );
+    } else {
+      final payAppResult = await _payApplicationRepository.create(payApp);
+      if (!payAppResult.isSuccess) {
+        // WHY: Roll back artifact if pay app save fails.
+        await _exportArtifactRepository.delete(artifactId);
+        throw StateError(
+          'Failed to save pay application: ${payAppResult.error}',
+        );
+      }
     }
 
     Logger.db(
@@ -2550,6 +2621,78 @@ Expected: Migration parses without errors.
 
 ---
 
+### Sub-phase 5.5: Converge legacy export producers into the unified export-artifact layer
+
+**Agent**: `code-fixer-agent`
+**Files**:
+- `lib/core/database/database_service.dart` (MODIFY)
+- `lib/features/forms/domain/usecases/export_form_use_case.dart` (MODIFY)
+- `lib/features/entries/domain/usecases/export_entry_use_case.dart` (MODIFY)
+- `lib/features/forms/di/forms_providers.dart` (MODIFY)
+- `lib/features/entries/di/entries_providers.dart` (MODIFY)
+- `lib/core/di/app_providers.dart` (MODIFY)
+
+#### Step 5.5.1: Backfill existing `form_exports` and `entry_exports` rows into `export_artifacts`
+
+Extend the local v52 migration in `lib/core/database/database_service.dart` with idempotent backfill SQL after the new tables and indexes are created.
+
+Backfill rules:
+- `form_exports` -> `artifact_type = 'form_pdf'`
+- `entry_exports` -> `artifact_type = 'entry_pdf'`
+- `artifact_subtype = form_type` for form exports, `NULL` for entry exports
+- `source_record_id = form_response_id` for form exports, `entry_id` for entry exports
+- `local_path = file_path`
+- `remote_path = remote_path`
+- `mime_type = 'application/pdf'`
+- `status = 'exported'`
+
+Use prefixed IDs for legacy rows so the backfill is deterministic and collision-safe:
+- `legacy-form-export-{form_exports.id}`
+- `legacy-entry-export-{entry_exports.id}`
+
+Make the backfill idempotent with `INSERT ... SELECT ... WHERE NOT EXISTS (...)` so rerunning the migration or test setup does not create duplicates.
+
+**WHY:** The spec does not just add a new table for pay apps; it establishes a unified exported-history layer. Without historical backfill, the new exported Forms history would immediately omit existing form and IDR exports.
+
+#### Step 5.5.2: Dual-write future form exports into `export_artifacts`
+
+Modify `lib/features/forms/domain/usecases/export_form_use_case.dart` so every successful PDF export creates:
+1. the existing `form_exports` row
+2. a matching parent `ExportArtifact` row
+
+The parent artifact should use:
+- `artifact_type: 'form_pdf'`
+- `artifact_subtype: response.formType`
+- `sourceRecordId: response.id`
+- `title`: form-type-aware label suitable for the exported-history browser
+- `filename`, `localPath`, `remotePath`, `createdByUserId` copied from the export flow
+
+Update `lib/features/forms/di/forms_providers.dart` and `lib/core/di/app_providers.dart` so `ExportFormUseCase` receives `ExportArtifactRepository`.
+
+#### Step 5.5.3: Dual-write future entry exports into `export_artifacts`
+
+Modify `lib/features/entries/domain/usecases/export_entry_use_case.dart` so every successful entry export also creates a matching parent `ExportArtifact` row with:
+- `artifact_type: 'entry_pdf'`
+- `sourceRecordId: entry.id`
+- `title`: entry-aware export label for the history browser
+- `filename`, `localPath`, `remotePath`, `createdByUserId` copied from the export metadata
+
+Update `lib/features/entries/di/entries_providers.dart` and `lib/core/di/app_providers.dart` so `ExportEntryUseCase` receives `ExportArtifactRepository`.
+
+#### Step 5.5.4: Keep the exported-history UI tolerant of artifact types that arrive later
+
+Do not invent a new photo-export persistence table in this plan if the repo does not already have one. Instead:
+- keep `ExportArtifactHistoryList` and the exported-history filter UI ready for `photo_export`
+- ensure the unified-history code path accepts that artifact type when the persisted producer exists
+- do not ship the exported-history browser hardcoded to pay apps only
+
+**WHY:** The spec names photo exports as part of the exported Forms history surface, but the codebase still has to converge existing producers in phases. The plan should be explicit about that convergence rather than silently dropping non-pay-app export types.
+
+**Verify**: `pwsh -Command "flutter analyze lib/core/database/database_service.dart lib/features/forms/domain/usecases/export_form_use_case.dart lib/features/entries/domain/usecases/export_entry_use_case.dart lib/features/forms/di/forms_providers.dart lib/features/entries/di/entries_providers.dart lib/core/di/app_providers.dart"`
+**Expected**: No issues found
+
+---
+
 ## Phase 6: DI and Provider Wiring
 
 Create the PayApp DI container, initializer, provider registration, and the three providers (ExportArtifactProvider, PayApplicationProvider, ContractorComparisonProvider -- Phase 8 will flesh out the last one).
@@ -2690,7 +2833,11 @@ class PayAppInitializer {
     final payApplicationLocal = PayApplicationLocalDatasource(dbService);
 
     // Tier 2: Repositories
-    final exportArtifactRepo = ExportArtifactRepositoryImpl(exportArtifactLocal);
+    final exportArtifactRepo = ExportArtifactRepositoryImpl(
+      exportArtifactLocal,
+      formExportRepository: deps.form.formExportRepository,
+      entryExportRepository: deps.entry.entryExportRepository,
+    );
     final payApplicationRepo = PayApplicationRepositoryImpl(payApplicationLocal);
 
     // Tier 3: Use cases
@@ -3176,12 +3323,34 @@ class PayApplicationProvider extends ChangeNotifier with SafeAction {
       final startStr = start.toIso8601String().substring(0, 10);
       final endStr = end.toIso8601String().substring(0, 10);
 
-      // Step 1: Determine pay-app number
+      // Step 1: Resolve exact-match replacement state first.
+      // FROM SPEC Section 3: Exact same range is the same pay-app identity.
+      // IMPORTANT: Replacement reuses the existing pay-app number by default.
+      PayApplication? existingForReplace;
+      if (replaceExisting) {
+        existingForReplace = await _payAppRepository.findByDateRange(
+          projectId,
+          startStr,
+          endStr,
+        );
+        if (existingForReplace == null) {
+          _error = 'No existing pay application was found for this date range.';
+          return null;
+        }
+      }
+
+      // Step 2: Determine pay-app number.
+      // FROM SPEC Section 3: Replacing the exact same saved pay app preserves
+      // the existing number unless the user explicitly overrides it.
       final number = overrideNumber ??
+          existingForReplace?.applicationNumber ??
           await _payAppRepository.getNextApplicationNumber(projectId);
 
-      // Step 2: Check number uniqueness (unless replacing exact same range)
-      if (!replaceExisting) {
+      // Step 3: Check number uniqueness.
+      // IMPORTANT: Replacement may reuse the current pay-app number, but
+      // overriding to another in-use number is still blocked.
+      if (!replaceExisting ||
+          number != existingForReplace?.applicationNumber) {
         final numberInUse = await _payAppRepository.isNumberUsed(
           projectId,
           number,
@@ -3192,21 +3361,21 @@ class PayApplicationProvider extends ChangeNotifier with SafeAction {
         }
       }
 
-      // Step 3: Get previous pay app for chaining
-      final previousPayApp = getLastPayApp(projectId);
+      // Step 4: Resolve chaining baseline.
+      // FROM SPEC Section 2: previous_application_id should point to the prior
+      // saved pay app in the chronology, not to the row being replaced.
+      final previousPayApp = replaceExisting
+          ? (existingForReplace?.previousApplicationId != null
+              ? await _payAppRepository.getById(
+                  existingForReplace!.previousApplicationId!,
+                )
+              : null)
+          : getLastPayAppBefore(projectId, start);
 
-      // Step 4: Determine existing pay app ID for replace flow
-      String? existingPayAppIdToReplace;
-      if (replaceExisting) {
-        final existing = await _payAppRepository.findByDateRange(
-          projectId,
-          startStr,
-          endStr,
-        );
-        existingPayAppIdToReplace = existing?.id;
-      }
+      // Step 5: Determine existing pay app ID for replace flow
+      final existingPayAppIdToReplace = existingForReplace?.id;
 
-      // Step 5: Delegate to ExportPayAppUseCase
+      // Step 6: Delegate to ExportPayAppUseCase
       // WHY: Use case handles bid item query, quantity computation,
       // Excel generation, file save, artifact + pay app persistence.
       final exportResult = await _exportPayAppUseCase.execute(
@@ -3219,7 +3388,7 @@ class PayApplicationProvider extends ChangeNotifier with SafeAction {
         existingPayAppIdToReplace: existingPayAppIdToReplace,
       );
 
-      // Step 6: Refresh local state
+      // Step 7: Refresh local state
       _payApps = await _payAppRepository.getByProjectId(projectId);
       result = exportResult.payApplication;
 
@@ -3249,6 +3418,20 @@ class PayApplicationProvider extends ChangeNotifier with SafeAction {
     projectApps.sort(
         (a, b) => b.applicationNumber.compareTo(a.applicationNumber));
     return projectApps.first;
+  }
+
+  /// Get the most recent pay app whose range ends before [start].
+  /// WHY: New exports must chain to the prior chronological pay app for the
+  /// selected range, not simply to the highest-numbered saved record.
+  PayApplication? getLastPayAppBefore(String projectId, DateTime start) {
+    final projectApps = _payApps.where((p) {
+      if (p.projectId != projectId || p.deletedAt != null) return false;
+      final periodEnd = DateTime.tryParse(p.periodEnd);
+      return periodEnd != null && periodEnd.isBefore(start);
+    }).toList();
+    if (projectApps.isEmpty) return null;
+    projectApps.sort((a, b) => a.periodEnd.compareTo(b.periodEnd));
+    return projectApps.last;
   }
 
   /// Delete a pay application by ID (soft-delete).
@@ -3333,6 +3516,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:construction_inspector/core/config/app_terminology.dart';
 import 'package:construction_inspector/core/design_system/design_system.dart';
 import 'package:construction_inspector/shared/testing_keys/testing_keys.dart';
@@ -3485,11 +3669,16 @@ class _PayApplicationDetailScreenState
     // Step 1: Find the artifact to get the local file path before deleting.
     final artifacts = artifactProvider.artifacts;
     final artifact = artifacts.where((a) => a.id == payApp.exportArtifactId).firstOrNull;
-    // Step 2: Delete local file if it exists.
+    // Step 2: Delete the local file only if it lives under the app-managed
+    // exports directory. Never delete arbitrary filesystem paths from DB data.
     if (artifact?.localPath != null) {
       try {
-        final file = File(artifact!.localPath!);
-        if (await file.exists()) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final normalizedRoot =
+            '${appDir.path}${Platform.pathSeparator}exports${Platform.pathSeparator}';
+        final candidatePath = artifact!.localPath!;
+        final file = File(candidatePath);
+        if (candidatePath.startsWith(normalizedRoot) && await file.exists()) {
           await file.delete();
         }
       } on Exception catch (_) {
@@ -4067,16 +4256,16 @@ import 'package:construction_inspector/features/pay_applications/presentation/pr
 /// Displays a filtered list of exported artifacts.
 ///
 /// [projectId] — filter by project.
-/// [artifactType] — optional filter by type (null = show all).
+/// [artifactTypes] — optional included artifact types (null = show all).
 /// FROM SPEC Section 5: ExportArtifactHistoryList — filtered by artifact type.
 class ExportArtifactHistoryList extends StatelessWidget {
   final String projectId;
-  final String? artifactType;
+  final List<String>? artifactTypes;
 
   const ExportArtifactHistoryList({
     super.key,
     required this.projectId,
-    this.artifactType,
+    this.artifactTypes,
   });
 
   @override
@@ -4087,7 +4276,9 @@ class ExportArtifactHistoryList extends StatelessWidget {
 
     // WHY: Filter locally from already-loaded artifacts.
     final artifacts = provider.artifacts.where((a) {
-      if (artifactType != null && a.artifactType != artifactType) return false;
+      if (artifactTypes != null && !artifactTypes!.contains(a.artifactType)) {
+        return false;
+      }
       return true;
     }).toList();
 
@@ -4127,8 +4318,8 @@ class ExportArtifactHistoryList extends StatelessWidget {
                 artifact.sourceRecordId != null) {
               context.push('/pay-app/${artifact.sourceRecordId}');
             }
-            // NOTE: Other artifact types (entry_pdf, form_pdf) would route
-            // to their respective detail screens. Deferred to convergence phase.
+            // NOTE: Non-pay-app artifacts stay in the unified history browser
+            // with their existing open/share behavior preserved.
           },
         );
       },
@@ -4848,6 +5039,12 @@ class ContractorComparisonProvider extends ChangeNotifier with SafeAction {
     ImportedFile file,
   ) async {
     await runSafeAction('import contractor artifact', () async {
+      if (!_canWrite()) {
+        throw StateError(
+          'You do not have permission to import contractor pay applications.',
+        );
+      }
+
       // SEC (M2 fix): Validate file path to prevent path traversal.
       if (file.path.contains('..')) {
         throw ArgumentError('Invalid file path: path traversal detected');
@@ -5902,6 +6099,7 @@ class BidItemProgress {
   final String unit;
   final double bidQuantity;
   final double usedQuantity;
+  final double activityQuantity;
   final double unitPrice;
   final double earnedAmount;
   final double percentUsed;
@@ -5913,6 +6111,7 @@ class BidItemProgress {
     required this.unit,
     required this.bidQuantity,
     required this.usedQuantity,
+    required this.activityQuantity,
     required this.unitPrice,
     required this.earnedAmount,
     required this.percentUsed,
@@ -6055,7 +6254,8 @@ class ProjectAnalyticsProvider extends ChangeNotifier with SafeAction {
       // FROM SPEC: Analytics initial load: <500ms on normal project size.
       // NOTE (H4 fix): Type the Future.wait results properly to avoid dynamic casts.
       final bidItemsFuture = _bidItemRepository.getByProjectId(projectId);
-      final usedByItemFuture = _entryQuantityRepository.getTotalUsedByProject(projectId);
+      final usedByItemFuture =
+          _entryQuantityRepository.getTotalUsedByProject(projectId);
       final payAppsFuture = _payApplicationRepository.getByProjectId(projectId);
 
       final results = await Future.wait([bidItemsFuture, usedByItemFuture, payAppsFuture]);
@@ -6064,7 +6264,31 @@ class ProjectAnalyticsProvider extends ChangeNotifier with SafeAction {
       final usedByItem = results[1] as Map<String, double>;
       final payApps = results[2] as List<PayApplication>;
 
-      _computeSummary(bidItems, usedByItem, payApps);
+      // FROM SPEC: The date filter and "top items by recent activity" must
+      // affect analytics results. Use the explicit filter when present;
+      // otherwise default the activity window to the time since the last
+      // saved pay app so the dashboard highlights new work.
+      Map<String, double> activityByItem;
+      if (_filterStart != null && _filterEnd != null) {
+        activityByItem = await _entryQuantityRepository.getByDateRange(
+          projectId,
+          _formatDay(_filterStart!),
+          _formatDay(_filterEnd!),
+        );
+      } else if (payApps.isNotEmpty) {
+        final lastPayApp = payApps.last;
+        final activityStart =
+            DateTime.parse(lastPayApp.periodEnd).add(const Duration(days: 1));
+        activityByItem = await _entryQuantityRepository.getByDateRange(
+          projectId,
+          _formatDay(activityStart),
+          _formatDay(DateTime.now()),
+        );
+      } else {
+        activityByItem = usedByItem;
+      }
+
+      _computeSummary(bidItems, usedByItem, activityByItem, payApps);
       _computePayAppComparison(payApps);
     }, buildErrorMessage: (_) => 'Failed to load analytics.');
   }
@@ -6083,6 +6307,7 @@ class ProjectAnalyticsProvider extends ChangeNotifier with SafeAction {
   void _computeSummary(
     List<BidItem> bidItems,
     Map<String, double> usedByItem,
+    Map<String, double> activityByItem,
     List<PayApplication> payApps,
   ) {
     double totalContractAmount = 0;
@@ -6112,6 +6337,7 @@ class ProjectAnalyticsProvider extends ChangeNotifier with SafeAction {
         unit: item.unit,
         bidQuantity: item.bidQuantity,
         usedQuantity: used,
+        activityQuantity: activityByItem[item.id] ?? 0.0,
         unitPrice: unitPrice,
         earnedAmount: earnedAmount,
         percentUsed: percentUsed,
@@ -6160,6 +6386,9 @@ class ProjectAnalyticsProvider extends ChangeNotifier with SafeAction {
       );
     }).toList();
   }
+
+  String _formatDay(DateTime date) =>
+      date.toUtc().toIso8601String().substring(0, 10);
 }
 ```
 
@@ -6736,9 +6965,10 @@ class _ProjectAnalyticsScreenState extends State<ProjectAnalyticsScreen> {
       );
     }
 
-    // FROM SPEC: top items by recent activity — sort by used quantity descending
+    // FROM SPEC: top items by recent activity — sort by the current activity
+    // window (explicit filter if set, otherwise since the last pay app).
     final sorted = List<BidItemProgress>.from(summary.itemProgress)
-      ..sort((a, b) => b.usedQuantity.compareTo(a.usedQuantity));
+      ..sort((a, b) => b.activityQuantity.compareTo(a.activityQuantity));
     // NOTE: Show top 10 items to avoid overwhelming the screen
     final topItems = sorted.take(10).toList();
 
@@ -7081,17 +7311,17 @@ import 'pay_app_keys.dart';
 
 ---
 
-### Sub-phase 10.4: Quantities Screen Secondary Entry Point
+### Sub-phase 10.4: Quantities Screen Secondary Entry Points
 
 **Agent**: `code-fixer-agent`
 **Files**:
-- `lib/features/quantities/presentation/screens/quantities_screen.dart:62-69` (MODIFY)
+- `lib/features/quantities/presentation/screens/quantities_screen.dart` (MODIFY)
 
 #### Step 10.4.1: Add analytics action button to quantities screen AppBar
 
 Modify `lib/features/quantities/presentation/screens/quantities_screen.dart`.
 
-In the `actions:` list of the AppBar (currently at line 62-80), add an analytics icon button before the existing import button. Insert at line 63 (before the `if (context.watch<AuthProvider>().canEditFieldData)` block):
+In the `actions:` list of the AppBar (currently at line 57-108), add an analytics icon button before the existing write actions:
 
 ```dart
           // FROM SPEC: quantities screen secondary entry point to analytics
@@ -7108,6 +7338,165 @@ In the `actions:` list of the AppBar (currently at line 62-80), add an analytics
 ```
 
 Also add import for `go_router` at the top if not already present (it is already imported at line 4).
+
+**Verify**: `pwsh -Command "flutter analyze lib/features/quantities/presentation/screens/quantities_screen.dart"`
+**Expected**: No issues found
+
+#### Step 10.4.2: Add the missing `Export Pay App` entry point and wire the full export flow
+
+The current plan defines the pay-app export dialogs, providers, and use case, but it never wires the actual `Export Pay App` action from the Pay Items screen. Add that entry point to `lib/features/quantities/presentation/screens/quantities_screen.dart` and route it through the provider/dialog flow defined in Phases 6-7.
+
+1. Add imports for:
+   - `lib/features/pay_applications/presentation/providers/pay_application_provider.dart`
+   - `lib/features/pay_applications/presentation/providers/export_artifact_provider.dart`
+   - `lib/features/pay_applications/presentation/dialogs/pay_app_date_range_dialog.dart`
+   - `lib/features/pay_applications/presentation/dialogs/pay_app_replace_confirmation_dialog.dart`
+   - `lib/features/pay_applications/presentation/dialogs/pay_app_number_dialog.dart`
+   - `lib/features/pay_applications/presentation/dialogs/export_save_share_dialog.dart`
+
+2. In the AppBar `actions:` list, add a write-guarded export button before the existing PDF import button:
+
+```dart
+          if (context.watch<AuthProvider>().canEditFieldData)
+            IconButton(
+              key: TestingKeys.payAppExportButton,
+              icon: const Icon(Icons.receipt_long_outlined),
+              tooltip: 'Export Pay App',
+              onPressed: _startPayAppExport,
+            ),
+```
+
+3. Add a `_startPayAppExport()` helper below `_showBidItemDetail()` that implements the spec flow end-to-end:
+   - read `selectedProject`
+   - block with `Add pay items before creating a pay application` when no bid items exist
+   - load pay apps if needed
+   - compute default start as the day after the last saved pay app end when one exists
+   - show `PayAppDateRangeDialog`
+   - call `validateRange()`
+   - block non-replacement ranges that do not continue the project's chronology
+   - if `overlapping`, show blocking feedback and stop
+   - if `exactMatch`, show `PayAppReplaceConfirmationDialog`
+   - choose the default number:
+     - exact-match replace => existing pay-app number
+     - new range => `getSuggestedNextNumber(project.id)`
+   - show `PayAppNumberDialog`
+   - call `replaceExisting(...)` or `exportPayApp(...)`
+   - reload `ExportArtifactProvider` for the project, find the saved artifact by `sourceRecordId == payApp.id`, and open `ExportSaveShareDialog`
+   - for Excel exports, pass `previewWidget: null` per spec
+
+4. Add the helper skeleton:
+
+```dart
+  Future<void> _startPayAppExport() async {
+    final project = context.read<ProjectProvider>().selectedProject;
+    if (project == null) {
+      SnackBarHelper.showInfo(context, 'Please select a project first');
+      return;
+    }
+
+    final bidItemProvider = context.read<BidItemProvider>();
+    if (bidItemProvider.bidItems.isEmpty) {
+      SnackBarHelper.showError(
+        context,
+        'Add pay items before creating a pay application',
+      );
+      return;
+    }
+
+    final payAppProvider = context.read<PayApplicationProvider>();
+    final artifactProvider = context.read<ExportArtifactProvider>();
+
+    await payAppProvider.loadForProject(project.id);
+
+    final lastPayApp = payAppProvider.getLastPayApp(project.id);
+    final defaultStart = lastPayApp != null
+        ? DateTime.parse(lastPayApp.periodEnd).add(const Duration(days: 1))
+        : DateTime.now();
+    final range = await PayAppDateRangeDialog.show(
+      context,
+      defaultStart: defaultStart,
+      defaultEnd: DateTime.now(),
+    );
+    if (range == null || !mounted) return;
+
+    final validation = await payAppProvider.validateRange(
+      project.id,
+      range.start,
+      range.end,
+    );
+    if (!mounted) return;
+
+    bool replaceExisting = false;
+    final lastPayApp = payAppProvider.getLastPayApp(project.id);
+    if (validation.status == PayAppRangeStatus.overlapping) {
+      SnackBarHelper.showError(
+        context,
+        'Pay application ranges cannot overlap.',
+      );
+      return;
+    }
+    if (validation.status == PayAppRangeStatus.exactMatch) {
+      replaceExisting = await PayAppReplaceConfirmationDialog.show(
+            context,
+            applicationNumber: validation.existingPayApp!.applicationNumber,
+            dateRange:
+                '${validation.existingPayApp!.periodStart} - ${validation.existingPayApp!.periodEnd}',
+          ) ??
+          false;
+      if (!replaceExisting || !mounted) return;
+    }
+    if (!replaceExisting &&
+        lastPayApp != null &&
+        DateTime.parse(lastPayApp.periodEnd).isAfter(range.start)) {
+      SnackBarHelper.showError(
+        context,
+        'Create the next chronological pay application or re-export the exact same range to replace it.',
+      );
+      return;
+    }
+
+    final suggestedNumber = validation.status == PayAppRangeStatus.exactMatch
+        ? validation.existingPayApp!.applicationNumber
+        : await payAppProvider.getSuggestedNextNumber(project.id);
+    final selectedNumber = await PayAppNumberDialog.show(
+      context,
+      suggestedNumber: suggestedNumber,
+    );
+    if (selectedNumber == null || !mounted) return;
+
+    final payApp = replaceExisting
+        ? await payAppProvider.replaceExisting(
+            projectId: project.id,
+            projectName: project.name,
+            start: range.start,
+            end: range.end,
+            overrideNumber: selectedNumber,
+          )
+        : await payAppProvider.exportPayApp(
+            projectId: project.id,
+            projectName: project.name,
+            start: range.start,
+            end: range.end,
+            overrideNumber: selectedNumber,
+            replaceExisting: false,
+          );
+    if (payApp == null || !mounted) return;
+
+    await artifactProvider.loadForProject(project.id);
+    final artifact = artifactProvider.artifacts
+        .where((a) => a.sourceRecordId == payApp.id)
+        .firstOrNull;
+    if (artifact == null || !mounted) return;
+
+    await ExportSaveShareDialog.show(
+      context,
+      filename: artifact.filename,
+      previewWidget: null, // Excel has no preview slot
+    );
+  }
+```
+
+**WHY:** This restores the primary user flow from the spec: Pay Items screen -> Export Pay App -> range validation -> optional replace -> number review -> save/share dialog. Without this step, the plan builds the machinery but never exposes the feature.
 
 **Verify**: `pwsh -Command "flutter analyze lib/features/quantities/presentation/screens/quantities_screen.dart"`
 **Expected**: No issues found
@@ -7171,6 +7560,63 @@ export 'presentation/screens/screens.dart';
 ```
 
 **Verify**: `pwsh -Command "flutter analyze lib/features/pay_applications/pay_applications.dart"`
+**Expected**: No issues found
+
+---
+
+### Sub-phase 10.6: Wire Unified Exported Forms History Into The Existing Forms UX
+
+**Agent**: `code-fixer-agent`
+**Files**:
+- `lib/features/forms/presentation/screens/form_gallery_screen.dart` (MODIFY)
+- `lib/features/forms/presentation/providers/document_provider.dart` (MODIFY if a small view-model helper is needed)
+
+#### Step 10.6.1: Add a dedicated exported-history surface that stays separate from editable saved responses
+
+Modify `lib/features/forms/presentation/screens/form_gallery_screen.dart` so the Forms route exposes two distinct surfaces:
+- editable saved form responses (existing behavior)
+- exported Forms history backed by `ExportArtifactProvider`
+
+Implement this with a top-level segmented control or nested tabs inside `FormGalleryScreen`. The critical requirement is that editable saved responses remain on their current surface and are not merged into exported history.
+
+Add imports for:
+- `lib/features/pay_applications/presentation/providers/export_artifact_provider.dart`
+- `lib/features/pay_applications/presentation/widgets/export_artifact_history_list.dart`
+
+Update `didChangeDependencies()` so that when the project changes it loads both:
+- `DocumentProvider.loadDocuments(projectId)` for editable saved responses
+- `ExportArtifactProvider.loadForProject(projectId)` for exported artifacts
+
+#### Step 10.6.2: Make the exported-history pane a filtered exported-artifact browser
+
+In the new exported-history pane:
+- show `ExportArtifactHistoryList(` with explicit Forms-surface types:
+  - `entry_pdf`
+  - `form_pdf`
+  - `photo_export`
+  - `pay_application`
+- expose a simple artifact-type filter UI with at least:
+  - `All`
+  - `Pay Applications`
+  - `Form PDFs`
+  - `IDR Exports`
+  - `Photo Exports`
+- preserve the existing saved-response tabs for editable form responses
+
+Use the full-history view as the default exported-history pane, but ensure the pay-app filter is a first-class option so the Forms route can act as the pay-app history entry point required by the spec.
+
+Do not include `comparison_report` in this Forms exported-history surface.
+
+#### Step 10.6.3: Route pay-app artifacts to the saved pay-app detail screen
+
+Keep `ExportArtifactHistoryList` as the shared history widget, but tighten the plan contract here:
+- tapping a `pay_application` artifact must route to `/pay-app/:payAppId`
+- existing non-pay-app artifact types should continue to use their current viewers/detail flows where those routes already exist
+- do not fold exported artifacts into `DocumentProvider.documents`
+
+**WHY:** The spec is explicit that exported Forms history is a separate exported-artifact browser and that saved pay apps must appear there as read-only snapshots. The current plan creates the widget but never integrates it into the real Forms UX.
+
+**Verify**: `pwsh -Command "flutter analyze lib/features/forms/presentation/screens/form_gallery_screen.dart"`
 **Expected**: No issues found
 
 ---
@@ -7490,16 +7936,24 @@ void main() {
 // WHY: HIGH priority test per spec testing strategy.
 // Tests type filtering, delete behavior, history loading.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:construction_inspector/core/database/database_service.dart';
 import 'package:construction_inspector/features/pay_applications/data/datasources/local/export_artifact_local_datasource.dart';
-import 'package:construction_inspector/features/pay_applications/data/repositories/export_artifact_repository.dart';
+import 'package:construction_inspector/features/pay_applications/data/repositories/export_artifact_repository_impl.dart';
 import 'package:construction_inspector/features/pay_applications/data/models/export_artifact.dart';
+import 'package:construction_inspector/features/forms/domain/repositories/form_export_repository.dart';
+import 'package:construction_inspector/features/entries/domain/repositories/entry_export_repository.dart';
+
+class MockFormExportRepository extends Mock implements FormExportRepository {}
+class MockEntryExportRepository extends Mock implements EntryExportRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late ExportArtifactRepositoryImpl repository;
   late DatabaseService dbService;
+  late MockFormExportRepository mockFormExportRepository;
+  late MockEntryExportRepository mockEntryExportRepository;
   final now = DateTime.now().toUtc().toIso8601String();
 
   setUpAll(DatabaseService.initializeFfi);
@@ -7508,7 +7962,17 @@ void main() {
     dbService = DatabaseService.forTesting();
     final db = await dbService.database;
     final datasource = ExportArtifactLocalDatasource(dbService);
-    repository = ExportArtifactRepositoryImpl(datasource);
+    mockFormExportRepository = MockFormExportRepository();
+    mockEntryExportRepository = MockEntryExportRepository();
+    when(() => mockFormExportRepository.getByProjectId(any()))
+        .thenAnswer((_) async => []);
+    when(() => mockEntryExportRepository.getByProjectId(any()))
+        .thenAnswer((_) async => []);
+    repository = ExportArtifactRepositoryImpl(
+      datasource,
+      formExportRepository: mockFormExportRepository,
+      entryExportRepository: mockEntryExportRepository,
+    );
 
     // Seed FK parent
     await db.insert('projects', {
@@ -7869,6 +8333,28 @@ void main() {
         expect(result.error, contains('permission'));
         restrictedProvider.dispose();
       });
+
+      test('importContractorArtifact requires canWrite', () async {
+        final restrictedProvider = ContractorComparisonProvider(
+          payAppRepository: mockPayAppRepo,
+          exportArtifactRepository: mockArtifactRepo,
+          bidItemRepository: mockBidItemRepo,
+          entryQuantityRepository: mockQuantityRepo,
+          canWrite: () => false,
+        );
+
+        await restrictedProvider.importContractorArtifact(
+          'pay-app-1',
+          ImportedFile(
+            path: 'C:/temp/contractor.csv',
+            mimeType: 'text/csv',
+            filename: 'contractor.csv',
+          ),
+        );
+
+        expect(restrictedProvider.error, contains('permission'));
+        restrictedProvider.dispose();
+      });
     });
   });
 }
@@ -8175,15 +8661,16 @@ void main() {
     mockProvider = MockExportArtifactProvider();
   });
 
-  // NOTE (C7 fix): Widget param is artifactType, not filterType.
-  Widget buildTestWidget({String? artifactType}) {
+  // NOTE (C8 fix): Widget param is artifactTypes so the Forms surface can
+  // include only exported-history types and exclude comparison reports.
+  Widget buildTestWidget({List<String>? artifactTypes}) {
     return MaterialApp(
       home: Scaffold(
         body: ChangeNotifierProvider<ExportArtifactProvider>.value(
           value: mockProvider,
           child: ExportArtifactHistoryList(
             projectId: 'proj-1',
-            artifactType: artifactType,
+            artifactTypes: artifactTypes,
           ),
         ),
       ),
@@ -8225,20 +8712,24 @@ void main() {
 
     // NOTE (C7 fix): The widget filters locally from provider.artifacts,
     // not via a separate getArtifactsByType method.
-    testWidgets('filters artifacts by type when artifactType provided', (tester) async {
+    testWidgets('filters artifacts by included types when artifactTypes provided', (tester) async {
       final artifacts = [
         _makeArtifact(artifactType: 'pay_application', title: 'Pay App #1'),
         _makeArtifact(artifactType: 'entry_pdf', title: 'IDR Export'),
+        _makeArtifact(artifactType: 'comparison_report', title: 'Discrepancy Report'),
       ];
 
       when(() => mockProvider.artifacts).thenReturn(artifacts);
       when(() => mockProvider.isLoading).thenReturn(false);
 
-      await tester.pumpWidget(buildTestWidget(artifactType: 'pay_application'));
+      await tester.pumpWidget(buildTestWidget(
+        artifactTypes: const ['pay_application', 'entry_pdf'],
+      ));
       await tester.pumpAndSettle();
 
       expect(find.text('Pay App #1'), findsOneWidget);
-      expect(find.text('IDR Export'), findsNothing);
+      expect(find.text('IDR Export'), findsOneWidget);
+      expect(find.text('Discrepancy Report'), findsNothing);
     });
 
     testWidgets('shows empty state when no artifacts', (tester) async {
@@ -8265,6 +8756,20 @@ void main() {
 ```
 
 **Verify**: `pwsh -Command "flutter analyze test/features/pay_applications/presentation/widgets/export_artifact_history_list_test.dart"`
+**Expected**: No issues found
+
+#### Step 11.5.4: Add widget coverage for the new export entry point and Forms exported-history separation
+
+Add or extend widget tests for:
+- `test/features/quantities/presentation/screens/quantities_screen_test.dart`
+  - verifies the `TestingKeys.payAppExportButton` is shown only when `canEditFieldData` is true
+  - verifies tapping it starts the pay-app export flow and blocks overlapping ranges
+- `test/features/forms/presentation/screens/form_gallery_screen_test.dart`
+  - verifies saved responses and exported history render as separate surfaces
+  - verifies the exported-history surface can filter to pay applications
+  - verifies a pay-app artifact tap routes to the pay-app detail destination
+
+**Verify**: `pwsh -Command "flutter analyze test/features/quantities/presentation/screens/quantities_screen_test.dart test/features/forms/presentation/screens/form_gallery_screen_test.dart"`
 **Expected**: No issues found
 
 ---
@@ -8376,14 +8881,58 @@ Add a new test after the existing `'verify returns SchemaReport with no issues o
 **Verify**: `pwsh -Command "flutter analyze test/core/database/schema_verifier_report_test.dart"`
 **Expected**: No issues found
 
+#### Step 11.6.3: Add regression coverage for the legacy-export backfill and unified-history dual-write
+
+Extend the test plan with:
+- `test/core/database/database_service_test.dart`
+  - verifies v52 backfills legacy `form_exports` rows into `export_artifacts`
+  - verifies v52 backfills legacy `entry_exports` rows into `export_artifacts`
+  - verifies rerunning setup does not duplicate backfilled artifacts
+- `test/features/forms/domain/usecases/export_form_use_case_test.dart`
+  - verifies a successful form PDF export creates both the legacy `form_exports` row and the parent `export_artifacts` row
+- `test/features/entries/domain/usecases/export_entry_use_case_test.dart`
+  - verifies a successful entry export creates both the legacy `entry_exports` row and the parent `export_artifacts` row
+
+**Verify**: `pwsh -Command "flutter analyze test/core/database/database_service_test.dart test/features/forms/domain/usecases/export_form_use_case_test.dart test/features/entries/domain/usecases/export_entry_use_case_test.dart"`
+**Expected**: No issues found
+
 ---
 
-### Sub-phase 11.7: Final Analyze Gate
+### Sub-phase 11.7: Test System And Flow Documentation Updates
+
+**Agent**: `qa-testing-agent`
+**Files**:
+- `.codex/skills/test.md` (MODIFY)
+- `.claude/skills/test/SKILL.md` (MODIFY)
+- `.claude/test-flows/flow-dependencies.md` (MODIFY)
+- `.claude/test-flows/tiers/toolbox-and-pdf.md` (MODIFY)
+- add or update the pay-app/export tier doc referenced by the existing test-flow structure
+
+#### Step 11.7.1: Add the spec-required pay-app/export test flow coverage
+
+Update the maintained test system so this feature is represented outside the local test files.
+
+Required coverage to add:
+- exported-artifact history visibility
+- same-range replace flow with pay-app number preservation
+- overlap-block flow
+- pay-app delete propagation
+- contractor comparison import + discrepancy PDF export
+- sync/export verification for saved pay-app artifacts and delete propagation
+
+**WHY:** Spec Section 9 explicitly requires these doc and flow updates. Without them, the implementation plan captures code changes but drops the long-lived verification system the spec called for.
+
+**Verify**: `pwsh -Command "flutter analyze"`
+**Expected**: No new Dart analysis issues from touched test-support files
+
+---
+
+### Sub-phase 11.8: Final Analyze Gate
 
 **Agent**: `qa-testing-agent`
 **Files**: All files from phases 9-11
 
-#### Step 11.7.1: Run full project analysis
+#### Step 11.8.1: Run full project analysis
 
 This is the final verification gate for all phases 9-11.
 
