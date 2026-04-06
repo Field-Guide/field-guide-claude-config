@@ -1,37 +1,55 @@
 # Session State
 
-**Last Updated**: 2026-04-05 | **Session**: 737
+**Last Updated**: 2026-04-06 | **Session**: 740
 
 ## Current Phase
-- **Phase**: Sync Engine Refactor — Phases 0-9 complete. All documentation updated.
-- **Status**: On `sync-engine-refactor` branch. Not yet pushed. Claude config committed to `field-guide-claude-config` (not pushed).
+- **Phase**: Pay Application feature planning on `sync-engine-refactor`
+- **Status**: Plan written, Review Cycle 1 done + fixer applied. Cycle 2 review pending.
 
 ## HOT CONTEXT - Resume Here
 
-### What Was Done This Session (737)
+### What Was Done This Session (740)
 
-1. **Sync engine refactor Phase 9** — Integration + Documentation phase
-2. **Rewrote `sync-patterns.md`** — full new architecture: layer diagram, push/pull/request flows, status vs diagnostics split, error classification table, adapter pattern (13 simple + 9 complex), engine/application component tables, file tree, config values
-3. **Updated `CLAUDE.md`** — Sync Architecture section (SyncCoordinator, all new classes, adapter split), 3 new key files, 3 new gotchas
-4. **Created `sync-architecture.md`** — comprehensive implementation guide (engine layer, control plane, status vs diagnostics, adapter pattern, testing strategy, invariants)
-5. **Verified success metrics** — SyncEngine 214 lines (<250), largest class 481 lines (<500), 0 @visibleForTesting in SyncEngine, 13 adapter files, single error classifier, analyzer 0 issues
-6. **Committed 5 logical commits** across both repos (2 app, 3 config)
+1. **Tailor** completed: `.claude/tailor/2026-04-05-pay-application/`
+   - 42 files analyzed, 8 patterns, 67 methods mapped, 48 ground truth verified
+   - Key: schema version is 51 (not 50 as CLAUDE.md says) — new tables need v52
+
+2. **Plan** written: `.claude/plans/2026-04-05-pay-application.md`
+   - 11 phases, 65 sub-phases, 99 steps, ~8200 lines
+   - 3 parallel writers assembled + merged
+   - Deduped Phase 1.6/1.8 overlap with Phase 5
+
+3. **Review Cycle 1** — all 3 REJECT:
+   - Code: 7 critical, 7 high (AppScaffold API, provider-repo mismatches, dead use case, test APIs)
+   - Security: 3 high, 5 medium (missing WITH CHECK, canWrite guards, file cleanup)
+   - Completeness: 5 critical, 6 high (no PDF builder, analytics provider unregistered, xlsx stub)
+
+4. **Plan Fixer Cycle 1** — 23/24 findings fixed:
+   - Wired ExportPayAppUseCase into provider (eliminated dead code + duplicate flow)
+   - Added DiscrepancyPdfBuilder service
+   - Fixed AppScaffold API usage, all test code, added canWrite guards
+   - Registered ProjectAnalyticsProvider, implemented XlsxContractorParser
+   - Added WITH CHECK on RLS, fixed delete cascade, added barrel files
 
 ### What Needs to Happen Next
-1. **Push both repos** — `sync-engine-refactor` branch (app) and `master` (config) need pushing
-2. **Run CI** — verify all tests pass on the sync-engine-refactor branch
-3. **Prior carry-over**: Push Supabase migration, merge PR #140
-4. **First real test of redesigned /implement** on a new plan
+
+1. **Run Review Cycle 2** — re-review fixed plan with all 3 reviewers
+2. If passed → plan is ready for `/implement`
+3. If findings remain → fix cycle 2 (max 3 total)
+4. **Deferred items** noted in plan but not blocking:
+   - Integration tests (12 scenarios) — add as Phase 12
+   - Test flow doc updates (6 files)
+   - Export convergence (spec says "over time")
+   - Daily discrepancy section (v2)
 
 ### User Preferences (Critical)
-- **Fresh test projects only**: NEVER use existing projects during test runs — always create from scratch
-- **CI-first testing**: Use CI as primary test runner. NEVER include `flutter test` in plans or quality gates.
-- **Always check sync logs** after every sync during test runs — never skip log review.
-- **No band-aid fixes**: Root-cause fixes only. User explicitly rejected one-off cleanup approaches.
-- **Verify before editing**: Do not make speculative edits — understand root cause first.
-- **Do NOT suppress errors**: Fix correctly without changing functions. User was emphatic about this.
-- **All findings must be fixed**: User requires ALL review findings addressed, not just blocking ones.
-- **No // ignore to suppress lint**: User explicitly rejected using ignore comments to silence lint violations. Fix the root cause.
+- **Fresh test projects only**: NEVER use existing projects during test runs
+- **CI-first testing**: NEVER include `flutter test` in plans or quality gates
+- **Always check sync logs** after every sync during test runs
+- **No band-aid fixes**: Root-cause only
+- **Verify before editing**: Understand root cause first
+- **All findings must be fixed**: ALL review findings, not just blocking ones
+- **No // ignore to suppress lint**: Fix the root cause
 
 ## Blockers
 
@@ -46,34 +64,37 @@
 
 ## Recent Sessions
 
+### Session 740 (2026-04-06)
+**Work**: Full tailor + writing-plans pipeline for pay-application spec. 3 parallel writers, 3 parallel reviewers, 1 fixer cycle.
+**Decisions**: Schema v52 (not v51). ExportPayAppUseCase wired into provider (not inline reimpl). DiscrepancyPdfBuilder added. Phase 1.6/1.8 deferred to Phase 5 to avoid duplication.
+**Next**: Review Cycle 2 → implement.
+
+### Session 739 (2026-04-06, Codex)
+**Work**: Reverified live sync on Android/Windows, fixed consent insert-only push and driver-build Help & Support gating, closed remaining open sync issues.
+**Next**: Continue with photo/document/export round-trip verification.
+
+### Session 738 (2026-04-06, Codex)
+**Work**: Finished PDF extraction/OCR stage decomposition, closed trace/count/timing gaps.
+**Next**: Push sync-engine-refactor, run CI.
+
 ### Session 737 (2026-04-05)
-**Work**: Sync engine refactor Phase 9 — rewrote sync-patterns.md, updated CLAUDE.md, created sync-architecture.md guide. Verified all success metrics pass. Committed 2 app + 3 config commits.
-**Decisions**: Sub-phase 9.1 (E2E driver flows) skipped — requires running app instances. Sub-phase 9.4 no-op — directory-reference.md documents .claude/ not lib/.
-**Next**: Push both repos, run CI, prior carry-over.
+**Work**: Sync engine refactor Phase 9 — rewrote docs, verified success metrics.
 
 ### Session 736 (2026-04-05)
-**Work**: Redesigned /implement skill — thin orchestrator with `--bare` + `--json-schema`. Created worker-rules.md, reviewer-rules.md, extract-result.py. Deleted 65 stale artifacts. Added AI shortcut detection to reviewers.
-**Decisions**: Approval gate = zero critical+high+medium (LOW logged only). Implementer runs lint itself. Monotonicity check + 3-round hard cap. Fixer skips LOW.
-**Next**: First real test of redesigned /implement. Prior carry-over still pending.
-
-### Session 735 (2026-04-05)
-**Work**: Rewrote /implement skill to headless architecture. 7 files created, 2 deleted. Main conversation is now the orchestrator — dispatches claude -p instances, no more black-box agent.
-**Decisions**: Implementers use sonnet, reviewers use opus. No Bash for implementers. All 3 reviewers re-run after fixes. Lint at batch level only.
-**Next**: First real test of new /implement on sync engine Phase 2. Prior carry-over still pending.
+**Work**: Redesigned /implement skill — thin orchestrator with worker/reviewer rules.
 
 ## Test Results
 
 ### Flutter Unit Tests (S726)
 - **Full suite**: 3784 pass / 2 fail (pre-existing: OCR test + DLL lock)
-- **Analyze**: 0 issues (pre-dart-fix baseline)
+- **Analyze**: 0 issues
 - **Database tests**: 65 pass, drift=0
 - **Sync tests**: 704 pass
 
 ### E2E Test Run (S724)
 - **Run**: 2026-04-03_10-06 (Windows)
 - **Results**: 28 PASS / 0 FAIL / 30 SKIP / 6 MANUAL
-- **Report**: `.claude/test_results/2026-04-03_10-06/report.md`
 
 ## Reference
-- **PR #140**: OPEN (7-issue fix — sentry + dialog + schema + sync + pdf + overflow)
+- **PR #140**: OPEN (7-issue fix)
 - **GitHub Issues**: #89 (sqlcipher), #91-#92 (OCR), #127-#129 (enhancements)
