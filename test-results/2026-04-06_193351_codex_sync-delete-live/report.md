@@ -159,3 +159,215 @@ Run Tag: t138i
   - the shared delete-contract fix did close the data-loss/drift class where sender hard delete could physically remove the remote soft-delete tombstone before lagging receivers saw it
   - the current contract is now: sender `Delete Forever` locally purges the sender shell, preserves/replays the remote tombstone, and receivers converge to a hidden tombstone state until a later server-side retention purge removes the remote row
   - under that contract, the old expectation that Windows should immediately drop the local tombstone shell on ordinary pull is no longer the correct success condition
+
+## Revocation + Overlap Wave — 2026-04-07
+- Simple revocation cleanup proof used a fresh remote-seeded fixture:
+  - project `4825141a-7b6b-44f9-9ef1-ba5e89dc39fd`
+  - name `VRF Revocation t138i-d`
+- Revocation-only result:
+  - both devices first pulled the active project and assignment scope from Supabase
+  - the Windows assignment row was then soft-deleted remotely while the project itself remained active in Supabase
+  - the next ordinary Windows sync fully evicted the local project scope: `/driver/local-record` returned `Record not found`, `/driver/delete-propagation` reported `target_exists: false`, `synced_project_enrolled: false`, zero remaining `project_assignments`, and Windows `change_log` stayed empty
+  - the remote project row stayed active (`deleted_at = null`), and S21 remained enrolled on the same project with one active assignment and one deleted assignment after its next pull
+  - repeated sync after that revocation settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}` on Windows
+- Delete-plus-revocation overlap proof used a second remote-seeded fixture:
+  - project `c55c4b2f-1c9a-4ca3-a0fc-1a209f9c57a3`
+  - name `VRF RevocationOverlap t138i-e`
+- Overlap result:
+  - both devices first pulled the active project and assignments
+  - the server-side `admin_soft_delete_project` RPC was then executed remotely, which tombstoned the project row and both assignment rows together
+  - the next ordinary pull on both devices converged to a hidden tombstone state: the project row remained locally with `deleted_at` populated, `synced_project_enrolled: false`, and `project_assignments` showed only deleted rows
+  - both `/projects` UIs no longer surfaced the project card (`project_card_c55c4b2f-1c9a-4ca3-a0fc-1a209f9c57a3` not found on Windows or S21)
+  - repeated sync after the overlap settled immediately at `{"success":true,"pushed":0,"pulled":0,"errors":[]}` on both devices
+- Architecture conclusion from the revocation wave:
+  - plain scope revocation of an active project now fully evicts the revoked receiver cache without mutating the still-active remote project
+  - when delete tombstones and assignment revocation arrive together, delete currently wins over full local eviction: receivers keep a hidden project tombstone with `synced_project_enrolled: false` rather than dropping the row entirely
+- New blocker isolated while closing this wave:
+  - S21 still carries two exhausted `project_assignments` update retries in `change_log` with `RLS denied (42501)` even though the corresponding assignment IDs are no longer present locally or remotely
+  - code audit points at the current assignment wizard path as the architectural footgun: `ProjectAssignmentProvider.save()` still writes `project_assignments` locally through `ProjectAssignmentRepository`, even though the sync adapter marks that table `skipPush: true` and the intended ownership model treats it as pull-only
+  - release closeout now needs a remote-first assignment mutation boundary (or equivalent suppression/ownership fix) plus a clean-device re-proof that assignment flows no longer create local `project_assignments` sync residue
+
+## Project Assignment Mutation Contract Wave — 2026-04-07
+- First rerun exposed invalid live evidence: the S21 was still on a stale build. Android app logs still contained the removed string `Immediate push triggered after project creation`, so both drivers were rebuilt and relaunched before re-running the lane.
+- Fresh-build UI state on S21 proved the assignment screen itself was no longer stale:
+  - route `/project/4825141a-7b6b-44f9-9ef1-ba5e89dc39fd/edit?tab=4` showed the Windows inspector unchecked and only the admin selected
+  - this removed the earlier suspicion that the screen was still reading stale local assignment state after revocation
+- Client-side ownership fix:
+  - `ProjectAssignmentMutationService` now diffs against the active remote baseline only by filtering `project_assignments.deleted_at IS NULL`
+  - this closes the bug where a soft-deleted remote assignment row was incorrectly treated as already active, producing `added=0 removed=0` and skipping the restore mutation
+- Server-side restore-contract fix:
+  - existing trigger immutability logic still blocked reactivating a soft-deleted `project_assignments` row during the mutation flow
+  - migration `20260407143000_allow_assignment_restore_rpc.sql` now lets `admin_upsert_project_assignment` set the sanctioned `app.restore_project_assignment` flag before restoring an existing assignment row
+- Targeted local validation passed before the live rerun:
+  - `flutter test test/features/projects/data/services/project_assignment_mutation_service_test.dart`
+  - `flutter analyze lib/features/projects/data/services/project_assignment_mutation_service.dart test/features/projects/data/services/project_assignment_mutation_service_test.dart`
+  - `npx supabase db push --include-all`
+- Final live proof on fresh builds:
+  - S21 save from `/project/4825141a-7b6b-44f9-9ef1-ba5e89dc39fd/edit?tab=4` logged `ProjectAssignmentMutationService: project=4825141a-7b6b-44f9-9ef1-ba5e89dc39fd added=1 removed=0`
+  - S21 `delete-propagation` for the same project then showed `project_assignments total_count: 2`, `active_count: 2`, `deleted_count: 0`
+  - S21 `change_log?table=project_assignments` stayed at the same two historical exhausted retries; no new local assignment sync rows were created by the new save path
+  - Windows ordinary full sync pulled the restored assignment truth, kept `synced_project_enrolled: true`, and `/projects` rendered `project_card_4825141a-7b6b-44f9-9ef1-ba5e89dc39fd`
+  - repeated full sync then settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}` on both S21 and Windows
+- Architecture conclusion from the lane:
+  - assignment mutation is now correctly remote-first for `project_assignments`
+  - restore-capable soft-delete tables need an explicit sanctioned RPC/trigger path, not ad hoc row updates
+  - executor diff logic must query the active remote baseline (`deleted_at IS NULL`) rather than raw rows that include tombstones
+- Remaining blockers after this proof:
+  - upgraded SQLite installs still log `support_tickets.updated_at` schema drift because migration v53 does not yet match the canonical `NOT NULL DEFAULT` shape
+  - S21 still carries two old exhausted `project_assignments` retries from the pre-fix contract breach, so release closeout still needs a legacy residue decision or cleanup proof
+
+## Upgraded-Install Repair Wave — 2026-04-07
+- The next live blocker after assignment-contract proof was upgraded-device state, not fresh-install state.
+- Source audit confirmed the mismatch:
+  - canonical SQLite DDL already defines `support_tickets.updated_at` as `TEXT NOT NULL DEFAULT strftime(...)`
+  - migration v53 only added `updated_at TEXT`, which stopped the repeat-pull loop but left permanent SchemaVerifier drift on upgraded installs
+- Fixes landed before the next live rerun:
+  - migration v55 rebuilds `support_tickets` to the canonical schema shape and replays existing ticket rows through the rebuilt table
+  - migration v56 purges pending `change_log` residue for pull-only `project_assignments`, because any local pending row for that table is invalid by contract
+  - regression coverage was added for both repairs: canonical `support_tickets` rebuild and pull-only `project_assignments` residue purge
+- Targeted local validation passed:
+  - `flutter test test/features/sync/schema/support_ticket_schema_test.dart test/core/database/project_assignment_changelog_repair_test.dart`
+  - `flutter analyze` on the touched database/support-ticket test files
+- Final live proof on rebuilt Windows + S21:
+  - S21 startup log now reports `Migration v55: rebuilt support_tickets with canonical updated_at schema`
+  - S21 startup log then reports `SchemaVerifier: verified 40 tables in 80ms — SchemaReport(drift=0, missing_cols=0, missing_tables=0)`
+  - after v56, S21 startup log reports `Migration v56: purged 2 invalid project_assignments change_log entries`
+  - S21 `/driver/change-log?table=project_assignments` now returns `count: 0`
+  - ordinary full sync still settles cleanly after both repairs: Windows `{"success":true,"pushed":0,"pulled":0,"errors":[]}` and S21 `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+- Release-status conclusion after this wave:
+  - the assignment mutation contract is no longer a live blocker
+  - upgraded-install schema drift for `support_tickets.updated_at` is no longer a live blocker
+  - legacy `project_assignments` retry residue is no longer a live blocker
+  - the branch is still not fully release-proven because major proof lanes remain open: remove-from-device/fresh-pull parity, file-backed flows, support-ticket and consent live flows, restart/retry chaos lanes, and the final mixed-flow soak
+
+## Remove-From-Device / Fresh-Pull Parity Wave — 2026-04-07
+- The first remove-from-device rerun exposed two separate defects:
+  - `removeFromDevice` mutated local project scope outside the shared sync mutex, so a local-only eviction could race an in-flight sync on S21
+  - local-only eviction deleted project-scoped rows without resetting pull cursors, so a later "fresh pull" could miss older remote rows and rematerialize only part of the scope
+- Fixes landed before the final rerun:
+  - `ProjectLifecycleService.removeFromDevice(...)` now acquires the shared SQLite sync mutex before mutating local scope and refuses to run while sync already owns the lock
+  - when the project metadata shell is intentionally preserved for re-download, `removeFromDevice(...)` now clears the pull cursors for the project-scoped sync tables so the next healthy cycle performs a true fresh pull instead of relying on stale table cursors
+  - targeted local validation passed:
+    - `flutter test test/features/projects/data/services/project_lifecycle_service_test.dart`
+    - `flutter analyze lib/features/projects/data/services/project_lifecycle_service.dart test/features/projects/data/services/project_lifecycle_service_test.dart`
+- Fixture note:
+  - the earlier S21 rerun against `4825141a-7b6b-44f9-9ef1-ba5e89dc39fd` turned out to be contaminated, not a new enrollment bug; direct SQLite inspection showed that project was only actively assigned to the Windows inspector account after the revocation proof, so it was not a valid S21 admin fresh-pull fixture anymore
+  - the clean shared fixture for final proof was project `e7dde2a2-8662-4d5a-ad32-3e167ad5576d` (`VRF-Oakridge aun53`)
+- Final live proof on the patched builds:
+  - Windows remove-from-device on `e7dde2a2-8662-4d5a-ad32-3e167ad5576d` reduced local state to a preserved project shell with `synced_project_enrolled = false`, zero descendant rows, and zero local `change_log`; S21 stayed fully active on the same project throughout
+  - the next ordinary Windows sync rematerialized the full subtree (`pulled: 21`), including `locations`, `contractors`, `daily_entries`, `entry_*` tables, `equipment`, `bid_items`, `personnel_types`, and the active `project_assignments` row; the second consecutive Windows sync settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+  - S21 remove-from-device on the same project reduced local state to the same preserved project shell with `synced_project_enrolled = false`, zero descendant rows, and zero local `change_log`; Windows stayed fully active on the same project throughout
+  - after the cursor-reset fix, the next healthy S21 sync rematerialized the full subtree and both active assignment rows; once an overlapping auto-sync finished, the next consecutive S21 sync settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+- Contract conclusion from the wave:
+  - remove-from-device is a local-only scope eviction, not a UI disappearance contract; the project shell can remain visible as the re-downloadable metadata card while the synced subtree and `synced_projects` enrollment are removed
+  - the actual correctness gate is now proven: local-only eviction no longer mutates Supabase, the other device stays active, the evicted device recreates the same active scope on the next healthy sync, and repeat sync returns to `0/0`
+
+## File-Backed Live Wave — 2026-04-07
+- Shared file-backed fixture:
+  - project `e7dde2a2-8662-4d5a-ad32-3e167ad5576d`
+  - entry `4e35a00d-26d7-44b7-9f5d-c67c9e6f2f91`
+  - document `e645a8b1-7d32-4a1d-80ad-945fd93b5193`
+  - photo `86e4f663-5663-471e-b939-1b252f853159`
+  - entry export `7f32b8f6-cfbb-4b75-8d4d-3ec09fe8d901`
+  - form export `4d31540d-9a2c-4d52-8d4e-f2b72423655e`
+- Create/push/pull proof on S21 -> Cloud -> Windows:
+  - S21 staged a new proof entry plus one live `documents`, `photos`, `entry_exports`, and `form_exports` row each
+  - pre-push S21 `delete-propagation` for the entry showed exactly one active row in each of the four file-backed tables and `pending_change_count: 7`
+  - sender full sync reported `{"success":true,"pushed":7,"pulled":0,"errors":[]}`
+  - Windows full sync then reported `{"success":true,"pushed":0,"pulled":5,"errors":[]}`
+  - repeated full sync immediately settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}` on both S21 and Windows
+- Local materialization proof after the create wave:
+  - S21 local records for all four file-backed tables now carried non-null `remote_path` values
+  - Windows local records for the same four rows materialized with matching `remote_path` values and the expected receiver-side `file_path = null` cache shape
+  - both S21 and Windows `change_log` endpoints returned `count: 0` for `daily_entries`, `documents`, `photos`, `entry_exports`, and `form_exports` after the create wave settled
+- Remote row + storage proof after the create wave:
+  - authenticated Supabase REST queries returned all five remote rows (`daily_entries`, `documents`, `photos`, `entry_exports`, `form_exports`) with `deleted_at = null`
+  - authenticated storage checks returned `200` for the exact object paths in `entry-documents`, `entry-photos`, `entry-exports`, and `form-exports`
+- Real entry-delete proof for the file-backed subtree:
+  - S21 navigated to `/report/4e35a00d-26d7-44b7-9f5d-c67c9e6f2f91`, used the shipped report-menu delete path, and returned to `/entries`
+  - pre-sync S21 `delete-propagation` for the entry showed the entry plus all four file-backed rows tombstoned locally, with `queued_cleanup_count: 1` on each file-backed table
+  - sender full sync then reported `{"success":true,"pushed":6,"pulled":0,"errors":[]}`
+  - Windows full sync reported `{"success":true,"pushed":0,"pulled":5,"errors":[]}`
+  - repeated sync again settled immediately at `{"success":true,"pushed":0,"pulled":0,"errors":[]}` on both devices
+- Delete convergence proof after the delete wave:
+  - S21 and Windows `delete-propagation` for the same entry now match exactly: entry tombstoned, all four file-backed tables tombstoned, `pending_change_count: 0`, `pending_delete_change_count: 0`, and `queued_cleanup_count: 0` everywhere
+  - both `/entries` UIs explicitly hide the deleted fixture entry: `entries_list_entry_tile_4e35a00d-26d7-44b7-9f5d-c67c9e6f2f91` not found on S21 or Windows
+  - S21 `change_log` returned `count: 0` for `documents`, `photos`, `entry_exports`, and `form_exports` after the delete wave settled
+- Remote row + storage proof after the delete wave:
+  - authenticated Supabase REST queries returned all five remote rows with `deleted_at` populated and matching post-delete `updated_at`
+  - authenticated storage download checks for the exact four object paths now return Supabase `not_found`, confirming remote storage cleanup for `entry-documents`, `entry-photos`, `entry-exports`, and `form-exports`
+- Harness note:
+  - `/driver/inject-document-direct` still advertises `csv` as an allowed extension while `DocumentRepository` correctly rejects it; that mismatch is a driver-fixture issue, not a sync-engine issue, so the live proof used a real PDF document fixture instead
+- Conclusion from the wave:
+  - the file-backed live lane is now closed for create, push, pull, delete, remote row convergence, remote storage cleanup, receiver convergence, and repeat-sync idempotence across `documents`, `photos`, `entry_exports`, and `form_exports`
+
+## Integrity / Maintenance Wave — 2026-04-07
+- Baseline before the forced rerun:
+  - both drivers were healthy and idle: Windows `/driver/sync-status` reported `pendingCount: 0`, `lastSyncTime: 2026-04-07T20:24:03.313271Z`; S21 `/driver/sync-status` reported `pendingCount: 0`, `lastSyncTime: 2026-04-07T20:23:59.669645Z`
+  - both devices already had persisted integrity metadata from earlier maintenance cycles
+- Controlled orphan fixture on Windows:
+  - active shared project: `e7dde2a2-8662-4d5a-ad32-3e167ad5576d`
+  - seeded directly into live Windows SQLite with trigger suppression / no pending sync residue:
+    - `export_artifacts/d333298f-dddd-479f-a774-54eac7bf6114`
+    - `pay_applications/a554c947-0641-4088-a62c-3fea463f180e`
+  - both rows were active locally (`deleted_at = null`, `deleted_by = null`)
+  - Windows `change_log` had zero rows for those IDs after seeding
+  - authenticated Supabase REST queries confirmed both IDs were absent remotely (`[]` for both tables)
+- Forced maintenance rerun:
+  - `POST /driver/reset-integrity-check` returned success on both Windows and S21
+  - the next ordinary full sync on both devices settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+- Windows maintenance proof after the forced rerun:
+  - persisted integrity metadata for the staged orphan tables recorded the expected pre-purge drift:
+    - `integrity_export_artifacts`: `drift_detected: true`, `cursor_reset_recommended: true`, `local_count: 1`, `remote_count: 0`
+    - `integrity_pay_applications`: `drift_detected: true`, `cursor_reset_recommended: true`, `local_count: 1`, `remote_count: 0`
+  - the same maintenance cycle then soft-deleted both staged rows locally:
+    - `export_artifacts/d333298f-dddd-479f-a774-54eac7bf6114` -> `deleted_by = system_orphan_purge`
+    - `pay_applications/a554c947-0641-4088-a62c-3fea463f180e` -> `deleted_by = system_orphan_purge`
+  - Windows `change_log` still returned zero rows for those two IDs after the purge
+- S21 maintenance proof after the forced rerun:
+  - persisted integrity metadata stayed clean for the same table family:
+    - `integrity_export_artifacts`: `drift_detected: false`, `local_count: 0`, `remote_count: 0`
+    - `integrity_pay_applications`: `drift_detected: false`, `local_count: 0`, `remote_count: 0`
+- Repeat-sync / no-recurring-drift proof:
+  - the next repeated full sync on Windows again settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+  - the next repeated full sync on S21 again settled at `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+- Conclusion from the wave:
+  - integrity reruns are now explicitly live-proven on both devices
+  - maintenance-assisted orphan purge now has direct live evidence on pay-app / file-backed tables, not just project-entry tables
+  - after maintenance repairs the local-only orphan state, the branch returns immediately to `0/0` repeat-sync behavior with no new `change_log` residue
+
+## Support Ticket Wave — 2026-04-07
+- User-scoped proof setup note:
+  - `support_tickets` is scoped by `user_id`, not project or company
+  - the S21 and Windows apps in this validation run are different user identities, so cross-device materialization is NOT expected for this table
+- Real UI submission on S21:
+  - navigated to `/help-support`
+  - used the shipped support form with message `Support sync proof 2026-04-07T20:45:30Z from S21 live validation.`
+  - local SQLite inserted ticket `833518ea-f187-4c54-ba6b-bce95f1a3e0e` with `status = open`, `log_file_path = null`
+  - local `change_log` showed exactly one pending `support_tickets` insert for that ticket
+- New blocker surfaced while closing the lane:
+  - the first manual S21 sync after submission returned `pushed: 1` but also surfaced branch-wide remote schema errors:
+    - `signature_files: Remote sync schema is missing table signature_files`
+    - `signature_audit_log: Remote sync schema is missing table signature_audit_log`
+  - root cause: the branch had already registered both signature tables locally, but Supabase had not yet applied `supabase/migrations/20260408000000_signature_tables.sql`
+- Remote fix applied during the live run:
+  - ran `npx supabase db push --include-all`
+  - remote migration `20260408000000_signature_tables.sql` applied successfully
+  - authenticated Supabase REST checks then returned `[]` for both `signature_files` and `signature_audit_log` instead of 404
+- Final support-ticket proof after the remote fix:
+  - authenticated Supabase REST returned the new support ticket row:
+    - `833518ea-f187-4c54-ba6b-bce95f1a3e0e`
+    - `user_id = 88054934-9cc5-4af3-b1c6-38f262a7da23`
+    - `status = open`
+  - after rerunning S21 sync, the support-ticket lane settled cleanly:
+    - one successful sync reported `{"success":true,"pushed":1,"pulled":1,"errors":[]}`
+    - the next repeated sync reported `{"success":true,"pushed":0,"pulled":0,"errors":[]}`
+  - direct SQLite inspection on S21 showed:
+    - no pending `support_tickets` `change_log` entries
+    - `last_sync_time = 2026-04-07T20:53:25.592578Z`
+- Harness note:
+  - tapping the support success-screen `Done` path through the driver triggered a framework-locked provider reset (`SupportProvider.reset`) and destabilized the Android driver process
+  - that is a driver/UI stability issue, not a support-ticket sync defect; the proof was completed after relaunching the S21 driver app and re-running sync
+- Conclusion from the wave:
+  - the dedicated support-ticket live flow is now proven on the correct user-scoped path: real UI submit on S21, remote row creation in Supabase, and repeat-sync return to `0/0`
+  - the live run also closed a broader branch-level blocker by deploying the missing remote signature-table migration required by the current sync registry

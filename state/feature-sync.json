@@ -3,7 +3,7 @@
   "name": "Sync Engine",
   "status": "in_progress",
   "description": "Bidirectional offline-first sync between SQLite and Supabase with last-write-wins conflict resolution and soft-delete awareness",
-  "current_phase": "S747: UI design-system refactor is merged, so sync-engine-refactor now needs to consume the live screen registry, screen contract, flow registry, and /diagnostics/screen_contract UI surface while the delete-orchestration split continues. Keep triggered tables, simple adapters, and sync registry registrations aligned under scripts/validate_sync_adapter_registry.py as sync tables evolve.",
+  "current_phase": "S748: Broad sync ownership lints are active and intentionally exposing the remaining legacy sync access layer. The immediate priority is to remove raw Supabase sync-table I/O from feature remote datasources and lib/shared/datasources/base_remote_datasource.dart, then continue the phased Windows + S21 proof plan beginning with remove-from-device/fresh-pull parity.",
   "docs": {
     "overview": "docs/features/feature-sync-overview.md",
     "architecture": "docs/features/feature-sync-architecture.md",
@@ -39,6 +39,6 @@
   },
   "metrics": {
     "test_coverage_percentage": 92,
-    "last_updated": "2026-04-07T09:52:37.6028420-04:00"
+    "last_updated": "2026-04-07T14:39:29.0906166-04:00"
   }
 }

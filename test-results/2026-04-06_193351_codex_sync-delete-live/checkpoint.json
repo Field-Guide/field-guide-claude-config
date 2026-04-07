@@ -32,12 +32,50 @@
     "fresh_fixture_soft_delete_windows_receiver_convergence": "verified",
     "fresh_fixture_hard_delete_preserved_remote_tombstone_contract": "verified",
     "post_hard_delete_repeat_sync_idempotent_windows": "verified",
-    "post_hard_delete_repeat_sync_idempotent_s21": "verified"
+    "post_hard_delete_repeat_sync_idempotent_s21": "verified",
+    "revocation_cleanup_windows_local_evicts_active_project": "verified",
+    "revocation_cleanup_windows_repeat_sync_idempotent": "verified",
+    "delete_revocation_overlap_windows_hidden_tombstone": "verified",
+    "delete_revocation_overlap_dual_repeat_sync_idempotent": "verified",
+    "project_assignment_mutation_contract_s21_remote_restore": "verified",
+    "project_assignment_mutation_contract_windows_receiver_rematerializes": "verified",
+    "project_assignment_mutation_contract_repeat_sync_idempotent": "verified",
+    "support_tickets_updated_at_upgrade_schema_repair": "verified_live",
+    "project_assignment_legacy_retry_residue_cleanup": "verified_live",
+    "remove_from_device_fresh_pull_windows": "verified_live",
+    "remove_from_device_fresh_pull_s21": "verified_live",
+    "remove_from_device_shared_sync_mutex_guard": "verified_local",
+    "remove_from_device_fresh_pull_cursor_reset": "verified_local",
+    "file_backed_live_documents": "verified_live",
+    "file_backed_live_photos": "verified_live",
+    "file_backed_live_entry_exports": "verified_live",
+    "file_backed_live_form_exports": "verified_live",
+    "file_backed_delete_propagation": "verified_live",
+    "file_backed_storage_cleanup": "verified_live",
+    "integrity_rerun_windows": "verified_live",
+    "integrity_rerun_s21": "verified_live",
+    "maintenance_orphan_purge_pay_app_file_backed": "verified_live",
+    "post_maintenance_repeat_sync_idempotent": "verified_live",
+    "signature_tables_remote_migration": "verified_live",
+    "support_ticket_live_flow": "verified_live"
   },
-  "next_flow": "revocation-overlap",
+  "next_flow": "consent-live-proof",
   "ctx": {
     "project_id": "d2bb6a5d-010f-4e9b-adcb-9188ea442391",
     "fresh_fixture_project_id": "b28afcd0-501f-463c-a255-8f61469a2ba5",
+    "revocation_fixture_project_id": "4825141a-7b6b-44f9-9ef1-ba5e89dc39fd",
+    "revocation_overlap_project_id": "c55c4b2f-1c9a-4ca3-a0fc-1a209f9c57a3",
+    "remove_from_device_fixture_project_id": "e7dde2a2-8662-4d5a-ad32-3e167ad5576d",
+    "file_backed_fixture_project_id": "e7dde2a2-8662-4d5a-ad32-3e167ad5576d",
+    "file_backed_fixture_entry_id": "4e35a00d-26d7-44b7-9f5d-c67c9e6f2f91",
+    "file_backed_fixture_document_id": "e645a8b1-7d32-4a1d-80ad-945fd93b5193",
+    "file_backed_fixture_photo_id": "86e4f663-5663-471e-b939-1b252f853159",
+    "file_backed_fixture_entry_export_id": "7f32b8f6-cfbb-4b75-8d4d-3ec09fe8d901",
+    "file_backed_fixture_form_export_id": "4d31540d-9a2c-4d52-8d4e-f2b72423655e",
+    "integrity_orphan_fixture_project_id": "e7dde2a2-8662-4d5a-ad32-3e167ad5576d",
+    "integrity_orphan_fixture_export_artifact_id": "d333298f-dddd-479f-a774-54eac7bf6114",
+    "integrity_orphan_fixture_pay_application_id": "a554c947-0641-4088-a62c-3fea463f180e",
+    "support_ticket_fixture_id": "833518ea-f187-4c54-ba6b-bce95f1a3e0e",
     "entry_id": "1a31fc0c-33ef-4f99-8c07-60ebc9825c4e",
     "photo_id": "7c25e358-351b-42b7-9de2-a04c9659b0be",
     "document_id": "88c32836-4c19-4297-b36e-255ecd0e0b8d"
@@ -90,7 +128,7 @@
     },
     {
       "type": "sync",
-      "status": "open",
+      "status": "fixed",
       "title": "support_tickets.updated_at is functionally fixed for sync convergence, but upgraded SQLite installs still drift from the canonical NOT NULL DEFAULT schema and log startup/integrity warnings"
     },
     {
@@ -102,6 +140,36 @@
       "type": "ui",
       "status": "open",
       "title": "Windows /projects did not immediately surface the fresh assigned project card even when local SQLite, project_assignments, and synced_projects were all materialized"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Project assignment mutation ownership was wrong: the assignment wizard/provider could write pull-only project_assignments locally, leaving exhausted change_log retries and RLS-denied residue on device"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Legacy exhausted project_assignments change_log retries from the pre-fix contract breach still remain on upgraded devices and need cleanup or explicit repair handling"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "removeFromDevice could race the shared sync engine mutex, allowing a local-only scope eviction to overlap pull/push and leave a partially rematerialized project state"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "removeFromDevice preserved the project shell but left stale pull cursors behind, so a later fresh pull could miss older remote rows and fail to fully rematerialize the local scope"
+    },
+    {
+      "type": "driver",
+      "status": "open",
+      "title": "driver /inject-document-direct still advertises csv-capable fixture input while DocumentRepository correctly rejects csv documents; the harness should align with the shipped document allowlist"
+    },
+    {
+      "type": "driver",
+      "status": "open",
+      "title": "Driving the Help & Support success-screen Done action can trigger SupportProvider.reset while the framework is locked, destabilizing the Android driver process even though the underlying support ticket sync state is healthy"
     }
   ],
   "observations": [
@@ -116,6 +184,23 @@
     "Patch result: local hard purge now preserves tombstone metadata in change_log, push replays that preserved soft-delete when the local row is already gone, and maintenance now prunes stale synced_projects immediately after orphan purge.",
     "The support_tickets updated_at sync defect is fixed functionally, but upgraded SQLite files still log schema drift because migration v53 adds the column without the canonical NOT NULL DEFAULT shape.",
     "Fresh-fixture hard-delete revalidation proved the new contract: sender Delete Forever now locally purges the sender shell, preserves and re-timestamps the remote soft tombstone, and receivers remain on a hidden tombstone state instead of losing the delete entirely.",
-    "After the fresh-fixture hard delete, both devices settled immediately on repeated sync at pushed=0, pulled=0 with no pending project delete changes."
+    "After the fresh-fixture hard delete, both devices settled immediately on repeated sync at pushed=0, pulled=0 with no pending project delete changes.",
+    "Plain assignment revocation of an active project now fully evicts the revoked Windows cache while the remote project stays active for S21.",
+    "When project delete tombstones and assignment revocation arrive together, both devices currently retain a hidden project tombstone with synced_projects unenrolled instead of fully evicting the local row.",
+    "Project assignment mutation is now remote-first again: the mutation owner diffs against active remote assignments only, restores through a sanctioned RPC path, and no new local project_assignments change_log residue is created during the live assignment-save flow.",
+    "Upgraded-install support_tickets drift is now closed live: S21 migration v55 rebuilt the table and startup SchemaVerifier now reports drift=0.",
+    "Legacy project_assignments retry residue is now closed live: S21 migration v56 purged the two invalid pending rows and /driver/change-log?table=project_assignments now returns count=0.",
+    "Local-only remove-from-device is now serialized behind the same SQLite sync mutex as foreground/background sync, eliminating the race where local scope eviction could overlap an in-flight sync cycle.",
+    "Local-only remove-from-device now clears project-scoped pull cursors when it preserves the project metadata shell, so the next healthy cycle performs a true fresh pull instead of relying on stale table cursors.",
+    "Windows fresh-pull parity is now live-proven on project e7dde2a2-8662-4d5a-ad32-3e167ad5576d: local scope dropped to a preserved shell, S21 stayed active, the next Windows sync rematerialized the full subtree, and a second Windows sync settled at pushed=0, pulled=0.",
+    "S21 fresh-pull parity is now live-proven on the same project: local scope dropped to a preserved shell, Windows stayed active, the next healthy S21 sync rematerialized the full subtree and both active assignments, and the next consecutive S21 sync settled at pushed=0, pulled=0.",
+    "File-backed live proof is now closed on shared fixture entry 4e35a00d-26d7-44b7-9f5d-c67c9e6f2f91: documents, photos, entry_exports, and form_exports all push from S21, materialize on Windows, settle at pushed=0/pulled=0 on repeat sync, tombstone through the shipped entry-delete path, and converge on the same deleted subtree on both devices.",
+    "Authenticated Supabase REST checks now explicitly prove the file-backed wave on both sides: the create half produced live remote rows plus 200-accessible storage objects, and the delete half produced remote tombstones plus storage not_found responses for all four exact object paths.",
+    "Forced integrity rerun is now live-proven on both devices: after resetting last_integrity_check, both Windows and S21 completed full maintenance cycles at pushed=0, pulled=0.",
+    "Maintenance orphan purge is now directly proven on pay-app/file-backed tables: a local-only Windows export_artifacts/pay_applications orphan pair missing remotely was detected by integrity, marked cursor_reset_recommended, then soft-deleted locally as system_orphan_purge with no new change_log residue.",
+    "After the maintenance-assisted orphan purge, repeated full sync on both Windows and S21 again settled immediately at pushed=0, pulled=0, so the cleanup does not leave recurring drift.",
+    "The current sync registry had outpaced the remote schema: support-ticket proof surfaced missing Supabase tables signature_files and signature_audit_log, and applying supabase/migrations/20260408000000_signature_tables.sql closed that branch-level blocker live.",
+    "The dedicated support-ticket live flow is now proven on its correct user-scoped contract: S21 Help & Support UI inserted ticket 833518ea-f187-4c54-ba6b-bce95f1a3e0e, Supabase now stores the row, and S21 repeat sync returned to pushed=0, pulled=0 with no pending support_tickets residue.",
+    "The remaining work is now proof-matrix breadth in the integrity-maintenance, user-scoped, retry/restart, and soak lanes rather than core lifecycle drift on delete/restore/revocation/remove-from-device or the core file-backed paths."
   ]
 }
