@@ -1,0 +1,42 @@
+{
+  "run_id": "2026-04-06_193351_codex_sync-delete-live",
+  "suite": "sync-delete-live",
+  "platform": "dual (windows:4948 + android-s21:4949)",
+  "results_dir": ".claude/test-results/2026-04-06_193351_codex_sync-delete-live",
+  "run_tag": "t138i",
+  "completed": {
+    "entry_delete_live": "passed_after_fix",
+    "project_delete_live": "passed_after_fixes",
+    "entry_delete_remote_storage": "verified",
+    "project_delete_remote_rows": "verified",
+    "windows_receiver_convergence": "verified"
+  },
+  "next_flow": "project-delete-storage-and-ui-verification",
+  "ctx": {
+    "project_id": "d2bb6a5d-010f-4e9b-adcb-9188ea442391",
+    "entry_id": "1a31fc0c-33ef-4f99-8c07-60ebc9825c4e",
+    "photo_id": "7c25e358-351b-42b7-9de2-a04c9659b0be",
+    "document_id": "88c32836-4c19-4297-b36e-255ecd0e0b8d"
+  },
+  "bugs": [
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Entry delete UI skipped child cascade for photos/documents"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Pull scope dropped deleted parent IDs and blocked child tombstones"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Project delete local cascade missed project_assignments"
+    }
+  ],
+  "observations": [
+    "Remote project delete RPC correctly tombstones full subtree including project_assignments.",
+    "Project delete propagation verifier currently emits duplicate rows for some descendant tables and should be deduplicated."
+  ]
+}
