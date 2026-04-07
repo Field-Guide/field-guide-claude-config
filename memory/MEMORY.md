@@ -125,6 +125,21 @@
 - Key themes: DI refactor incomplete (singletons bypass DI), 0582B form assumptions leak everywhere, stale surface area not cleaned up with refactors, 32 silent catches, no tests for highest-risk composition paths
 - Next step: distill into enforceable architecture rules (not one-off fixes)
 
+### UI Design-System Refactor Architecture (2026-04-07)
+- Presentation architecture now assumes thin screen shells plus screen-local controller scopes in `di/*screen_providers.dart`.
+- Large providers/controllers were decomposed into focused part/helper files across auth, projects, entries, forms, quantities, sync, settings, and todos.
+- Sync-driving UI uses explicit contracts in:
+  - `lib/core/driver/screen_registry.dart`
+  - `lib/core/driver/screen_contract_registry.dart`
+  - `lib/core/driver/flow_registry.dart`
+  - `lib/core/driver/driver_diagnostics_handler.dart`
+- `/diagnostics/screen_contract` is the preferred runtime endpoint for sync/UI inspection.
+- Architecture enforcement was extended with:
+  - `max_ui_callable_length`
+  - `max_ui_file_length`
+  - `screen_registry_contract_sync`
+- The separate PowerShell audit `scripts/audit_ui_file_sizes.ps1` is still part of the branch quality gate and should stay aligned with the lint intent.
+
 ### Memory File Notes
 - This file (`.claude/memory/MEMORY.md`) is the detailed project knowledge base, loaded on-demand by agents
 - Auto-memory (`~/.claude/projects/.../memory/MEMORY.md`) is the brief index loaded every session

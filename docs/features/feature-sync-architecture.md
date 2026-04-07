@@ -2,20 +2,24 @@
 feature: sync
 type: architecture
 scope: Cloud Synchronization & Multi-Backend Support
-updated: 2026-04-05
+updated: 2026-04-07
 ---
 
 # Sync Feature Architecture
 
 ## Current Shape
 
-The sync system is organized into four explicit layers:
+The sync feature now has two equally important public surfaces:
+
+1. the application and engine layers that run sync work
+2. the driver-facing UI contract surface that allows sync coordinators,
+   orchestrators, and verification flows to drive the UI deterministically
 
 ```text
 Presentation
   SyncProvider
   SyncDashboardScreen / ConflictViewerScreen
-  SyncStatusIcon / dashboard widgets
+  screen contracts + testing keys + flow definitions
 
 Application
   SyncCoordinator
@@ -29,17 +33,43 @@ Engine
   PushHandler / PullHandler / MaintenanceHandler
   LocalSyncStore / SupabaseSync / FileSyncHandler
   EnrollmentHandler / FkRescueHandler / SyncErrorClassifier
-  ChangeTracker / ConflictResolver / IntegrityChecker / DirtyScopeTracker
-  SyncMutex / SyncStatusStore / SyncRunLifecycle / SyncRegistry
-
-Adapters + Domain
-  AdapterConfig + simple adapter registry
-  complex adapter classes
-  SyncResult / SyncStatus / SyncDiagnosticsSnapshot / SyncEvent / SyncMode
+  SyncMutex / SyncStatusStore / SyncRunLifecycle / IntegrityChecker
 ```
 
-The detailed implementation guide is:
+The detailed implementation guide remains:
 - `.claude/docs/guides/implementation/sync-architecture.md`
+
+## Presentation Layer
+
+### SyncProvider
+
+`lib/features/sync/presentation/providers/sync_provider.dart`
+
+`SyncProvider` is now a thin presentation facade with focused part files:
+- `sync_provider_controls.dart`
+- `sync_provider_listeners.dart`
+- `sync_provider_status_text.dart`
+
+Responsibilities:
+- trigger `quick` and `full` sync requests through `SyncCoordinator`
+- expose transport state from `SyncStatusStore`
+- expose diagnostics reads through `SyncQueryService`
+- surface hint-transport and circuit-breaker state for the UI
+
+It must not:
+- assemble dashboard queries inline
+- duplicate error-classification logic
+- become the only entry point for sync verification
+
+### Sync Screens
+
+`SyncDashboardScreen` and `ConflictViewerScreen` are screen shells backed by
+stable root sentinels in `TestingKeys`. They are part of the sync-driving
+surface and must remain aligned with:
+- `lib/core/driver/screen_registry.dart`
+- `lib/core/driver/screen_contract_registry.dart`
+- `lib/core/driver/flow_registry.dart`
+- `lib/core/driver/driver_diagnostics_handler.dart`
 
 ## Application Layer
 
@@ -47,144 +77,103 @@ The detailed implementation guide is:
 
 `lib/features/sync/application/sync_coordinator.dart`
 
-This is the top-level sync entry point. It replaces `SyncOrchestrator`.
-
-Responsibilities:
-- accept foreground sync requests
-- resolve runtime auth/context before engine creation
-- run retry/backoff policy
-- schedule background retry after retry exhaustion
-- run post-sync hooks after successful full/maintenance work
-- expose a single transport-state stream through `SyncStatusStore`
-
-It must not:
-- run SQL queries directly
-- own dashboard diagnostics assembly
-- duplicate error classification logic
+Top-level foreground/background sync entry point. It:
+- resolves runtime auth/context before engine creation
+- runs retry/backoff policy
+- records manual trigger behavior
+- schedules background retry after retry exhaustion
+- runs post-sync hooks after successful work
+- exposes transport-state updates through `SyncStatusStore`
 
 ### SyncQueryService
 
 `lib/features/sync/application/sync_query_service.dart`
 
-This is the typed diagnostics surface for dashboard/query reads.
-
-Responsibilities:
+Typed diagnostics read surface for dashboard and verification consumers.
+It owns:
 - pending bucket counts
-- integrity metadata reads
 - undismissed conflict counts
-- persisted `last_sync_time`
+- persisted last-success metadata
 - `SyncDiagnosticsSnapshot` assembly
 
-If diagnostics metadata is malformed, it must fail explicitly instead of
-silently dropping rows.
+Dashboard code and driver diagnostics must read through this service rather
+than ad hoc SQL.
 
-### Lifecycle / Background
+## Driver Contract Surface
 
-- `SyncLifecycleManager` decides startup/resume trigger behavior.
-- `BackgroundSyncHandler` runs background entrypoints.
-- `FcmHandler` and `RealtimeHintHandler` convert remote invalidation hints into
-  dirty scopes / follow-up sync requests.
+The sync refactor now assumes a first-class driver contract layer:
 
-## Engine Layer
+### Screen Registry
 
-### SyncEngine
+`lib/core/driver/screen_registry.dart`
 
-`lib/features/sync/engine/sync_engine.dart`
+Bootstraps decomposed screens in isolation. Seed args must stay aligned with
+screen contracts.
 
-`SyncEngine` is now a slim coordinator. It owns:
-- mutex acquisition / release
-- run lifecycle checkpoints
-- mode routing (`quick`, `full`, `maintenance`)
-- last-success persistence only after a truly successful cycle
+### Screen Contracts
 
-It delegates all real work to extracted collaborators.
+`lib/core/driver/screen_contract_registry.dart`
 
-### I/O Boundaries
+Defines the stable verification contract for sync-relevant screens:
+- screen id
+- root sentinel key
+- accepted seed args
+- route patterns
+- action and state keys
 
-- `LocalSyncStore`: SQLite sync boundary
-- `SupabaseSync`: remote row/storage boundary
+### Flow Registry
 
-These remain under `features/sync/engine/` as an approved sync-specific
-exception to the generic feature data-layer rule.
+`lib/core/driver/flow_registry.dart`
 
-### Handlers
+Holds declarative verification journeys. When screens or routes move, flows
+must move with them so sync verification stays route-stable.
 
-- `PushHandler`: `change_log` → FK-ordered remote writes
-- `PullHandler`: scoped per-table pull orchestration
-- `FileSyncHandler`: storage upload/download flow
-- `MaintenanceHandler`: integrity/orphan/cleanup work
-- `EnrollmentHandler`: assignment-driven project enrollment
-- `FkRescueHandler`: missing-parent recovery
+### Diagnostics
 
-### Core Shared Services
+`lib/core/driver/driver_diagnostics_handler.dart`
 
-- `SyncErrorClassifier`: single error classification source of truth
-- `SyncMutex`: cross-owner lock + stale-lock recovery
-- `SyncStatusStore`: shared transport-state store
-- `SyncRunLifecycle`: status/event emission around a sync cycle
-- `IntegrityChecker`: drift detection with cursor reset guardrails
+Provides `/diagnostics/screen_contract`, which is the unified sync-facing
+endpoint for:
+- active route
+- active screen id
+- root sentinel key presence
+- contract metadata
+- breakpoint, density, motion, and theme state
 
-## Adapters
-
-Simple tables are registered through `AdapterConfig` data rather than
-one-class-per-table boilerplate. Complex tables remain class-backed where
-custom validation, conversion, storage, or scope logic still matters.
-
-Key invariants:
-- registry order is FK order
-- adapter metadata declares FK dependencies and scope rules
-- file adapters keep storage-specific behavior out of `SyncEngine`
+This endpoint is the preferred way for sync coordinators and orchestrators to
+inspect UI state.
 
 ## Status vs Diagnostics
 
 The refactor intentionally split sync state into three shapes:
-
-- `SyncStatus`: live transport state for provider/UI status badges
+- `SyncStatus`: live transport state
 - `SyncDiagnosticsSnapshot`: point-in-time operational diagnostics
-- `SyncEvent`: transient lifecycle events emitted during a run
+- `SyncEvent`: transient lifecycle events
 
-`SyncStatusStore` is the transport-state source of truth. Dashboard diagnostics
-must come from `SyncQueryService`, not ad hoc SQL or duplicated provider state.
-
-## Operation Flow
-
-```text
-SyncProvider / lifecycle / background trigger
-  -> SyncCoordinator
-  -> ConnectivityProbe + SyncRetryPolicy
-  -> SyncEngineResolver creates SyncEngine
-  -> SyncEngine
-     -> PushHandler
-     -> PullHandler
-     -> MaintenanceHandler (when applicable)
-  -> SyncRunLifecycle emits status/events
-  -> SyncStatusStore updates transport state
-  -> SyncQueryService serves diagnostics reads
-```
-
-## Invalidation Model
-
-Foreground invalidation uses opaque per-device channels from
-`register_sync_hint_channel()`. Background/closed-app invalidation uses FCM.
-Quick sync consumes dirty scopes; full sync remains the explicit safety-net
-path for broad recovery.
+`SyncStatusStore` is the transport-state source of truth.
+`SyncQueryService` owns diagnostics snapshots.
+Driver diagnostics owns screen-contract visibility.
 
 ## Verification Bar
 
-The intended verification model for sync is:
-- characterization tests for legacy behavior contracts
-- contract/isolation tests for extracted engine and application classes
+The current verification model for sync is:
+- characterization tests for engine/application behavior
 - widget/provider tests for transport and diagnostics surfaces
-- full sync test suite green with no silent failure paths
+- flow-driven verification through `flow_registry.dart`
+- screen-contract inspection through `/diagnostics/screen_contract`
+- no widget-tree archaeology for sync-relevant screens
 
 ## Key Files
 
 - `lib/features/sync/application/sync_coordinator.dart`
 - `lib/features/sync/application/sync_query_service.dart`
 - `lib/features/sync/engine/sync_engine.dart`
-- `lib/features/sync/engine/local_sync_store.dart`
-- `lib/features/sync/engine/supabase_sync.dart`
-- `lib/features/sync/domain/sync_status.dart`
-- `lib/features/sync/domain/sync_diagnostics.dart`
+- `lib/features/sync/presentation/providers/sync_provider.dart`
+- `lib/features/sync/presentation/screens/sync_dashboard_screen.dart`
+- `lib/features/sync/presentation/screens/conflict_viewer_screen.dart`
+- `lib/core/driver/screen_registry.dart`
+- `lib/core/driver/screen_contract_registry.dart`
+- `lib/core/driver/flow_registry.dart`
+- `lib/core/driver/driver_diagnostics_handler.dart`
 - `.claude/rules/sync/sync-patterns.md`
-- `.claude/docs/guides/implementation/sync-architecture.md`
+- `.claude/rules/testing/patrol-testing.md`

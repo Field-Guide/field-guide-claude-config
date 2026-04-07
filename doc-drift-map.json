@@ -1,141 +1,176 @@
 {
   "version": 1,
-  "generated_at": "2026-04-05T12:00:00Z",
-  "generated_by": "audit-docs",
+  "generated_at": "2026-04-07T19:00:00Z",
+  "generated_by": "codex-ui-design-system-audit",
   "zones": [
+    {
+      "pattern": "lib/core/driver/**",
+      "docs": [
+        ".claude/docs/features/feature-sync-architecture.md",
+        ".claude/rules/testing/patrol-testing.md",
+        ".claude/docs/directory-reference.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Driver registries, contracts, flows, and diagnostics endpoints"
+    },
+    {
+      "pattern": "lib/core/design_system/**",
+      "docs": [
+        ".claude/docs/INDEX.md",
+        ".claude/docs/directory-reference.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Design-system tokens, components, layout, and motion primitives"
+    },
     {
       "pattern": "lib/features/sync/**",
       "docs": [
-        ".claude/rules/sync/sync-patterns.md",
         ".claude/docs/features/feature-sync-overview.md",
-        ".claude/architecture-decisions/sync-constraints.md"
+        ".claude/docs/features/feature-sync-architecture.md",
+        ".claude/architecture-decisions/sync-constraints.md",
+        ".claude/rules/sync/sync-patterns.md"
       ],
-      "claude_md_sections": ["Sync Architecture"],
+      "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Sync engine, adapters, and orchestration"
-    },
-    {
-      "pattern": "lib/core/database/**",
-      "docs": [
-        ".claude/rules/database/schema-patterns.md",
-        ".claude/CLAUDE.md"
-      ],
-      "claude_md_sections": ["Database"],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "SQLite schema, migrations, and verifier"
+      "description": "Sync engine, provider, dashboard, conflicts, and verification model"
     },
     {
       "pattern": "lib/features/auth/**",
       "docs": [
-        ".claude/rules/auth/supabase-auth.md",
-        ".claude/docs/features/feature-auth-overview.md"
+        ".claude/docs/features/feature-auth-overview.md",
+        ".claude/docs/features/feature-auth-architecture.md",
+        ".claude/rules/auth/supabase-auth.md"
       ],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Authentication flows and session management"
+      "description": "Authentication flows, auth providers, and onboarding controllers"
     },
     {
-      "pattern": "lib/features/pdf/**",
+      "pattern": "lib/features/projects/**",
       "docs": [
-        ".claude/rules/pdf/pdf-generation.md",
-        ".claude/docs/features/feature-pdf-overview.md"
+        ".claude/docs/features/feature-projects-overview.md",
+        ".claude/docs/features/feature-projects-architecture.md",
+        ".claude/architecture-decisions/projects-constraints.md"
       ],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "PDF template filling and OCR extraction"
+      "description": "Project selection, setup, enrollment, and sync health"
     },
     {
-      "pattern": "lib/**/data/**",
-      "docs": [".claude/rules/backend/data-layer.md"],
+      "pattern": "lib/features/entries/**",
+      "docs": [
+        ".claude/docs/features/feature-entries-overview.md",
+        ".claude/docs/features/feature-entries-architecture.md",
+        ".claude/architecture-decisions/entries-constraints.md"
+      ],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Data layer: models, repositories, datasources"
+      "description": "Entry editing, home screen, review flows, and entry controllers"
     },
     {
-      "pattern": "lib/**/presentation/**",
-      "docs": [".claude/rules/frontend/flutter-ui.md"],
+      "pattern": "lib/features/forms/**",
+      "docs": [
+        ".claude/docs/features/feature-forms-overview.md",
+        ".claude/docs/features/feature-forms-architecture.md",
+        ".claude/architecture-decisions/forms-constraints.md"
+      ],
       "claude_md_sections": [],
-      "signals": ["new_file", "deleted_file"],
-      "description": "Flutter UI: screens, widgets, providers"
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Registry-driven forms, MDOT hub, and form screen controllers"
+    },
+    {
+      "pattern": "lib/features/quantities/**",
+      "docs": [
+        ".claude/docs/features/feature-quantities-overview.md",
+        ".claude/docs/features/feature-quantities-architecture.md",
+        ".claude/architecture-decisions/quantities-constraints.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Bid items, entry quantities, and quantity calculator flows"
+    },
+    {
+      "pattern": "lib/features/settings/**",
+      "docs": [
+        ".claude/docs/features/feature-settings-overview.md",
+        ".claude/docs/features/feature-settings-architecture.md",
+        ".claude/architecture-decisions/settings-constraints.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Theme, trash, consent, support, admin, and settings screen controllers"
+    },
+    {
+      "pattern": "lib/features/todos/**",
+      "docs": [
+        ".claude/docs/features/feature-todos-overview.md",
+        ".claude/docs/features/feature-todos-architecture.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Todo provider decomposition and todo screen behavior"
+    },
+    {
+      "pattern": "lib/features/**/di/*screen_providers.dart",
+      "docs": [
+        ".claude/docs/INDEX.md",
+        ".claude/docs/directory-reference.md",
+        ".claude/rules/architecture.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Screen-local controller composition roots"
+    },
+    {
+      "pattern": "fg_lint_packages/**",
+      "docs": [
+        ".claude/docs/directory-reference.md",
+        ".claude/autoload/_state.md",
+        ".claude/memory/MEMORY.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Custom lint rules enforcing current architecture"
+    },
+    {
+      "pattern": "scripts/**",
+      "docs": [
+        ".claude/docs/INDEX.md",
+        ".claude/docs/directory-reference.md",
+        ".claude/autoload/_state.md"
+      ],
+      "claude_md_sections": [],
+      "signals": ["new_file", "deleted_file", "renamed_file"],
+      "description": "Repository scripts, including audit and validation helpers"
     },
     {
       "pattern": "test/**",
-      "docs": [".claude/rules/testing/patrol-testing.md"],
+      "docs": [
+        ".claude/rules/testing/patrol-testing.md"
+      ],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
       "description": "Unit, widget, golden, and E2E tests"
     },
     {
       "pattern": "integration_test/**",
-      "docs": [".claude/rules/testing/patrol-testing.md"],
+      "docs": [
+        ".claude/rules/testing/patrol-testing.md"
+      ],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
       "description": "Integration tests"
     },
     {
       "pattern": "supabase/**",
-      "docs": [".claude/rules/backend/supabase-sql.md"],
-      "claude_md_sections": [],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Supabase migrations, RLS, edge functions"
-    },
-    {
-      "pattern": ".github/workflows/**",
-      "docs": [".claude/rules/ci-cd.md"],
-      "claude_md_sections": [],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "CI/CD workflows"
-    },
-    {
-      "pattern": "lib/core/di/**",
       "docs": [
-        ".claude/rules/architecture.md",
-        ".claude/CLAUDE.md"
+        ".claude/rules/backend/supabase-sql.md"
       ],
-      "claude_md_sections": ["Project Structure"],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Dependency injection and provider wiring"
-    },
-    {
-      "pattern": "lib/core/bootstrap/**",
-      "docs": [
-        ".claude/rules/architecture.md",
-        ".claude/CLAUDE.md"
-      ],
-      "claude_md_sections": ["Project Structure"],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "App initialization and phased bootstrap"
-    },
-    {
-      "pattern": "lib/core/router/**",
-      "docs": [
-        ".claude/rules/architecture.md",
-        ".claude/CLAUDE.md"
-      ],
-      "claude_md_sections": ["Project Structure"],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "go_router setup and route definitions"
-    },
-    {
-      "pattern": "android/**",
-      "docs": [".claude/rules/platform-standards.md"],
       "claude_md_sections": [],
       "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Android platform configuration"
-    },
-    {
-      "pattern": "ios/**",
-      "docs": [".claude/rules/platform-standards.md"],
-      "claude_md_sections": [],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "iOS platform configuration"
-    },
-    {
-      "pattern": "windows/**",
-      "docs": [".claude/rules/platform-standards.md"],
-      "claude_md_sections": [],
-      "signals": ["new_file", "deleted_file", "renamed_file"],
-      "description": "Windows platform configuration"
+      "description": "Supabase migrations, RLS, and edge functions"
     }
   ],
   "global_checks": {
@@ -143,53 +178,75 @@
       "pattern": "lib/features/*/",
       "docs": [
         ".claude/docs/features/README.md",
-        ".claude/CLAUDE.md"
-      ],
-      "sections": ["Project Structure"]
-    },
-    "new_agent": {
-      "pattern": ".claude/agents/**",
-      "docs": [
-        ".claude/CLAUDE.md",
         ".claude/docs/INDEX.md"
       ],
-      "sections": ["Pointers"]
+      "sections": []
     },
-    "new_skill": {
-      "pattern": ".claude/skills/**",
+    "new_screen_scope": {
+      "pattern": "lib/features/**/di/*screen_providers.dart",
       "docs": [
-        ".claude/CLAUDE.md",
-        ".claude/docs/INDEX.md"
+        ".claude/docs/INDEX.md",
+        ".claude/docs/directory-reference.md"
       ],
-      "sections": ["Pointers"]
+      "sections": []
     },
-    "workflow_change": {
-      "pattern": ".github/workflows/**",
-      "docs": [".claude/rules/ci-cd.md"],
+    "driver_surface_change": {
+      "pattern": "lib/core/driver/**",
+      "docs": [
+        ".claude/docs/features/feature-sync-architecture.md",
+        ".claude/rules/testing/patrol-testing.md"
+      ],
+      "sections": []
+    },
+    "lint_package_change": {
+      "pattern": "fg_lint_packages/**",
+      "docs": [
+        ".claude/autoload/_state.md",
+        ".claude/memory/MEMORY.md"
+      ],
       "sections": []
     }
   },
   "path_references": {
-    ".claude/CLAUDE.md": [
-      "lib/main_driver.dart",
-      "lib/core/bootstrap/app_initializer.dart",
-      "tools/debug-server/server.js",
-      "packages/flusseract/"
-    ],
-    ".claude/rules/sync/sync-patterns.md": [
+    ".claude/docs/features/feature-sync-architecture.md": [
+      "lib/core/driver/screen_registry.dart",
+      "lib/core/driver/screen_contract_registry.dart",
+      "lib/core/driver/flow_registry.dart",
+      "lib/core/driver/driver_diagnostics_handler.dart",
       "lib/features/sync/application/sync_coordinator.dart",
-      "lib/features/sync/engine/sync_engine.dart"
+      "lib/features/sync/presentation/providers/sync_provider.dart"
     ],
-    ".claude/rules/auth/supabase-auth.md": [
-      "lib/core/config/supabase_config.dart",
-      "lib/core/bootstrap/app_initializer.dart"
+    ".claude/docs/features/feature-auth-architecture.md": [
+      "lib/features/auth/di/auth_providers.dart",
+      "lib/features/auth/di/auth_screen_providers.dart",
+      "lib/features/auth/presentation/providers/auth_provider.dart"
     ],
-    ".claude/rules/backend/data-layer.md": [
-      "lib/core/database/database_service.dart"
+    ".claude/docs/features/feature-projects-architecture.md": [
+      "lib/features/projects/di/projects_providers.dart",
+      "lib/features/projects/di/project_screen_providers.dart",
+      "lib/features/projects/presentation/providers/project_provider.dart"
     ],
-    ".claude/rules/architecture.md": [
-      "lib/core/di/app_providers.dart",
-      "lib/core/di/app_dependencies.dart"
+    ".claude/docs/features/feature-entries-architecture.md": [
+      "lib/features/entries/di/entries_providers.dart",
+      "lib/features/entries/di/entry_screen_providers.dart",
+      "lib/features/entries/presentation/controllers/contractor_editing_controller.dart",
+      "lib/features/entries/presentation/screens/home_screen.dart"
+    ],
+    ".claude/docs/features/feature-forms-architecture.md": [
+      "lib/features/forms/di/forms_providers.dart",
+      "lib/features/forms/di/form_screen_providers.dart",
+      "lib/features/forms/presentation/providers/inspector_form_provider.dart",
+      "lib/features/forms/presentation/controllers/mdot_hub_controller.dart"
+    ],
+    ".claude/docs/features/feature-quantities-architecture.md": [
+      "lib/features/quantities/di/quantities_providers.dart",
+      "lib/features/quantities/di/quantity_screen_providers.dart",
+      "lib/features/quantities/presentation/providers/entry_quantity_provider.dart"
+    ],
+    ".claude/docs/features/feature-settings-architecture.md": [
+      "lib/features/settings/di/settings_providers.dart",
+      "lib/features/settings/di/settings_screen_providers.dart",
+      "lib/features/settings/presentation/providers/theme_provider.dart"
     ]
   }
 }

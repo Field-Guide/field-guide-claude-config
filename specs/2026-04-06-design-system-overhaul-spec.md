@@ -28,13 +28,16 @@ Overhaul the app's design system and UI layer to be fully tokenized, responsive 
 - [ ] All design system tokens accessible via `ThemeExtension.of(context)` with `standard`, `compact`, and `comfortable` density variants
 - [ ] Density is selected automatically in the live app from breakpoint/screen context; no user-facing density toggle in Settings
 - [ ] Responsive breakpoint system with canonical layout patterns (phone/tablet/desktop)
-- [ ] No UI screen or widget file exceeds 300 lines; priority oversized files decomposed first, then remaining UI files brought under threshold
+- [ ] No UI-facing screen, widget, controller, mixin, state/helper, or driver-facing screen-contract file exceeds 300 lines; priority oversized files decomposed first, then remaining UI files brought under threshold
+- [ ] No extracted helper, build method, or orchestration method is allowed to become a hidden god object; 300 lines is the absolute ceiling, with materially smaller focused units expected in practice
+- [ ] Every sync-relevant screen exposes a stable verification contract through `TestingKeys`, `screen_registry.dart`, `flow_registry.dart`, and driver diagnostics so `SyncCoordinator`/sync verification flows can drive and observe it without widget-tree archaeology
 - [ ] All 11 UI-related GitHub issues closed
 - [ ] Widgetbook catalog covering all design system components + key feature widgets
 - [ ] Flutter DevTools profiling shows no frame budget violations (>16ms) on key screens
 - [ ] Atomic Design folder structure for design system (~56 components across tokens/atoms/molecules/organisms/surfaces/feedback/layout/animation)
 - [ ] Desktop hover states + focus indicators on all interactive components
 - [ ] 10 new lint rules enforced at error severity in CI
+- [ ] `flutter analyze` and `dart run custom_lint` both pass cleanly at the end of the overhaul, and no new `ignore`, `ignore_for_file`, analyzer exclusions, rule downgrades, allowlists, or other suppression tricks are introduced to get there
 - [ ] All `.claude/` architecture documentation updated
 - [ ] HTTP driver and logging updated for new component structure
 
@@ -54,6 +57,8 @@ Overhaul the app's design system and UI layer to be fully tokenized, responsive 
 | Performance approach | Profile first, then systematic pass | Catches non-obvious bottlenecks before broad optimization |
 | Animation style | Material 3 motion + selective premium polish | Matches existing Material foundation, upgrades key surfaces |
 | Lint rollout | Rules first (P0), warn during refactor, error at end | Creates violation inventory that guides all subsequent work |
+| Sync verification surface | Stable screen contracts via keys + driver registries + diagnostics | Sync verification must survive decomposition without widget-tree archaeology |
+| Decomposition guardrail | No UI god objects over 300 lines, including extracted helpers | Prevents fake decomposition where complexity is merely moved sideways |
 
 ### Approaches Rejected
 
@@ -169,6 +174,20 @@ Only the screens that materially benefit from split panes adopt them. Split view
 
 Navigation adaptation applies to the root app shell. Feature-level split panes are separate canonical patterns, not a requirement to mirror shell navigation everywhere.
 
+### UI Screen Contract For Sync Verification
+
+Every screen that can trigger, block, visualize, or verify sync-sensitive work must expose a stable verification surface that survives refactors. "Easy to expose" means the screen can be instantiated, navigated to, and driven through named contracts rather than ad hoc widget-tree inspection.
+
+| Contract Surface | Requirement | Why |
+|------------------|-------------|-----|
+| `TestingKeys` | Each sync-relevant screen keeps a root sentinel key plus stable action/state keys for create/edit/save/delete/sync/export flows | Sync verification agents need durable selectors after decomposition |
+| `screen_registry.dart` | Every decomposed screen shell and promoted child screen remains constructible through the screen registry with required seed arguments documented | Harness runs and coordinator/orchestrator verification need isolated screen bootstrapping |
+| `flow_registry.dart` | Navigation flows must be updated whenever routes/screens move so verification flows still express intended journeys declaratively | Sync flows must not depend on stale route assumptions |
+| Driver diagnostics | Driver must expose current route plus the active screen contract metadata needed by verification (`breakpoint`, `density`, `theme`, `motion`, screen id/root key) | Coordinators/orchestrators need observable UI state, not screenshot guessing |
+| Screen orchestration boundary | Screen shells may orchestrate view state, but sync operations must stay behind typed provider/coordinator/query-service APIs and be surfaced through stable UI contracts | Prevents direct engine reach-through while keeping sync verification practical |
+
+Screens explicitly treated as sync-relevant in this overhaul include sync dashboard/conflict surfaces plus any decomposed entry, project, forms, quantities, toolbox, and settings screens whose UI state participates in sync verification, export verification, enrollment/removal, or change-log-triggering workflows.
+
 ### Form Editor Components (extracted from 0582B for future reuse)
 
 | Component | Extracted From | Purpose |
@@ -278,6 +297,20 @@ Lint rules start as warnings (P0), flip to errors at end of refactor (P6).
 ### Existing Lint Rules (unchanged)
 
 `no_hardcoded_colors`, `no_inline_text_style`, `no_raw_scaffold`, `no_raw_dialog`, `no_raw_bottom_sheet`, `no_silent_catch` — already enforced.
+
+### Structural Guardrails
+
+- The 300-line ceiling is a hard architecture rule for UI-facing screen files, extracted widget files, presentation controllers/mixins/helpers, and driver-facing screen contract helpers that exist only to support the UI layer
+- Extracting a 600-line screen into a 280-line shell plus a 500-line helper/mixin does not satisfy this spec
+- Long private `_build*` methods, giant helper functions, and oversized "utils" files count as decomposition failures even if the parent screen file falls under 300 lines
+- If an extracted artifact still trends large, split by responsibility immediately (layout shell, state adapter, section widgets, diagnostics contract, driver contract)
+
+### Lint Integrity / No-Bypass Policy
+
+- Completion requires both `flutter analyze` and `dart run custom_lint` to pass cleanly for the affected scope and final repo-wide gate
+- The overhaul may not add `// ignore:`, `// ignore_for_file:`, analyzer `exclude:` entries, severity downgrades, per-file allowlists, or similar escape hatches to suppress design-system or structural findings
+- The only standing scope carve-outs are spec-approved wrapper layers such as `design_system/` internals and test-only contexts already called out by the lint rules themselves
+- If a lint is too noisy or incorrect, fix the rule or the code; do not mute it
 
 ---
 
@@ -510,11 +543,14 @@ lib/core/design_system/
 |--------|-----|
 | `TestingKeys` for all new design system components | Driver needs to find widgets by key |
 | Update screen test flows for decomposed structure | Widget selectors may change |
+| Keep `screen_registry.dart` aligned with every decomposed screen shell and extracted child screen that must be harness-bootable | Sync coordinators/orchestrators and driver flows need stable screen bootstrapping after decomposition |
+| Keep `flow_registry.dart` aligned with route moves and screen splits | Sync verification flows must remain declarative and route-stable |
 | Responsive testing endpoints | Verify layouts at different breakpoints |
 | Navigation mode diagnostics | Driver needs to distinguish bottom-nav vs navigation-rail shells |
 | Density diagnostics | Debug server and tests need to know which density variant is active |
 | Animation-aware waits | Staggered entrances need settling time |
 | Log new component hierarchy | Debug server shows design system components on screen |
+| Screen contract diagnostics endpoint | Sync verification needs the current screen id, root sentinel key, and exposed contract metadata without tree-dump archaeology |
 
 ### Logging Updates
 
@@ -536,6 +572,7 @@ lib/core/design_system/
 | Integration tests | Update for decomposed widget structure |
 | Responsive tests | Test canonical layouts at each breakpoint |
 | Performance tests | Baseline frame times, fail on regression |
+| Sync verification harness | Revalidate sync-sensitive flows against the updated screen contracts, route registries, and diagnostics endpoints so UI decomposition does not break coordinator/orchestrator verification |
 
 ### Widgetbook Setup
 
@@ -592,13 +629,13 @@ lib/core/design_system/
 
 | Phase | What | Batches |
 |-------|------|---------|
-| **P0: Lint rules** | Implement 10 new lint rules at warning severity. Run analysis for complete violation inventory. | 1 |
+| **P0: Lint rules** | Implement 10 new lint rules at warning severity. Run analysis for complete violation inventory, lock the no-bypass policy, and inventory the sync-facing screen contracts that must survive the refactor. | 1 |
 | **P1: Tokens + Theme** | Build 5 ThemeExtensions, kill HC theme, collapse `app_theme.dart`, create folder structure, move token files | 1-2 |
 | **P2: Infrastructure** | Responsive breakpoints, canonical layouts, animation wrappers, navigation adaptation, Widgetbook skeleton | 2-3 |
 | **P3: Design system expansion** | New components (button, badge, divider, banner, dropdown, etc.), migrate shared widgets | 2-3 |
-| **P4: UI decomposition** | Decompose the 11 priority files first, then continue through remaining oversized UI screens/widgets with full protocol (tokenize, sliver-ify, Selector-ify, motion, responsive, fix issues). Component discovery sweep each batch. | 5-8 |
+| **P4: UI decomposition** | Decompose the 11 priority files first, then continue through remaining oversized UI screens/widgets with full protocol (tokenize, sliver-ify, Selector-ify, motion, responsive, fix issues). Component discovery sweep each batch. Enforce the 300-line ceiling across extracted helpers/controllers/mixins too, and keep screen contracts/driver registries in sync as screens split. | 5-8 |
 | **P5: Performance** | Profile 5 worst screens, fix bottlenecks, systematic pattern pass, re-profile | 1-2 |
-| **P6: Polish** | Desktop hover/focus, Widgetbook completion, documentation updates, driver/logging updates, golden baselines, flip lint rules to error | 2-3 |
+| **P6: Polish** | Desktop hover/focus, Widgetbook completion, documentation updates, driver/logging updates, golden baselines, flip lint rules to error, and prove the final lint/driver/screen-contract gates without suppression shortcuts | 2-3 |
 
 ### Cleanup Checklist (end of each phase)
 
@@ -609,6 +646,8 @@ lib/core/design_system/
 - [ ] No orphaned files
 - [ ] Documentation updated
 - [ ] GitHub issues closed for completed fixes
+- [ ] `screen_registry.dart`, `flow_registry.dart`, and sync-relevant `TestingKeys` reflect the current decomposed UI
+- [ ] No new lint suppressions, analyzer excludes, or severity downgrades were introduced to make the phase pass
 
 ---
 

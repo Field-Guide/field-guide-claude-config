@@ -1,130 +1,82 @@
 # Documentation Index
 
 **Restructured**: 2026-02-13
-**Status**: Live docs organized by feature, guide, and rule context
+**Updated**: 2026-04-07
+**Status**: Live docs aligned to the UI design-system refactor and sync-driver surface
 
----
+## What Changed
+
+The current live docs now assume the post-refactor architecture:
+- design-system tokens and components live under `lib/core/design_system/`
+- screens stay thin and compose screen-local controllers through `di/*screen_providers.dart`
+- large presentation providers/controllers are split into focused part/helper files
+- sync automation drives UI through `lib/core/driver/` contracts, not widget-tree archaeology
+- UI/design-system artifacts are expected to stay under the 300-line hard cap
 
 ## Organization Overview
 
-The `.claude/docs/` folder is now organized into two main sections:
+### `features/`
 
-### 📁 `features/` - Feature Documentation (34 files)
+Feature docs remain the primary deep reference for current implementation shape.
+The architecture pages are the source of truth for:
+- root DI wiring via `*_providers.dart`
+- screen-local controller scopes via `*screen_providers.dart`
+- major provider/controller decompositions
+- cross-feature contracts and sync-driving entry points
 
-Complete documentation for all 17 features. Each feature has:
-- **`feature-{name}-overview.md`** - Quick reference (purpose, capabilities, data model, sync strategy)
-- **`feature-{name}-architecture.md`** - Technical deep-dive (patterns, implementation details)
+### `guides/`
 
-**Cross-cutting readers**: code-review-agent, qa-testing-agent, completeness-review-agent
-**Implementation flow**: domain context comes from routing tables in `.claude/skills/implement/references/worker-rules.md` and `.claude/skills/implement/references/reviewer-rules.md`; feature docs are loaded as needed for deeper context
+Guides cover cross-cutting implementation and testing workflows:
+- sync architecture and handler ownership
+- analyzer-safe patterns
+- E2E / driver testing setup
+- manual testing and UI prototyping
 
-👉 See [features/README.md](features/README.md) for feature-to-rule mapping
+### Root docs
 
-### 📁 `guides/` - Implementation & Testing Guides (6 files)
+Root docs cover the directory map, audit/report material, and the doc-drift
+system configuration that tracks which live docs must move when architecture
+shifts.
 
-How-to guides and references organized by type:
+## Current High-Signal Entry Points
 
-#### `guides/testing/` (2 files)
-- **`manual-testing-checklist.md`** - 168-point QA coverage across all 12 feature suites
-  - Used by: **qa-testing-agent**
-  - Quick smoke test (5 min), full suite (45-60 min)
-  - Regression triggers and test result template
+- Design system: `lib/core/design_system/`
+- Driver surface: `lib/core/driver/screen_registry.dart`
+- Driver contracts: `lib/core/driver/screen_contract_registry.dart`
+- Driver flows: `lib/core/driver/flow_registry.dart`
+- Driver diagnostics: `lib/core/driver/driver_diagnostics_handler.dart`
+- UI size audit: `scripts/audit_ui_file_sizes.ps1`
+- Custom lints: `fg_lint_packages/field_guide_lints/`
+- Drift map: `.claude/doc-drift-map.json`
 
-- **`e2e-test-setup.md`** - Patrol E2E test configuration and troubleshooting
-  - Used by: **qa-testing-agent**
-  - Device setup, animation settings, permissions, CI/CD integration
-  - Test flags, environment configuration, common issues
+## Recommended Reading Order
 
-#### `guides/implementation/` (3 files)
-- **`chunked-sync-usage.md`** - Large dataset sync with progress tracking
-  - Used by: **implement workers touching sync/realtime code**
-  - Configuration, progress callbacks, chunking strategy
-  - For: Sync coordinator, large entry/photo datasets
+1. Read the relevant feature overview or architecture page in `docs/features/`.
+2. Read the matching rules under `.claude/rules/` for constraints.
+3. If the task touches sync-driving UI, read:
+   - `feature-sync-architecture.md`
+   - `rules/testing/patrol-testing.md`
+   - `guides/implementation/sync-architecture.md`
+4. If the task changes structure, update `.claude/doc-drift-map.json` and the
+   affected feature docs in the same change.
 
-- **`sync-architecture.md`** - Refactored sync architecture guide
-  - Used by: **general-purpose**, **code-review-agent**, **qa-testing-agent**
-  - Layer boundaries, handler ownership, status vs diagnostics split
-  - For: SyncCoordinator, SyncEngine, SyncQueryService, verification model
+## Live vs Historical Material
 
-- **`shared-analyzer-safe-patterns.md`** - Cross-cutting analyzer-safe abstractions
-  - Used by: **implement workers and reviewers touching shared analyzer-safe code**
-  - Documents `SafeRow`, hook-based `SafeAction`, and repository/copyWith decisions from analyzer-zero
-  - For: Shared provider, repository, and SQLite row access patterns
+The following are live references and should track the branch:
+- `.claude/docs/**`
+- `.claude/rules/**`
+- `.claude/autoload/_state.md`
+- `.claude/memory/MEMORY.md`
+- `.claude/doc-drift-map.json`
 
-#### `guides/` (root-level, 1 file)
-- **`ui-prototyping-workflow.md`** - UI prototyping and mockup workflow
-  - Used by: **implement workers doing UI prototyping**
-  - Mockup conventions, iteration process, design-to-code handoff
-
-👉 See [guides/README.md](guides/README.md) for guide-to-context mapping
-
----
-
-### 📄 Root Docs — Audits & Reports (4 files)
-
-Standalone audit and report documents at the `.claude/docs/` root:
-
-- **`2026-03-28-ui-refactor-audit.md`** - UI refactor audit findings (2026-03-28)
-- **`ios-build-guide.md`** - iOS build setup and signing guide
-- **`pdf-pipeline-performance-audit.md`** - PDF pipeline performance audit findings
-- **`workflow-insights-report.md`** - Workflow insights and process improvement report
-
----
-
-## Agent Integration
-
-### How Context Loads
-
-The repo now uses **role-based agents** plus **domain routing tables**:
-
-- Implementers and fixers load domain rules from `.claude/skills/implement/references/worker-rules.md`
-- Reviewers load domain rules from `.claude/skills/implement/references/reviewer-rules.md`
-- Feature docs, PRDs, and guides are read on demand when a task needs deeper context than the slim rule files provide
-
-### Agent-to-Guide References
-
-| Role | Guides |
-|-------|--------|
-| **qa-testing-agent** | Manual Testing Checklist, E2E Test Setup |
-| **implement workers touching sync code** | Chunked Sync Usage |
-| **code-review-agent** | Feature docs and implementation guides as needed |
-
----
-
-## Key Improvements
-
-✅ **Eliminated Clutter**: 31 docs in root → Organized into `features/` and `guides/`
-✅ **Routing Table Integration**: Implement and review flows load slim rules first, then deeper docs as needed
-✅ **Current Format**: Each guide header shows which agent(s) use it
-✅ **Navigation**: Feature and guide READMEs provide clear mapping
-✅ **Findability**: Agents can quickly locate relevant guidance
-
----
-
-## Quick Navigation
-
-- **Handling large data syncs?** → [Chunked Sync Usage](guides/implementation/chunked-sync-usage.md)
-- **Looking for current sync architecture?** → [Sync Architecture Guide](guides/implementation/sync-architecture.md)
-- **Looking for shared analyzer-safe abstractions?** → [Shared Analyzer-Safe Patterns](guides/implementation/shared-analyzer-safe-patterns.md)
-- **Setting up E2E tests?** → [E2E Test Setup](guides/testing/e2e-test-setup.md)
-- **Running QA coverage?** → [Manual Testing Checklist](guides/testing/manual-testing-checklist.md)
-
-## File Statistics
-
-| Section | Files | Purpose |
-|---------|-------|---------|
-| Features | 34 | Feature overviews & architecture |
-| Testing Guides | 2 | Test setup & QA coverage |
-| Implementation Guides | 3 | Feature-specific and cross-cutting implementation how-tos |
-| UI Prototyping Guide | 1 | UI prototyping and mockup workflow |
-| Root Audits & Reports | 4 | Audits, build guides, and reports |
-| **Total** | **45** | Complete project documentation |
-
----
+Historical reviews, completed plans, archived logs, and prior test results are
+intentionally left as historical records and do not need to be rewritten to
+match the current branch.
 
 ## Related Resources
 
-- [PRDs](../prds/) - Product requirement documents (17 features)
-- [Architecture Decisions](../architecture-decisions/) - Constraints per feature
-- [Agents](../agents/) - Role-based agent definitions
-- [Rules](../rules/) - Architecture & domain rules
+- `../architecture-decisions/` for feature constraints
+- `../rules/` for enforceable implementation rules
+- `../prds/` for product intent
+- `../specs/` for implementation specs
+- `../plans/` for active execution plans

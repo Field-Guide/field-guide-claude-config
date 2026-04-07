@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-30",
+  "generated_at": "2026-04-07",
   "app_name": "Construction Inspector App",
   "total_features": 17,
 
@@ -22,7 +22,7 @@
     {
       "name": "sync",
       "full_name": "Sync Engine",
-      "status": "stable",
+      "status": "in_progress",
       "docs": {
         "overview": "docs/features/feature-sync-overview.md",
         "architecture": "docs/features/feature-sync-architecture.md"

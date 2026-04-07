@@ -3,8 +3,8 @@
     "app_name": "Construction Inspector App",
     "app_version": "0.1.0",
     "description": "Cross-platform offline-first mobile/desktop app for construction inspectors",
-    "last_updated": "2026-04-06T20:25:00-04:00",
-    "session_notes": "S746: Delete propagation verification on sync-engine-refactor exposed and fixed three real sync defects: entry delete UI skipped child photo/document cascades, pull scope dropped deleted parent IDs and blocked downstream child tombstones, and project delete local cascade missed project_assignments while the RPC deleted them remotely. Direction going forward is to split delete orchestration into a graph-locked local cascade orchestrator, remote delete coordinator, scope-revocation cleaner, storage cleanup coordinator, and propagation verifier so graph drift and scope drift cannot recur."
+    "last_updated": "2026-04-07T09:52:37.6028420-04:00",
+    "session_notes": "S747: The UI design-system refactor merged via PR #249, so sync-engine-refactor is active again against the live screen registry, screen contract, flow registry, and /diagnostics/screen_contract surface. CI now structurally validates sync adapter drift with scripts/validate_sync_adapter_registry.py. Immediate next step is to catch sync-engine-refactor up to the merged UI baseline and continue the delete-orchestration split against those new UI endpoints."
   },
   "current_phase": {
     "phase_name": "Sync delete orchestration hardening on sync-engine-refactor",

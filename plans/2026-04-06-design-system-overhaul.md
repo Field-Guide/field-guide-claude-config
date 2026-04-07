@@ -2,20 +2,27 @@
 
 > **For Claude:** Use the implement skill (`/implement`) to execute this plan.
 
-**Goal:** Overhaul the app's design system and UI layer to be fully tokenized, responsive across phone/tablet/desktop, and performant — eliminating ~400 magic number violations, collapsing the 1,777-line theme file, decomposing 11+ oversized screens, and establishing a 56-component atomic design system with 10 new lint rules.
+**Goal:** Overhaul the app's design system and UI layer to be fully tokenized, responsive across phone/tablet/desktop, and performant — eliminating ~400 magic number violations, collapsing the 1,777-line theme file, decomposing 11+ oversized screens, preserving sync-verifiable screen contracts through the refactor, and establishing a 56-component atomic design system with 10 new lint rules.
 
 **Spec:** `.claude/specs/2026-04-06-design-system-overhaul-spec.md`
 **Tailor:** `.claude/tailor/2026-04-06-design-system-overhaul/`
 
-**Architecture:** Bottom-up refactor: lint rules first (P0) to create violation inventory, then tokens + theme collapse (P1), responsive/animation infrastructure (P2), new components + migrations (P3), screen decomposition with full protocol (P4), performance optimization (P5), and polish + enforcement (P6). Each phase maintains zero analyzer errors.
+**Architecture:** Bottom-up refactor: lint rules first (P0) to create violation inventory and lock the no-bypass policy, then tokens + theme collapse (P1), responsive/animation infrastructure (P2), new components + migrations (P3), screen decomposition with full protocol plus stable driver/sync screen contracts (P4), performance optimization (P5), and polish + enforcement (P6). Each phase maintains zero analyzer errors and ends with both analyzer/custom_lint expectations intact.
 
 **Tech Stack:** Flutter 3.38.9, Dart 3.10.7, ThemeExtension tokens, provider/ChangeNotifier, GoRouter, custom_lint_builder, Widgetbook
 
 **Blast Radius:** 160 direct (DesignConstants), 114 direct (design_system barrel), 89 direct (FieldGuideColors), 29 direct (AppTheme) — 17 files for HC removal, 11 priority screens, 10 additional oversized screens, 8 additional widgets, 12 golden test files
 
+**Hard Gates Added 2026-04-07:**
+- No UI-facing screen, widget, controller, mixin, state/helper, or driver-facing screen-contract file may exceed 300 lines; extracted helpers do not get a free pass.
+- Sync-relevant screens must remain explicitly exposed through `TestingKeys`, `lib/core/driver/screen_registry.dart`, `lib/core/driver/flow_registry.dart`, and driver diagnostics as the UI is decomposed.
+- Completion requires clean `flutter analyze` plus clean `dart run custom_lint` with no new `ignore`, `ignore_for_file`, analyzer exclusion, severity downgrade, or similar suppression shortcut added to make the plan pass.
+
 ---
 
 ## Phase 0: Lint Rules
+
+Phase 0 also inventories the sync-facing screen contracts and records the lint-integrity baseline so later phases cannot "solve" the overhaul by muting rules or hiding UI APIs from the verification harness.
 
 ### Sub-phase 0.1: Create `no_raw_button` lint rule
 
@@ -8586,6 +8593,8 @@ Expected: No issues found. If there are "unused import" warnings, a file was mis
 
 ## Phase 4a: UI Decomposition -- Priority Screens 1-6
 
+Hard gate: every extracted widget/controller/mixin/helper created during Phase 4 counts against the same 300-line anti-god-object limit as the parent screen, and any screen split must update the relevant `TestingKeys`, screen registry, and flow registry surfaces in the same batch.
+
 **IMPORTANT**: This phase assumes Phases 1-3 are complete. Token ThemeExtensions (`FieldGuideSpacing`, `FieldGuideRadii`, `FieldGuideMotion`, `FieldGuideShadows`) are registered on `ThemeData.extensions` and accessible via `.of(context)`. The `AppResponsiveBuilder` layout widget exists in `lib/core/design_system/layout/`. The design system barrel at `lib/core/design_system/design_system.dart` re-exports all tokens, atoms, molecules, organisms, surfaces, feedback, layout, and animation sub-barrels.
 
 **NOTE**: Each sub-phase follows the 11-step decomposition protocol: (1) component discovery, (2) promote shared patterns, (3) extract private widgets, (4) tokenize, (5) sliver-ify, (6) selector-ify, (7) add motion, (8) responsive layout, (9) close issues, (10) update HTTP driver, (11) update logs. Steps are collapsed where not applicable.
@@ -10598,6 +10607,8 @@ tab content into standalone widgets with proper Expanded + ListView/ScrollView b
 
 ## Phase 4b: UI Decomposition -- Priority Screens 7-11 + Additional Screens/Widgets + Remaining Issues
 
+Continue enforcing the same Phase 4a hard gate: no sideways decomposition into oversized helpers, and no screen split is complete until its harness/sync-verification contract remains discoverable through keys plus driver registries.
+
 **Prerequisite**: Phase 4a complete (screens 1-6 decomposed, tokenized, sliver-migrated). All new design system components from P2-P3 are available. Token extensions (`FieldGuideSpacing`, `FieldGuideRadii`, `FieldGuideMotion`, `FieldGuideShadows`) are registered on `ThemeData.extensions` and accessible via `.of(context)`.
 
 **Component discovery gate** (FROM SPEC: "This gate runs at the start of every implementation batch"):
@@ -12219,6 +12230,8 @@ Delete `.claude/plans/performance-baseline-p5.md` — it was only for tracking d
 
 ## Phase 6: Polish
 
+Phase 6 is not complete until the repo proves clean `flutter analyze`, clean `dart run custom_lint`, preserved sync-verification screen contracts, and zero new suppression shortcuts introduced to bypass the design-system rules.
+
 **Prerequisite**: Phase 5 complete. All screens performant, decomposed, tokenized.
 
 ---
@@ -12628,11 +12641,15 @@ class DesignSystemKeys {
 
 Then add `export 'design_system_keys.dart';` to `lib/shared/testing_keys/testing_keys.dart`.
 
-#### Step 6.4.2: Update HTTP driver screen test flows
+#### Step 6.4.2: Update HTTP driver screen contracts and test flows
 
-**File**: `lib/core/driver/routes/` (relevant route files)
+**Files**:
+- `lib/core/driver/driver_server.dart`
+- `lib/core/driver/screen_registry.dart`
+- `lib/core/driver/flow_registry.dart`
+- `lib/shared/testing_keys/testing_keys.dart`
 
-Update any test flows that reference decomposed screen structures. For example, if driver tests tap on specific widgets that were renamed during decomposition, update the key references.
+Update any driver flows that reference decomposed screen structures. For example, if driver tests tap on specific widgets that were renamed during decomposition, update the key references. In the same batch, keep the screen registry and flow registry aligned so harness bootstrapping and sync-verification journeys still target named screen contracts instead of tree-dump archaeology.
 
 #### Step 6.4.3: Add responsive testing endpoints to driver
 
@@ -12643,9 +12660,12 @@ Update any test flows that reference decomposed screen structures. For example, 
 // GET /diagnostics/breakpoint — returns current breakpoint info
 // GET /diagnostics/navigation-mode — returns 'bottom_nav' or 'rail'
 // GET /diagnostics/density — returns current density mode
+// GET /diagnostics/screen-contract — returns current screen id, root key,
+// and any registered sync-verification contract metadata
 
 // NOTE: These read from the responsive layout state to verify
-// correct breakpoint/density in automated tests
+// correct breakpoint/density plus the currently exposed screen contract
+// in automated tests
 
 // NOTE: These endpoints MUST be registered within `DriverServer._handleRequest`
 // which is gated by `kReleaseMode || kProfileMode`. They are never reachable in production.
@@ -12825,6 +12845,14 @@ pwsh -Command "flutter analyze 2>&1 | Select-String 'no_raw_button|no_raw_divide
 
 Expected: 0 matches. If any violations remain, fix them first.
 
+Then run:
+
+```
+pwsh -Command "dart run custom_lint"
+```
+
+Expected: 0 violations. Do not proceed if `custom_lint` is only green because of new ignore comments, per-file rule suppressions, analyzer excludes, or severity downgrades added during this overhaul.
+
 <!-- NOTE: no_raw_navigator stays at INFO severity per spec (Section 5 lint table) -- do NOT include in verification or flip.
      no_direct_snackbar is an existing unchanged rule.
      no_raw_snackbar is the new spec-mandated rule that flips from WARNING -> ERROR. -->
@@ -12872,7 +12900,13 @@ Files to update (9 rules):
 pwsh -Command "flutter analyze"
 ```
 
-Expected: 0 errors, 0 warnings. All new lint rules now enforced at ERROR level.
+And:
+
+```
+pwsh -Command "dart run custom_lint"
+```
+
+Expected: 0 errors, 0 warnings, 0 custom lint violations. All new lint rules now enforced at ERROR level without suppression shortcuts.
 
 ---
 
@@ -12886,7 +12920,13 @@ Expected: 0 errors, 0 warnings. All new lint rules now enforced at ERROR level.
 pwsh -Command "flutter analyze"
 ```
 
-Expected: 0 errors, 0 warnings across entire codebase.
+And:
+
+```
+pwsh -Command "dart run custom_lint"
+```
+
+Expected: 0 errors, 0 warnings, 0 custom lint violations across the entire codebase.
 
 #### Step 6.7.2: Verify no orphaned files
 
