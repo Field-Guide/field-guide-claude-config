@@ -9,11 +9,35 @@
     "project_delete_live": "passed_after_fixes",
     "entry_delete_remote_storage": "verified",
     "project_delete_remote_rows": "verified",
-    "windows_receiver_convergence": "verified"
+    "project_delete_remote_storage": "verified",
+    "windows_receiver_convergence": "verified",
+    "sync_dashboard_controller_endpoint_refactor": "verified_local",
+    "driver_delete_propagation_endpoint_refactor": "verified_local",
+    "delete_propagation_snapshot_dedup": "verified_local",
+    "deleted_entry_ui_absent_windows": "verified",
+    "deleted_entry_ui_absent_s21": "verified",
+    "deleted_project_ui_absent_windows": "verified",
+    "deleted_project_ui_absent_s21": "verified",
+    "project_restore_s21_sqlite_subtree": "verified",
+    "project_restore_remote_rows": "verified",
+    "project_restore_windows_sqlite_subtree": "verified",
+    "project_restore_s21_project_ui": "verified",
+    "project_restore_windows_project_ui": "verified",
+    "project_restore_windows_entry_ui": "verified",
+    "post_restore_repeat_sync_idempotent_windows": "verified_twice",
+    "post_restore_repeat_sync_idempotent_s21": "verified_twice",
+    "support_tickets_updated_at_local_schema_fix": "verified_live",
+    "project_hard_delete_s21_local_purge": "verified",
+    "project_hard_delete_windows_maintenance_cleanup": "verified_partial",
+    "fresh_fixture_soft_delete_windows_receiver_convergence": "verified",
+    "fresh_fixture_hard_delete_preserved_remote_tombstone_contract": "verified",
+    "post_hard_delete_repeat_sync_idempotent_windows": "verified",
+    "post_hard_delete_repeat_sync_idempotent_s21": "verified"
   },
-  "next_flow": "project-delete-storage-and-ui-verification",
+  "next_flow": "revocation-overlap",
   "ctx": {
     "project_id": "d2bb6a5d-010f-4e9b-adcb-9188ea442391",
+    "fresh_fixture_project_id": "b28afcd0-501f-463c-a255-8f61469a2ba5",
     "entry_id": "1a31fc0c-33ef-4f99-8c07-60ebc9825c4e",
     "photo_id": "7c25e358-351b-42b7-9de2-a04c9659b0be",
     "document_id": "88c32836-4c19-4297-b36e-255ecd0e0b8d"
@@ -33,10 +57,65 @@
       "type": "sync",
       "status": "fixed",
       "title": "Project delete local cascade missed project_assignments"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Project restore did not restore remote scope or child tombstones until project restore RPC and local restore cascade were added"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Pull cursors did not advance past already-matching remote rows fetched inside the safety window"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "support_tickets local SQLite schema missed updated_at after the remote table gained it, causing a repeat-pull conflict loop"
+    },
+    {
+      "type": "sync",
+      "status": "open",
+      "title": "Shared local-purge delete contract for soft-delete tables was unsafe: once the sender physically removed its local row, push escalated to remote physical delete and lagging receivers could miss the tombstone entirely"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Local hard purge now preserves tombstone metadata for soft-delete tables and push replays the preserved soft-delete instead of remote-hard-deleting when the local row is gone"
+    },
+    {
+      "type": "sync",
+      "status": "fixed",
+      "title": "Maintenance-assisted orphan purge now cleans stale synced_projects enrollment in the same housekeeping cycle"
+    },
+    {
+      "type": "sync",
+      "status": "open",
+      "title": "support_tickets.updated_at is functionally fixed for sync convergence, but upgraded SQLite installs still drift from the canonical NOT NULL DEFAULT schema and log startup/integrity warnings"
+    },
+    {
+      "type": "ui",
+      "status": "open",
+      "title": "S21 /projects can keep rendering the hard-deleted project card immediately after local purge even when the underlying SQLite row is gone"
+    },
+    {
+      "type": "ui",
+      "status": "open",
+      "title": "Windows /projects did not immediately surface the fresh assigned project card even when local SQLite, project_assignments, and synced_projects were all materialized"
     }
   ],
   "observations": [
     "Remote project delete RPC correctly tombstones full subtree including project_assignments.",
-    "Project delete propagation verifier currently emits duplicate rows for some descendant tables and should be deduplicated."
+    "Project delete propagation verifier project snapshots are now deduplicated before the next live delete proof wave.",
+    "Both devices now explicitly prove the deleted project and deleted entry are absent from the active list UIs.",
+    "Remote storage verification for the deleted project returned zero matches for all surviving local photo/document remote paths.",
+    "Project restore now revives the sender subtree locally, restores remote rows for projects/project_assignments/daily_entries/photos/documents, rehydrates the receiver SQLite subtree after pull, and renders in both devices' project/entry UIs.",
+    "After the pull cursor fix and support_tickets updated_at schema alignment, repeated full sync runs on both Windows and S21 settle at pushed=0, pulled=0.",
+    "Project hard delete currently produces immediate sender-local purge, but receiver cleanup depended on a forced integrity/orphan-purge cycle rather than ordinary pull convergence.",
+    "Audit result: the underlying risk is broader than Trash. Any client-side local purge on a soft-delete sync table that leaves behind a delete change must preserve a last tombstone payload instead of escalating to remote physical delete.",
+    "Patch result: local hard purge now preserves tombstone metadata in change_log, push replays that preserved soft-delete when the local row is already gone, and maintenance now prunes stale synced_projects immediately after orphan purge.",
+    "The support_tickets updated_at sync defect is fixed functionally, but upgraded SQLite files still log schema drift because migration v53 adds the column without the canonical NOT NULL DEFAULT shape.",
+    "Fresh-fixture hard-delete revalidation proved the new contract: sender Delete Forever now locally purges the sender shell, preserves and re-timestamps the remote soft tombstone, and receivers remain on a hidden tombstone state instead of losing the delete entirely.",
+    "After the fresh-fixture hard delete, both devices settled immediately on repeated sync at pushed=0, pulled=0 with no pending project delete changes."
   ]
 }
