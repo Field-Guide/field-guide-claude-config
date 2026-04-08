@@ -70,3 +70,50 @@ priority order is now:
 - Do not weaken the custom lint rules to accommodate legacy patterns.
 - Treat this artifact as the current comparison point when updating the beta
   todo or deciding whether a new surface belongs in the release gate.
+
+## 2026-04-08 19:34 ET Addendum: Sync Recovery And UI Contract Direction
+
+### Standing Diagnosis
+
+The current beta risk is no longer just oversized files. The active systemic
+risk is stale local sync state surviving source fixes and continuing to distort
+user-facing behavior. The repo needs a repair architecture, not just more
+retry logic.
+
+### CodeMunch-Backed Direction
+
+- Repair seam:
+  - run versioned sync repair jobs from `lib/features/sync/application/sync_initializer.dart`
+  - persist applied job markers in `sync_metadata` via `lib/features/sync/engine/sync_metadata_store.dart`
+- Keep derived diagnostics non-authoritative:
+  - `conflict_log`
+  - integrity metadata
+  - dashboard counters
+- Treat truth as:
+  - real local rows
+  - pending queue state
+  - applied repair metadata
+
+### First Enforcement Targets
+
+- Add `SyncStateRepairRunner` and versioned repair jobs.
+- Add lint coverage for entry-flow route intents.
+- Add lint coverage that keeps integrity diagnostics out of user-facing sync presentation.
+- Add lint coverage for raw/unconstrained scrollable bottom-sheet content.
+
+### Known Code Smells To Keep Visible
+
+- `lib/core/design_system/surfaces/app_bottom_sheet.dart`
+  - current `Flexible(child: builder(...))` pattern is too permissive and invites exactly the sheet sizing/scroll affordance bugs reported during beta
+- `lib/features/forms/presentation/screens/form_gallery_screen.dart`
+  - raw `ListView` returned from `AppBottomSheet.show` builder is a likely direct contributor to the broken Forms sheet behavior
+- Entry flow route ownership is still fragmented across dashboard and entries presentation surfaces instead of passing through one intent layer
+- Sync integrity data still exists on the user-facing controller/query path even though the section is no longer intended to be user-facing
+
+### Guardrail Principle
+
+If a bug can poison local sync state, the fix is incomplete until all three are
+present:
+- code fix
+- repair for already-bad local state
+- dirty-upgrade regression test
