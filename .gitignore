@@ -10,3 +10,4 @@ projects/
 worktrees/
 *.secret
 codex/tmp/
+brainstorm/

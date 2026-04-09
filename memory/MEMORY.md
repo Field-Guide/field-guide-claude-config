@@ -137,8 +137,17 @@
 - Architecture enforcement was extended with:
   - `max_ui_callable_length`
   - `max_ui_file_length`
-  - `screen_registry_contract_sync`
+- `screen_registry_contract_sync`
 - The separate PowerShell audit `scripts/audit_ui_file_sizes.ps1` is still part of the branch quality gate and should stay aligned with the lint intent.
+
+### Testing Preferences (2026-04-09)
+- User strongly prefers real-behavior tests over mock-behavior tests.
+- Do not add test-only methods or cleanup APIs to production classes.
+- Mock only after understanding the dependency chain and required side effects.
+- Prefer extracting real, testable production seams over building complex mock scaffolding.
+- When mocking data, mirror the full real structure instead of partial ad hoc objects.
+- Treat tests as part of implementation, not a follow-up phase.
+- Architecture smell to watch: extension-method-heavy mutation paths are harder to test honestly than explicit class/use-case methods.
 
 ### Memory File Notes
 - This file (`.claude/memory/MEMORY.md`) is the detailed project knowledge base, loaded on-demand by agents

@@ -108,14 +108,13 @@ Domain:       SyncResult, SyncStatus, SyncErrorKind, ClassifiedSyncError, SyncDi
 - State: `.claude/autoload/_state.md` | Defects: GitHub Issues (labeled by feature/type/priority/layer)
 - Git: Feature branches only, never commit to main. `gh pr create` / `gh pr merge --squash`
 - Planning pipeline: `brainstorming` (spec) -> `tailor` (research) -> `writing-plans` (plan) -> `implement` (execute)
-- **Sizing guide:** XS (single-file mechanical) = no skill needed | S (up to 3 files, known pattern) = skip brainstorming + tailor + writing-plans | M+ = full pipeline. Security-sensitive changes (auth, RLS, sync, data exposure) always require full pipeline regardless of size.
+- **Sizing guide:** Every change — XS through XL — runs the full `brainstorming → tailor → writing-plans → implement` pipeline. No size exception. Security-sensitive changes (auth, RLS, sync, data exposure) are still called out so the adversarial self-check and security-review pass get extra attention, but the pipeline shape is the same regardless of size.
 
 ## Pointers (on-demand, NOT auto-loaded)
 | What | Where |
 |------|-------|
-| Agents (10 definitions) | `.claude/agents/` — role-based agents; domain context is loaded via `.claude/skills/implement/references/worker-rules.md` and `.claude/skills/implement/references/reviewer-rules.md` |
-| Skills (12 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
-| Directory structure | `.claude/docs/directory-reference.md` |
+| Agents (5 definitions) | `.claude/agents/` — role-based agents; domain context is loaded via `.claude/skills/implement/references/worker-rules.md` and `.claude/skills/implement/references/reviewer-rules.md` |
+| Skills (9 definitions) | `.claude/skills/` — loaded on-demand by agents or user |
 | Embedded OCR package | `packages/flusseract/` |
 | HTTP test driver | `lib/core/driver/` (8 files), entrypoint: `main_driver.dart` |
 | Debug log server | `tools/debug-server/server.js` |
