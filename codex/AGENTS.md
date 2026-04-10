@@ -16,6 +16,7 @@ small: use it to find the right context, not to duplicate the entire
 
 - Keep startup context lean. Do not preload broad `.claude/` docs unless the
   task clearly needs them.
+- Keep `apply_patch` batches small; do not attempt giant multi-file patches in one call.
 - Treat `.claude/CLAUDE.md` as a broad project manual. Load it only for
   cross-cutting work, build/test command reference, or when no narrower file
   applies.

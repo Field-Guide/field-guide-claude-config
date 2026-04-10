@@ -4,18 +4,11 @@ paths:
   - "lib/core/config/supabase_config.dart"
 ---
 
-# Auth Service Guidelines
+# Auth
 
-Supabase-based authentication with offline-first token management, multi-tenant company model, and OTP password recovery.
-
-## Hard Constraints
-
-- **Token storage:** Use `flutter_secure_storage` for tokens. Never log tokens or credentials. Clear on sign out.
-- **State management:** Uses `provider` package (`ChangeNotifier`). **NOT Riverpod** — never use `ref.read()` or `ref.watch()`.
-- **Dialog sign-out safety:** ALWAYS `Navigator.pop(dialogContext)` BEFORE `auth.signOut()`. GoRouter redirect fires synchronously on auth state change — if the dialog is still mounted, the navigator crashes.
-- **Auth state listener location:** The auth state listener driving sync lifecycle lives in `AppInitializer` (`lib/core/bootstrap/app_initializer.dart`), NOT in the auth feature. Check both locations when modifying sign-in/sign-out behavior.
-- **DI pattern:** Auth dependencies use typed container `AuthDeps` via `AuthInitializer.create(coreDeps)`. Do NOT construct auth services or providers ad-hoc.
-- **Password requirements:** Min 8 chars, 1 uppercase, 1 lowercase, 1 digit. Enforced client-side by `PasswordValidator` and mirrored in `supabase/config.toml`.
-- **Rate limiting:** Handle 429 errors gracefully from Supabase auth endpoints.
-
-> For screen inventory, code patterns, and flow diagrams, see `.claude/skills/implement/references/auth-patterns-guide.md`
+- Keep tokens in `flutter_secure_storage`. Never log credentials or tokens.
+- Stay on provider-based auth state management. Do not introduce Riverpod.
+- Pop auth dialogs before calling `signOut()` so router redirects do not crash the navigator.
+- The auth-state listener that drives sync lifecycle belongs in app bootstrap, not scattered auth screens.
+- Build auth services through `AuthDeps` and the existing initializer path, not ad-hoc constructors.
+- Keep client-side password validation and Supabase auth expectations aligned.

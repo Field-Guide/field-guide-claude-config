@@ -3,14 +3,8 @@ paths:
   - ".github/workflows/**"
 ---
 
-# CI/CD Rules
+# CI/CD
 
-## Workflows
-4 workflows in `.github/workflows/`:
-
-| Workflow | Jobs | Purpose |
-|----------|------|---------|
-| `quality-gate.yml` | Analyze+Test, Architecture Validation, Security Scan | Main pipeline (push + PR) |
-| `doc-drift.yml` | 1 | Informational drift detection on PRs (never blocks) |
-| `stale-branches.yml` | 1 | Auto-delete merged branches |
-| `labeler.yml` | 1 | Auto-label PRs |
+- Keep `quality-gate.yml` as the blocking source of truth for analysis, lint, test, and security checks.
+- Do not weaken CI by downgrading checks, widening allowlists, or adding bypass comments to satisfy a change.
+- Use GitHub Actions logs to debug CI behavior before changing workflow logic.
