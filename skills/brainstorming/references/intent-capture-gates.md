@@ -174,3 +174,21 @@ While a gate's checklist has open items, each question must obey:
 4. **Never fish for permission.** Don't ask "can I check X?" — just check it silently as part of Phase 0.
 5. **Never ask the same thing twice.** If the user already answered an item, cross it off; do not re-ask for confirmation until the gate fires.
 6. **Never propose solutions inside a question.** Intent/Scope/Vision gates capture *what* and *why*, not *how*. Solution shaping belongs to the Options phase.
+7. **Never dump a questionnaire.** A question turn is short markdown with one heading, one question, and one reply path.
+
+Use this default question shape:
+
+```markdown
+## <Intent|Scope|Vision>
+
+<one-sentence setup tied to the missing checklist item>
+
+<single question>?
+
+- A. <option>
+- B. <option>
+- C. <option>
+- D. Other
+
+**Reply:** `A`, `B`, `C`, or `D: <answer>`
+```

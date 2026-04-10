@@ -1,56 +1,26 @@
 # Codex Agent Personas
 
-Use the same agent names Claude uses, but treat them as Codex internal personas
-or review modes rather than literal Claude-dispatched subagents.
+Use the live Claude agent files as focused review and support personas.
 
-## Implementation Personas
+## Live Agents
 
-| Persona | Use For | Primary Signals |
-|---------|---------|-----------------|
-| `frontend-flutter-specialist-agent` | presentation-layer Flutter work | `lib/**/presentation/**`, screens, widgets, providers, UX |
-| `backend-data-layer-agent` | repositories, models, datasources, schema-adjacent app logic | `lib/**/data/**`, `lib/core/database/**` |
-| `backend-supabase-agent` | sync, Supabase, SQL, storage, RLS | `lib/features/sync/**`, `supabase/**` |
-| `auth-agent` | auth flows, sessions, password reset, deep links | `lib/features/auth/**` |
-| `pdf-agent` | OCR, extraction, PDF generation, template handling | `lib/features/pdf/**` |
+| Agent | Use For |
+|-------|---------|
+| `code-review-agent` | correctness, architecture, maintainability, and repo-standard review |
+| `security-agent` | auth, tenant boundary, secrets, storage, sync, and platform safety review |
+| `completeness-review-agent` | plan or spec fidelity review |
+| `debug-research-agent` | scoped read-only bug tracing |
+| `plan-writer-agent` | writing plan fragments from prepared tailor output |
 
-Persona-specific references:
+## Implementation Note
 
-- `frontend-flutter-specialist-agent` -> `.codex/skills/references/interface-design.md`
-- `pdf-agent` -> `.codex/skills/references/pdf-processing.md`
-
-## Review Personas
-
-| Persona | Use For | Output Focus |
-|---------|---------|--------------|
-| `code-review-agent` | architecture and quality review | correctness, maintainability, performance, DRY/KISS/YAGNI |
-| `security-agent` | security review | auth, authorization, data exposure, validation, tenant boundaries |
-| `qa-testing-agent` | test/debug review | reproduction quality, test coverage, debugging rigor |
-
-## Routing Rules
-
-- Feature-specific personas take priority over generic layer personas.
-- If a phase spans multiple domains, either:
-  - split the work by persona if file ownership is clean, or
-  - use a general implementation pass while still applying persona checklists.
-- Tests and integration checks should still use the relevant domain persona plus
-  `qa-testing-agent` review where appropriate.
+Implementation work is no longer modeled as a large set of named specialist
+agents. Use generic workers, then apply the appropriate rules and reviewer
+passes for the touched surface.
 
 ## Shared Context Rules
 
-For any persona-driven pass:
-
-1. Load only the smallest relevant feature context from `.claude/`.
-2. Read any relevant GitHub issues or issue references before editing or reviewing.
-3. Apply the same shared rules Claude would use for that domain.
-4. Update the same shared `.claude` handoff files at session end.
-
-## Shared Artifact Naming
-
-When Codex creates artifacts in shared `.claude` directories, include
-`-codex-` in the filename:
-
-- spec: `YYYY-MM-DD-<topic>-codex-spec.md`
-- plan: `YYYY-MM-DD-<topic>-codex-plan.md`
-- review: `YYYY-MM-DD-<topic>-codex-review.md` or
-  `YYYY-MM-DD-<topic>-codex/`
-- checkpoint: `implement-codex-checkpoint.json`
+1. Load only the smallest relevant `.claude/` context for the task.
+2. Read the matching rule files before reviewing or editing.
+3. Keep review scope tight to the current phase or file set.
+4. When Codex writes shared artifacts, include `-codex-` in the filename.

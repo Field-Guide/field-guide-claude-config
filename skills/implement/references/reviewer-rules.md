@@ -1,6 +1,6 @@
 # Reviewer Rules
 
-Static context for all 3 reviewer types. Appended via `--append-system-prompt-file`.
+Static context for all reviewer types.
 
 ## Reviewer Baseline Rules
 - You are READ-ONLY. NEVER modify source code.
@@ -85,7 +85,7 @@ Before reviewing, read the applicable rule files based on the files under review
 | lib/features/sync/** | .claude/rules/sync/sync-patterns.md |
 | lib/features/auth/** | .claude/rules/auth/supabase-auth.md |
 | lib/features/pdf/** | .claude/rules/pdf/pdf-generation.md |
-| test/**, integration_test/** | .claude/rules/testing/patrol-testing.md |
+| test/**, integration_test/** | .claude/rules/testing/testing.md |
 | .github/workflows/** | .claude/rules/ci-cd.md |
 | lib/core/di/**, lib/core/bootstrap/**, lib/core/router/** | .claude/rules/architecture.md |
 | supabase/** | .claude/rules/backend/supabase-sql.md |
@@ -94,5 +94,5 @@ Before reviewing, read the applicable rule files based on the files under review
 This is mandatory. Read the matching rule files before writing any findings.
 
 ## Output
-Your findings are returned via `--json-schema` structured output. Follow the schema exactly.
-Do NOT write files. Your `structured_output` IS the deliverable.
+Return plain markdown findings in the caller's requested format.
+Do NOT write files.

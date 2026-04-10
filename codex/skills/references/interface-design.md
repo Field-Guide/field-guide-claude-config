@@ -1,6 +1,6 @@
 # Interface Design Reference
 
-Use this when operating as `frontend-flutter-specialist-agent`.
+Use this for presentation-layer Flutter design and design-system-sensitive UI work.
 
 ## Core Rule
 

@@ -1,273 +1,212 @@
 ---
 name: implement
-description: "Execute implementation plans via headless Claude instances with real-time checkpoint visibility and batch-level quality gates."
+description: "Executes approved implementation plans with Agent-tool dispatch, per-phase completeness review, and a final multi-reviewer quality gate."
 user-invocable: true
+disable-model-invocation: true
 ---
 
-# /implement Skill
+# Implement
 
-Execute implementation plans using headless `claude --bare` instances with structured JSON output. The main conversation is a **thin orchestrator** — it dispatches agents, parses their structured output, updates the checkpoint, and reports progress. It never reads plan content or edits source files.
+Execute an approved plan as a thin orchestrator. The main conversation reads
+only plan metadata, dispatches all real work through the Agent tool, and
+reports progress back to the user.
 
-## Architecture
+## Iron Laws
 
-```
-Main conversation (thin orchestrator)
-  |
-  +- Reads plan metadata ONLY (phase names, line ranges) — never reads plan content
-  +- Initializes/resumes checkpoint (single file)
-  |
-  +- FOR EACH PHASE (sequential):
-  |     +- Launches implementer (foreground, live visibility)
-  |     |     Tools: Read, Edit, Write, Glob, Grep, Bash(pwsh*)
-  |     |     Context: worker-rules.md + inline phase prompt
-  |     |     Returns: structured JSON via --json-schema (stdout)
-  |     |     Includes lint verification before completion
-  |     |
-  |     +- Orchestrator parses structured output, updates checkpoint
-  |     |
-  |     +- Launches 3 reviewers (parallel background)
-  |     |     completeness: reviewer-rules.md + completeness-review-agent.md
-  |     |     code review:  reviewer-rules.md + code-review-agent.md
-  |     |     security:     reviewer-rules.md + security-agent.md
-  |     |     Returns: structured findings JSON (stdout)
-  |     |
-  |     +- Orchestrator consolidates findings in context
-  |     |     If zero critical+high+medium → PASS
-  |     |     If findings increase vs prior round → ESCALATE to user
-  |     |
-  |     +- If findings: launches fixer (foreground, live visibility)
-  |     |     Context: worker-rules.md + code-fixer-agent.md + inline findings
-  |     |     Fixes CRITICAL + HIGH + MEDIUM only (skips LOW)
-  |     |     Max 3 review/fix cycles
-  |     |
-  |     +- Low findings logged to checkpoint
-  |     +- Updates checkpoint, reports phase complete
-  |
-  +- Final summary from checkpoint
-```
+1. The orchestrator never edits source files.
+2. The orchestrator never reads a phase body into its own context.
+3. The orchestrator never writes a checkpoint or resume file.
+4. The orchestrator never launches headless `claude`, JSON-schema harnesses, or parsing pipelines.
+5. The orchestrator never runs analyze, tests, build commands, `flutter clean`, or git commands.
+6. Every dispatched implementer, reviewer, and fixer uses `model: opus`.
+7. Every dispatched agent begins by reading the correct rules file:
+   `references/worker-rules.md` for implementers and fixers,
+   `references/reviewer-rules.md` for reviewers.
 
-## IRON LAW
+## Allowed Tools
 
-The main conversation NEVER edits source files directly. It only writes:
-- Checkpoint JSON (`.claude/state/implement-checkpoint.json`)
+The main conversation may use only:
 
-The orchestrator NEVER reads plan content into its context — agents read the plan themselves via line ranges passed in the inline prompt.
+- `Read` for the plan header region
+- `Grep` to find `## Phase N` headings if the header lacks line ranges
+- `Agent` for all implementation, review, and fix work
+- `Bash` only for `mkdir -p .claude/backlogged_reviews`
+- `Write` only for `.claude/backlogged_reviews/<plan-name>.md`
 
-NO files in `.claude/outputs/` — everything flows through stdout via `--json-schema`.
+## Plan Intake
 
-Allowed tools: Read (checkpoint + plan metadata only), Write (checkpoint only), Bash (headless launches only).
+1. Accept `/implement <plan-path> [phase-numbers]`.
+2. If the user passes a bare filename, resolve it under `.claude/plans/`.
+3. Read only the plan header region.
+4. Extract:
+   - the spec path from `**Spec:**`
+   - the phase list
+   - per-phase line ranges from the machine-readable header block
+5. If the header does not declare ranges, use `Grep` on `## Phase N` headings and
+   infer ranges from those heading lines.
+6. Present the phase list and ask:
 
-NEVER run `flutter clean`. It is prohibited.
-
----
-
-## Step 1: Accept & Parse Plan
-
-1. User invokes `/implement <plan-path> [phase-numbers]`
-2. If bare filename -> search `.claude/plans/` for the file
-3. Read plan, extract **metadata only**: phase names and their line ranges (start/end line numbers)
-4. Extract spec path from plan header (`**Spec:**` line)
-5. Set checkpoint path: `.claude/state/implement-checkpoint.json`
-6. Check for existing checkpoint:
-   - File does not exist -> start fresh
-   - File exists and `"plan"` matches -> ask: "Resume from checkpoint (phases done: X) or start fresh?"
-   - File exists but different plan -> delete and start fresh
-7. Present phases to user for confirmation:
-
-```
-Plan: [plan filename]
-Spec: [spec filename]
-Phases:
-  Phase 1 (lines 10-85) — [name]
-  Phase 2 (lines 86-140) — [name]
-  ...
-
+```text
 Start implementation? (yes / no / adjust)
 ```
 
-Wait for user confirmation before proceeding.
+Do not continue until the user confirms.
 
----
+## Per-Phase Loop
 
-## Step 2: Initialize Checkpoint
+Run phases strictly in sequence. A phase is not closed until completeness review
+returns zero findings of any severity.
 
-If starting fresh, write the checkpoint JSON to `.claude/state/implement-checkpoint.json` following the structure in `references/checkpoint-template.json`.
+### Step 1: Dispatch Implementer
 
-Key fields:
-- `plan`: absolute path to plan file
-- `spec`: absolute path to spec file
-- `phases`: object keyed by phase number with status, plan_lines, implementation details, review results, and `low_findings`
-- `modified_files`: cumulative list across all phases
-- `decisions`: cumulative decisions list
-- `blocked`: array of blocked items
+Dispatch a `general-purpose` agent on `model: opus` with an inline prompt that
+includes:
 
----
+- the plan path
+- the exact phase line range
+- the spec path
+- the phase name
+- instruction to read `references/worker-rules.md` first
+- this reply contract:
 
-## Step 3: Phase Execution Loop
-
-Process each phase sequentially. Each phase goes through: implement → review → fix (if needed).
-
-### Step 3a: Launch Implementer (foreground)
-
-Build the headless command per `references/headless-commands.md` implementer pattern.
-
-Construct the inline `-p` prompt with:
-- Phase number
-- Plan path + line range (e.g., "Read lines 10-85 of the plan")
-- Spec path
-- Brief phase name for orientation
-
-**Do NOT read the plan content into the orchestrator's context.** The agent reads it directly.
-
-Run in foreground with `tee` pipeline for live visibility:
-```
-... 2>&1 | tee >(python3 .claude/tools/stream-filter.py > /dev/tty) | python3 .claude/tools/extract-result.py
+```text
+STATUS: done | failed | blocked
+FILES_CREATED:
+- ...
+FILES_MODIFIED:
+- ...
+LINT:
+- flutter analyze: clean | failed
+- dart run custom_lint: clean | failed
+NOTES:
+- ...
 ```
 
-The `extract-result.py` script outputs ONLY the `structured_output` JSON, which the orchestrator captures and parses.
+The implementer owns source edits, `flutter analyze`, and `dart run custom_lint`.
+The orchestrator only records the reply.
 
-### Step 3b: Process Implementer Result
+### Step 2: Dispatch Completeness Reviewer
 
-1. Parse the structured JSON from stdout (matches implementer schema in `references/headless-commands.md`)
-2. Validate: required fields present, status is `done`/`failed`/`blocked`
-3. If `lint_clean` is false -> log warning but proceed to reviews
-4. Update checkpoint:
-   - Set phase implementation fields
-   - Append `files_created` and `files_modified` to checkpoint's `modified_files` (dedup)
-   - Record decisions
-5. Report to user:
-   ```
-   Phase N implementation complete.
-     Status: done
-     Files: 4 created, 2 modified
-     Lint: clean
-   ```
-6. If status is `failed` or `blocked` -> ask user: retry / skip / stop
+Dispatch `completeness-review-agent` on `model: opus` with:
 
-### Step 3c: Launch Reviewers (parallel background)
+- `mode: per-phase`
+- `spec_path`
+- `plan_path`
+- `plan_line_range`
+- `files_in_scope`
+- instruction to read `references/reviewer-rules.md` first
 
-Launch 3 reviewer commands per `references/headless-commands.md` reviewer pattern, all with `run_in_background: true`:
+If the reviewer returns zero findings, the phase passes.
 
-1. **Completeness reviewer** — `reviewer-rules.md` + `completeness-review-agent.md`
-2. **Code reviewer** — `reviewer-rules.md` + `code-review-agent.md`
-3. **Security reviewer** — `reviewer-rules.md` + `security-agent.md`
+### Step 3: Fix Findings
 
-Each reviewer's `-p` prompt includes:
-- Phase number
-- Plan path + line range
-- Spec path
-- File list from implementer's output (`files_created` + `files_modified`)
-- Review type identification
+If the completeness reviewer returns any finding at any severity, dispatch a
+narrow `general-purpose` fixer on `model: opus` with:
 
-Reviewers use `--output-format json` (not stream-json) since they run in background.
+- instruction to read `references/worker-rules.md` first
+- the inline findings list only
 
-Wait for all 3 to complete. Parse `structured_output` from each result using `jq '.structured_output'` or equivalent.
+Do not send the fixer the spec path, plan path, or plan line range. The findings
+must already carry the file and fix guidance needed to act.
 
-### Step 3d: Consolidate Findings & Gate
+### Step 4: Cap And Escalation
 
-1. Parse all 3 findings JSONs (matches findings schema in `reference/findings-schema.json`)
-2. Count blocking findings: critical + high + medium across all reviewers
-3. Separate low findings for logging
-4. **Approval gate**: If zero blocking findings across all 3 reviewers → PASS
-5. **Monotonicity check**: If this is cycle 2+ and blocking findings >= previous cycle's count → ESCALATE
-   - Print findings to user, ask: continue / stop / manual fix
-6. **Hard cap**: Max 3 review/fix cycles → BLOCKED if still failing
-7. Log all LOW findings to checkpoint's `low_findings` array (never fixed, never block)
+The per-phase review/fix loop has a hard cap of 3 cycles.
 
-### Step 3e: Launch Fixer (if needed, foreground)
+- Cycle 1: review, then fix if needed
+- Cycle 2: review, then fix if needed
+- Cycle 3: terminal reviewer pass
 
-If blocking findings exist:
-1. Consolidate all CRITICAL + HIGH + MEDIUM findings from all 3 reviewers into a single JSON list
-2. Build fixer command per `references/headless-commands.md` fixer pattern
-3. Pass consolidated findings as inline JSON in the `-p` prompt
-4. Run foreground with `tee` pipeline for live visibility
-5. Parse structured fixer output
-6. Return to Step 3c (re-review full phase scope, not just fix diff)
+If cycle 3 still returns findings, escalate in the main conversation with the
+remaining findings and ask:
 
-### Step 3f: Update Checkpoint
-
-1. Mark phase status as `"done"` (or `"blocked"` if hit cap)
-2. Record per-phase review results (finding counts per reviewer, fix cycles)
-3. Store low findings in `low_findings` array
-4. Write updated checkpoint to disk
-5. Report phase complete to user:
-
-```
-Phase N complete.
-  Completeness: PASS | Code Review: PASS | Security: PASS
-  Fix cycles: 1
-  Low findings logged: 3
-  Files: [list]
-
-Proceeding to Phase N+1...
+```text
+continue / stop / manual fix
 ```
 
----
+### Step 5: Per-Phase Status
 
-## Step 4: Final Summary
+After a phase closes, print a terse status block with:
 
-After ALL phases complete, print:
+- phase name
+- review cycle count
+- files created count
+- files modified count
+- lint status
 
+Then move to the next phase.
+
+## Final Gate
+
+After every requested phase passes, run one final quality sweep.
+
+### Final Review Fan-Out
+
+Dispatch these three reviewers in parallel in a single orchestrator message,
+all on `model: opus`:
+
+1. `completeness-review-agent` with `mode: final-sweep`
+2. `code-review-agent`
+3. `security-agent`
+
+The completeness reviewer receives the union of all modified files. The other
+reviewers receive the final file set for the whole run.
+
+### Finding Split
+
+Split final findings into two buckets:
+
+- fixer-bound:
+  - every completeness finding, regardless of severity
+  - CRITICAL, HIGH, and MEDIUM code-review findings
+  - CRITICAL, HIGH, and MEDIUM security findings
+- backlog-bound:
+  - LOW code-review findings
+  - LOW security findings
+
+Completeness findings are never backlogged.
+
+### Final Fix Loop
+
+If the fixer-bound bucket is non-empty, dispatch a narrow fixer with
+`references/worker-rules.md` plus the inline findings list, then rerun the full
+three-reviewer sweep.
+
+The final gate also has a hard cap of 3 cycles. If cycle 3 still returns
+fixer-bound findings, escalate with:
+
+```text
+stop / manual fix / accept-as-is and backlog
 ```
-## Implementation Complete
 
-**Plan**: [plan filename]
-**Phases**: N
+## Backlogged Reviews File
 
-### Phases
-Phase 1 — DONE
-  Completeness: PASS | Code Review: PASS | Security: PASS | Fix cycles: N
-  Files: [list]
-Phase 2 — DONE
-  ...
+At the end of the final gate:
 
-### Files Modified
-[deduped list from checkpoint]
+1. Run `mkdir -p .claude/backlogged_reviews`
+2. Write `.claude/backlogged_reviews/<plan-name>.md`
 
-### Decisions Made
-[from checkpoint]
+That file contains:
 
-### Low Findings (logged, not fixed)
-[count] across all phases
+- LOW code-review findings
+- LOW security findings
+- any blockers the user explicitly accepted as-is
 
-Ready to review and commit.
-```
+It must not contain completeness findings.
 
-Read the final checkpoint to populate this summary. The main conversation does NOT commit or push.
+## Final Summary
 
----
+End with a concise summary that includes:
 
-## Step 5: Error Handling
-
-| Failure | Detection | Recovery |
-|---------|-----------|----------|
-| Implementer crash | No structured output or malformed JSON | Mark phase failed, ask user |
-| Implementer timeout | Bash tool timeout | Use `--max-turns 80` as guardrail |
-| Review fix loops | 3 cycles without clean reviews | BLOCKED, show remaining findings to user |
-| Findings increase | Monotonicity check fails (cycle N >= cycle N-1) | ESCALATE to user immediately |
-| Reviewer crash | No structured output or malformed JSON | Re-run that reviewer only |
-| Fixer crash | No structured output or malformed JSON | Re-run fixer with same findings |
-
----
-
-## Step 6: Troubleshooting
-
-- **`unset CLAUDECODE` not working**: Use `CLAUDECODE= claude --bare ...` instead
-- **Empty output from pipeline**: Check that `extract-result.py` received the `result` event
-- **Permission denied**: Verify `--permission-mode acceptEdits` + `--allowedTools` covers needed tools
-- **Rate limits**: Headless retries automatically. If persistent, wait between phases.
-- **Structured output missing**: Agent may have hit max-turns before producing output. Check stream for truncation.
-- **`tee` redirection not working**: Ensure using bash (not cmd/powershell) for the pipeline
-
----
+- the plan path
+- per-phase cycle counts
+- final-gate reviewer statuses
+- final-gate fix cycle count
+- the backlog file path
+- the deduped union of every created or modified file
 
 ## Reference Files
 
-| File | Purpose |
-|------|---------|
-| `references/worker-rules.md` | Static rules for implementers + fixers (appended via --append-system-prompt-file) |
-| `references/reviewer-rules.md` | Static rules for all 3 reviewer types (appended via --append-system-prompt-file) |
-| `references/headless-commands.md` | Exact CLI command patterns with --bare, --json-schema |
-| `references/checkpoint-template.json` | Checkpoint structure (single source of truth) |
-| `references/findings-schema.json` | JSON schema for --json-schema validation (all reviewer types) |
-| `references/severity-standard.md` | Severity definitions and verdict rules |
+- `references/worker-rules.md` — implementer and fixer rules
+- `references/reviewer-rules.md` — reviewer rules
+- `references/severity-standard.md` — severity and verdict policy

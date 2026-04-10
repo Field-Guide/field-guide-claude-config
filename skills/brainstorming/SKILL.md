@@ -5,150 +5,181 @@ user-invocable: true
 disable-model-invocation: true
 ---
 
-# Brainstorming Ideas Into Specs
+# Brainstorming
 
-Turn an idea into an approved spec by running a structured Intent → Scope → Vision gating flow with adversarial self-checks, per-work-type tailoring, and a codebase-grounded Phase 0. The output is a file at `.claude/specs/YYYY-MM-DD-<slug>-spec.md` that `/tailor` and `/writing-plans` will consume.
+Turn an idea into an approved spec at `.claude/specs/YYYY-MM-DD-<slug>-spec.md`.
+This skill captures intent first, not technical design. Tailor and writing-plans
+handle codebase mapping and implementation structure later.
 
 <HARD-GATE>
-Do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until the spec file has been written, self-reviewed, and approved by the user via the `approved` verb. This applies to EVERY change regardless of perceived simplicity. There is no size exception.
+Do not write code, invoke implementation skills, or take implementation actions
+until the spec is written, self-reviewed, and explicitly approved by the user.
+This flow applies to every change. There is no size exception.
 </HARD-GATE>
 
-## Reference Files (progressive disclosure)
+## Reference Files
 
-- `references/intent-capture-gates.md` — baseline checklists, gate presentation format, reply verbs, the four-hunt adversarial check, and the snap-back rule
-- `references/work-types.md` — classification signals, per-type checklist stacks, CodeMunch Phase 0 picks, and options-phase framings (5 primary + 3 secondary types)
-- `references/spec-output.md` — shared spine + per-type tail templates, the 7-check self-review, changelist presentation, user review gate
-- `references/visual-companion.md` — browser-based mockup companion (fixed port `5947`, state under `.claude/brainstorm/<session>/`)
+Load only the file needed for the current step.
 
-Read a reference file when you reach the phase it covers. Do not pre-load all of them.
+- `references/intent-capture-gates.md` — gate mechanics, adversarial checks, reply verbs, snap-back rules
+- `references/work-types.md` — work-type classification, checklist additions, type-specific Phase 0 picks, options framing
+- `references/spec-output.md` — spec template, self-review checks, user-review gate
+- `references/visual-companion.md` — browser companion rules on port `5947`
 
 ## Workflow Checklist
 
-At the start of every session, create a TaskCreate list with the following items so the user can see progress at a glance. Flip each one from `pending → in_progress → completed` as you advance.
+At session start, create a TaskCreate list and track these steps:
 
-1. Phase 0 — Resolve CodeMunch index + baseline exploration
-2. Classify work type (mini-gate)
-3. Type-aware Phase 0 deep exploration
-4. Offer Visual Companion (if the work type suggests visual questions) — own message, session-scoped consent
-5. Intent gate — checklist → gate → adversarial
-6. Scope gate — checklist → gate → adversarial
-7. Vision gate — checklist → gate → adversarial
-8. Options phase — 2-3 type-specific options, user picks one
-9. Draft spec file (spine + per-type tail)
-10. Self-review — 7 checks → changelist → apply approved fixes
-11. User review gate — fresh-eye file review
-12. Terminal state — one-line pointer to `/tailor`
+1. Phase 0 baseline exploration
+2. Work-type classification
+3. Type-aware deep exploration
+4. Visual companion consent, if warranted
+5. Intent gate
+6. Scope gate
+7. Vision gate
+8. Options phase
+9. Draft spec
+10. Self-review
+11. User review
+12. Terminal state
 
-Never start a later step before the earlier step is marked completed. If a snap-back fires, flip earlier steps back to `in_progress` before reopening them.
+If a snap-back reopens an earlier gate, move that step back to `in_progress`
+before continuing.
 
-## Phase 0 — Codebase Grounding (silent)
+## Phase 0
 
-Run this before asking any questions. Use CodeMunch, not glob/grep. Budget: 6-10 calls, no full file reads (outlines only).
+Do this silently before asking questions.
 
-**Always:**
-1. `mcp__jcodemunch__resolve_repo` to confirm the active repo handle
-2. `mcp__jcodemunch__index_folder` on `lib/` if the index is stale (AI summaries ON; see global feedback)
-3. `mcp__jcodemunch__get_repo_outline` for the baseline architectural snapshot
-4. Read `.claude/CLAUDE.md` for constraints and recent git log (last ~20 commits on the current branch) to detect in-flight work
+- Use CodeMunch, not broad file browsing.
+- Budget 6 to 10 calls.
+- Do not read full source files. Use repo outline, symbol search, file outline,
+  call hierarchy, related symbols, and coupling data only.
+- Always resolve the repo, refresh the index if stale, get the repo outline,
+  read `.claude/CLAUDE.md`, and inspect the recent git log.
+- After baseline exploration, classify the work type and then run the
+  type-specific Phase 0 picks from `references/work-types.md`.
 
-**Then classify** (see below), and layer type-specific CodeMunch calls from `work-types.md`.
+Valid types:
+`new feature`, `feature add/mod`, `bug fix`, `ux polish`, `refactor+`,
+`security hardening`, `data/schema migration`, `documentation`
 
-**Do not read full source files.** Outlines, symbol searches, and call hierarchies only. Deep reading belongs to `/tailor`.
+## Message Rules
+
+These rules are mandatory. The current session should never feel like a wall of
+text questionnaire.
+
+1. Ask exactly one substantive question per message.
+2. Prefer multiple choice. Use short A/B/C/D options whenever that is honest.
+3. Always include an escape hatch such as `other` or free-text clarification.
+4. Ground questions in Phase 0 findings. No fishing questions.
+5. Do not paste grouped section questionnaires or long bullet dumps.
+6. Keep gate messages short: confirmed bullets, still-unclear bullets, reply verbs.
+7. If the user already answered something, do not ask it again unless a snap-back is required.
 
 ## Classification Mini-Gate
 
-Propose a work-type classification immediately after baseline Phase 0, drawn from the user's opening message + outline + git log. Present with reasoning, take `confirmed` / `actually: <type>` / `unclear: <reason>` verbs. Full format and signals are in `references/work-types.md`.
+After baseline Phase 0, propose the work type with a brief rationale and wait
+for one of these verbs:
 
-Valid types: `new feature`, `feature add/mod`, `bug fix`, `ux polish`, `refactor+`, `security hardening`, `data/schema migration`, `documentation`.
+- `confirmed`
+- `actually: <type>`
+- `unclear: <reason>`
 
-Once classified, run the type-specific Phase 0 deep exploration from `work-types.md` before starting Intent questioning.
+Only after classification is locked should the skill run the type-specific deep
+exploration from `references/work-types.md`.
 
-## Visual Companion — Consent (own message, session-scoped)
+## Visual Companion
 
-If the classification and opening message suggest visual questions ahead (UX Polish is the primary earn-your-keep case, but any type may qualify), send a standalone consent message **containing nothing but the offer**:
+Offer the browser companion only when seeing something would beat describing it.
+The consent message must stand alone and contain nothing else.
 
-> "Some of what we're working on might be easier to see than to read. I can open a browser companion and push mockups, diagrams, or visual comparisons as we go. It's token-intensive, and runs locally on `http://localhost:5947`. Want to enable it for this session? (reply `yes` / `no`)"
+If the user says `yes`, follow `references/visual-companion.md`. If the user says
+`no`, do not ask again during that session.
 
-**Rules:**
-- Never combine the offer with a clarifying question or status update
-- Ask once per session; on `no`, never re-ask
-- On `yes`, follow `references/visual-companion.md` for launch + loop mechanics
-- Even with consent, decide **per question** whether the browser beats the terminal — most Intent/Scope/Vision questions stay in the terminal; visual use peaks in the Options phase for UX Polish
+## Gate Pattern
 
-## The Three Gates — Intent → Scope → Vision
+Intent, Scope, and Vision all use the same loop. Detailed checklists live in
+`references/intent-capture-gates.md` and `references/work-types.md`.
 
-Run each gate through the same pattern. Full machinery in `references/intent-capture-gates.md`; full per-type checklist additions in `references/work-types.md`.
+1. Ask one grounded question at a time until the checklist for that gate is satisfied.
+2. When the checklist is clear, fire the gate with this structure:
 
-### Pattern
+```markdown
+## <Gate> Gate
 
-1. **Questioning** — one question per message, multiple choice preferred, grounded in Phase 0 findings. Baseline checklist items + type-specific items drive *which* question to ask next. No fishing questions; no pre-announcing the checklist.
-2. **Gate firing** — when the internal checklist has zero unsatisfied items, send the gate restate message with `## <Gate name> Gate`, `**Confirmed:**` bullets, `**Still unclear:**` bullets (empty if clean), and `**Reply:**` verbs.
-3. **Gate reply verbs** — `confirmed` / `fix: <what>` / `reopen: <bullet>`. Any other reply is interpreted as free-text clarification.
-4. **Adversarial self-check** — after the gate passes, run all four hunts (misinterpretation, contradiction, unknown-unknowns, scope creep) and surface concerns as a numbered `## Adversarial Check — <Gate>` message.
-5. **Advance** — only after adversarial returns `no concerns` (or the user addresses each concern) does the skill move to the next gate.
+**Confirmed:**
+- ...
 
-### No Floor, No Ceiling
+**Still unclear:**
+- ...
 
-There is no minimum or maximum question count per gate. The only gate trigger is an empty internal checklist.
+**Reply:** `confirmed` / `fix: <what>` / `reopen: <bullet>`
+```
 
-### Snap-Back
+3. If the user confirms, run the adversarial pass for that gate and present it as:
 
-If at any later point — mid-gate, mid-adversarial, or mid-options — an answer contradicts an earlier locked gate, **announce a snap-back in its own message** before doing anything else:
+```markdown
+## Adversarial Check — <Gate>
 
-> "Snap-back: re-confirming <earlier gate>. While working on <current gate>, your answer just changed my understanding of <earlier gate>. Specifically: <what shifted>. I'm snapping back to re-confirm before we continue."
+1. ...
+2. ...
 
-Then re-present the earlier gate's restate with the updated bullet(s), re-run its adversarial check, and only resume forward progression after the user re-confirms. Snap-backs are **never silent**.
+**Reply:** `no concerns` / `fix: <what>` / `reopen: <bullet>`
+```
 
-## Options Phase (after all three gates pass)
+4. Only after the adversarial pass is clean does the skill advance to the next gate.
 
-After Vision is locked, present **2-3 options tailored to the work type**. Full per-type framings in `references/work-types.md`:
+There is no minimum or maximum question count. Gates fire only when the
+checklist is clear.
 
-- **New Feature** → scope options (Minimal v1 / Full v1 / Phased)
-- **Feature Add/Mod** → change-depth (Surgical / Variant / Replace-and-deprecate)
-- **Bug Fix** → fix-shape (Symptom / Root-cause / Restructure)
-- **UX Polish** → visual directions (push cards to the browser if the companion is active)
-- **Refactor+** → refactor-ambition (Minimum / Single class / Whole subsystem)
-- **Security Hardening** → defense depth (Tight patch / Layered / Policy change)
-- **Data/Schema Migration** → migration shape (Additive / Additive+backfill / Destructive+rollback)
-- **Documentation** → doc shape (Tight edit / Restructure / New doc)
+## Snap-Back Rule
 
-Present each option with a one-line name, a short rationale, pros, cons, and whether it's the recommended option (lead with your recommendation). User picks one with a verb; any other reply is treated as free-text to adjust the options.
+If a later answer changes an earlier locked gate, announce the snap-back in its
+own message before doing anything else. Restate what changed, reopen the earlier
+gate, rerun its adversarial pass, and only then resume forward progression.
+Snap-backs are never silent.
 
-## Draft + Self-Review + User Review
+## Options Phase
 
-Once the option is picked, write the spec file.
+After Intent, Scope, and Vision are locked, present 2 to 3 options tailored to
+the work type. Lead with a recommendation. Each option should have:
 
-1. **Draft** the file at `.claude/specs/YYYY-MM-DD-<slug>-spec.md` using the shared spine + per-type tail from `references/spec-output.md`. Pull Intent/Scope/Vision content **verbatim** from the locked gate restates — do not re-paraphrase.
-2. **Self-review** — run the 7 checks internally: placeholder scan, internal consistency, scope cohesion, ambiguity, CLAUDE.md constraints, traceability/anti-invention, success-criteria measurability.
-3. **Present findings as a changelist** — numbered, with reasoning per item, and per-finding verbs (`approve: 1,3` / `reject: 2` / `skip: 5` / `edit 2: <text>` / `add: <new finding>`). If all 7 checks pass, say so and move on.
-4. **Apply approved fixes** to the file, then **save** (no commit — the user handles git).
-5. **User review gate** — present the saved path and ask for a fresh-eye read, **even if self-review was clean**. Reply verbs: `approved` / `fix: <what>` / `reopen: <gate>`. There is **no `decompose` verb**.
+- a short name
+- one-line rationale
+- pros
+- cons
 
-If the user replies `reopen: <gate>`, snap back to that gate's questioning phase, rerun its adversarial check, then re-draft and re-self-review the affected sections.
+Option families come from `references/work-types.md`.
+
+## Draft And Review
+
+1. Write the spec file using `references/spec-output.md`.
+2. Copy locked gate content verbatim into the Intent, Scope, and Vision sections.
+3. Run the 7 self-review checks from `references/spec-output.md`.
+4. Present self-review findings as a numbered changelist with these verbs:
+   `approve: 1,3`, `reject: 2`, `skip: 5`, `edit 2: <text>`, `add: <new finding>`
+5. Apply approved edits and save the file.
+6. Present the saved path for fresh-eye review, even if self-review was clean.
+7. User review verbs are:
+   `approved`, `fix: <what>`, `reopen: <gate>`
+
+If the user reopens a gate, return to that gate, rerun its adversarial pass,
+then re-draft and re-review the affected sections.
 
 ## Terminal State
 
-When the user replies `approved`:
+On `approved`, end with exactly:
 
-> "Spec approved and saved at `.claude/specs/YYYY-MM-DD-<slug>-spec.md`. Next step: run `/tailor` to map the codebase against this spec before `/writing-plans`."
+> Spec approved and saved at `.claude/specs/YYYY-MM-DD-<slug>-spec.md`. Next step: run `/tailor` to map the codebase against this spec before `/writing-plans`.
 
-That is the entire terminal message. **No auto-invoke**, no "shall I proceed?", no confirmation round-trip. The skill ends cleanly and the user drives the pipeline from here.
+No auto-invoke. No extra confirmation round trip.
 
 ## Iron Laws
 
-1. **One question per message.** Multiple choice preferred.
-2. **No fishing questions.** Phase 0 is silent — never ask permission to look something up.
-3. **Gates fire on empty checklists, not question counts.**
-4. **Snap-backs are announced in their own messages.** Never silently fold a contradiction.
-5. **The skill writes the file but never commits it.** The user handles git.
-6. **Terminal state is clean.** One line pointing to `/tailor`. No hand-off round-trip.
-7. **No size exceptions.** Every change — XS through XL — runs this flow.
-
-## Required Tool Use
-
-- `TaskCreate` for the workflow checklist at session start
-- `mcp__jcodemunch__*` for Phase 0 exploration (resolve_repo, index_folder, get_repo_outline, search_symbols, get_file_outline, get_call_hierarchy, get_coupling_metrics, get_related_symbols, get_symbol_complexity, get_extraction_candidates — pick per work type)
-- `Read` on `.claude/CLAUDE.md` and recent git log (via `Bash: git log --oneline -20 HEAD`)
-- `Write` for the final spec file
-- `Edit` for applying self-review fixes and snap-back edits
-- `Bash` + `run_in_background: true` for `scripts/start-server.sh` when the visual companion is enabled
+1. One question per message.
+2. Multiple choice preferred.
+3. No fishing questions.
+4. Gates fire from checklist completeness, not question count.
+5. Snap-backs are always announced.
+6. The skill writes the spec but never commits it.
+7. Every change runs this flow.

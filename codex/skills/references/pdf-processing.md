@@ -1,6 +1,6 @@
 # PDF Processing Reference
 
-Use this when operating as `pdf-agent`.
+Use this for PDF, OCR, template, and extraction work.
 
 ## Core Rule
 

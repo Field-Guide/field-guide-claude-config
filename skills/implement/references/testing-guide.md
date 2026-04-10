@@ -1,6 +1,6 @@
 # Testing — Procedure Guide
 
-> Loaded on-demand by workers. For constraints and invariants, see .claude/rules/testing/patrol-testing.md
+> Loaded on-demand by workers. For constraints and invariants, see .claude/rules/testing/testing.md
 
 ---
 

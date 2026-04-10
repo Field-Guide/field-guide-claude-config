@@ -14,18 +14,15 @@
 - **"approve"** — Zero findings at CRITICAL, HIGH, or MEDIUM severity
 - **"reject"** — One or more findings at CRITICAL, HIGH, or MEDIUM severity
 
-LOW findings are reported but do NOT affect verdict. They are logged to the checkpoint's
-`low_findings` array for reference but never block a phase.
+LOW findings are reported but do NOT affect verdict.
 
 ## Fix Scope
 
 - Fixer agents fix CRITICAL, HIGH, and MEDIUM findings only
-- LOW findings are skipped by fixers — they are logged, not fixed
+- LOW findings are skipped by fixers unless a calling workflow says otherwise
 - This prevents fix churn on stylistic issues while ensuring all substantive issues are addressed
 
 ## Finding Format (for reviewers)
-
-Reviewers output findings via `--json-schema` structured output (see `findings-schema.json`).
 
 Each finding MUST include:
 

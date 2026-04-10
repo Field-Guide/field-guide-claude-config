@@ -22,8 +22,7 @@ non-overlapping research, implementation, or review work.
 
 ## Shared References
 
-- `.claude/state/AGENT-CHECKLIST.json`
-- `.claude/state/AGENT-FEATURE-MAPPING.json`
+- `.codex/CLAUDE_CONTEXT_BRIDGE.md`
 - `.codex/skills/references/codex-agent-personas.md`
 
 ## Usage

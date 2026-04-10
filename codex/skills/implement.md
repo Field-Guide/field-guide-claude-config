@@ -7,8 +7,8 @@
 
 ## Goal
 
-Execute a shared `.claude/plans/...` plan phase-by-phase using Codex-compatible
-personas, checkpoints, validation, and review gates.
+Execute a shared `.claude/plans/...` plan phase-by-phase using generic
+implementers plus the live review agents and review gates.
 
 ## Plan Sources
 
@@ -32,18 +32,19 @@ personas, checkpoints, validation, and review gates.
 6. After all phases pass, run final integration gates.
 7. Present a completion summary. Do not commit or push.
 
-## Internal Personas
+## Live Agent References
 
-Use the same agent names Claude uses, but as Codex internal modes:
+Codex uses the live Claude agent files as reference personas for review and
+support work:
 
-- `frontend-flutter-specialist-agent`
-- `backend-data-layer-agent`
-- `backend-supabase-agent`
-- `auth-agent`
-- `pdf-agent`
 - `code-review-agent`
 - `security-agent`
-- `qa-testing-agent`
+- `completeness-review-agent`
+- `debug-research-agent`
+- `plan-writer-agent`
+
+Implementation itself is done by generic workers guided by the matching rules
+and skill references.
 
 Routing and persona notes live in:
 
@@ -102,7 +103,6 @@ current state.
 
 ## Routing References
 
-- `.claude/state/AGENT-FEATURE-MAPPING.json`
 - `.claude/agents/*.md`
 - `.codex/skills/references/codex-agent-personas.md`
 

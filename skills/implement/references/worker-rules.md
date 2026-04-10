@@ -1,6 +1,6 @@
 # Worker Rules
 
-Static context for implementer and fixer agents. Appended via `--append-system-prompt-file`.
+Static context for implementer and fixer agents.
 
 ## Agent Behavior Rules
 - NEVER use // ignore: comments — always fix root cause
@@ -99,7 +99,7 @@ Before starting work, read the applicable rule files based on the files you will
 | lib/features/sync/** | .claude/rules/sync/sync-patterns.md |
 | lib/features/auth/** | .claude/rules/auth/supabase-auth.md |
 | lib/features/pdf/** | .claude/rules/pdf/pdf-generation.md |
-| test/**, integration_test/** | .claude/rules/testing/patrol-testing.md |
+| test/**, integration_test/** | .claude/rules/testing/testing.md |
 | .github/workflows/** | .claude/rules/ci-cd.md |
 | lib/core/di/**, lib/core/bootstrap/**, lib/core/router/** | .claude/rules/architecture.md |
 | supabase/** | .claude/rules/backend/supabase-sql.md |
