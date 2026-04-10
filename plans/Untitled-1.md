@@ -98,7 +98,7 @@ Testing notes -
 
 
 
-
+Lint Rules - 
 
   - One state-ownership rule per screen: detail screens render the live provider/model source, not stale screen-local copies after mutation.
   - One mutation contract: every create/update/delete must either update the canonical provider state or trigger a required reload path immediately.
@@ -107,10 +107,7 @@ Testing notes -
   - One responsive content contract for dialogs/sheets: scrolling regions get explicit constraints and visible affordances, not “Flexible inside whatever dialog happens to host it”.
   - Contract tests for those behaviors: not just widget snapshots, but tests that assert “save updates visible state”, “delete removes item without manual refresh”, “continue today reopens today’s entry”, and “sheet never opens empty when action is enabled”.
 
-  DevKey - 
 
-  ❯ Also, its note quite like microsfot swiftkey, the emoji icon isn't colored in 
- the swiftkey, its just like a see through black, review the screenshot in the  
-repo to see what I mean. Also, you can't see any of the longpress icons like    
-you can in swiftkey. This should be a toggleable option in settings. Update the 
- TODO's and continue                                                         
+Testing Notes - 
+
+  - 0582B isn't writing to the preview, I click send to form after filling out the header, weights, and testing sections and then click pdf preview and it shows no data. You confirmed you fully verified all the mappings on the device as well as the exported forms, it appears this was never actually done or not completed. 

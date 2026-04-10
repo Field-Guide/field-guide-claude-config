@@ -38,7 +38,6 @@ Treat historical directories as out of scope unless the user explicitly asks:
 
 - `logs/`
 - `code-reviews/`
-- `adversarial_reviews/`
 - `plans/completed/`
 - `backlogged-plans/`
 - historical test artifact directories

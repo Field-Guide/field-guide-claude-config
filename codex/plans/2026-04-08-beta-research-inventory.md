@@ -44,6 +44,17 @@ CodeMunch index source:
 ### Closed Since The Notion Snapshot
 
 - shipped forms export fidelity is now proven in code for IDR, MDOT 0582B, and MDOT 1126
+- the new form-standardization slice is now partially landed:
+  - shared non-pay-app workflow shell exists
+  - MDOT 1126 now uses the shared section-based shell
+  - Forms gallery is split into `Create / Saved / History`
+  - MDOT 1174R is registered as a shipped builtin runtime form
+  - MDOT 1174R canonical template inventory is now locked at `226` named
+    fields
+  - canonical template inventory locks are now also in place for:
+    - IDR (`179`)
+    - MDOT 1126 (`62`)
+    - MDOT 0582B (`269`)
 - pay-app export regression slices were rerun after shared export changes
 - production route caller standardization on named routes is in place
 - driver shell/forms routing parity with production has been repaired
@@ -1892,3 +1903,72 @@ Research conclusion:
     - weekly 1126 reminder/resume-draft surfaces
     - broader 1126 / SESC workflow validation
     - standalone-form dated-folder export policy
+
+## 2026-04-09 23:05 ET 1126 Intent Reconciliation + 1174 Standardization Notes
+
+- The earlier 1126 planning drift is now corrected in source:
+  - `weekly reporting period`, `average temperature`, and `high temperature`
+    remain part of the PDF/export contract where needed, but they are no longer
+    treated as user-facing shell fields
+  - the live shell now exposes the real table-entry work the inspector needs:
+    - `Type of control`
+    - `Location / station`
+- Research conclusion:
+  - for 1126, the remaining work is workflow proof/polish, not missing
+    baseline field capture
+
+- 1174 is no longer just a runtime placeholder.
+  - current repo now has:
+    - `mdot_1174r_schema.dart`
+    - `mdot_1174r_pdf_filler.dart`
+    - `Mdot1174rFormScreen`
+    - shared-shell sections for header, observations, QA, quantities, remarks,
+      closeout, and attach
+  - `AutoFillService` now has a 1174 known-data contract so new concrete forms
+    stop starting from a blank printable header when project context is already
+    known
+
+- Deterministic proof now exists for 1174 beyond inventory lock:
+  - generated PDF writes mapped values into the shipped template
+  - filler keys all exist in the shipped template
+  - screen/widget coverage proves the shared shell and autofill mutation path
+
+- Honest remaining research gap after this slice:
+  - the fresh 1174 shared-shell implementation still needs direct S21 proof for
+    fill/edit/preview/export/attach on-device
+
+## 2026-04-10 00:48 ET 1126 Explicit Measure Schema + Workflow-Only Attach Separation
+
+- Research conclusion:
+  - 1126 had a real schema smell, not just a copy mismatch
+  - storing SESC rows as generic `description` / `location` was too vague for
+    a form whose printed table is explicitly `TYPE OF CONTROL` and
+    `LOCATION / STATION`
+- Source now uses an explicit 1126 row contract for new/normalized payloads:
+  - `measure_type`
+  - `location_station`
+- Backward compatibility remains intentionally preserved:
+  - old drafts/responses with `description` / `location` still export and
+    validate correctly
+  - opening/editing the form normalizes them into the canonical shape
+- Starter-row conclusion:
+  - a fresh 1126 opening with zero measure rows was a real usability problem
+  - new drafts now seed one visible starter measure row so the inspector sees
+    the actual table-entry fields immediately
+- Shared-shell conclusion:
+  - numbered form sections should represent the paper form
+  - workflow-only helpers like daily-entry attachment should live in a trailing
+    tools area instead of the numbered section list
+  - this rule now applies to both 1126 and 1174
+- Honest remaining research gap:
+  - no new S21 proof was possible in this slice because `adb devices -l`
+    returned no attached device
+
+### Next Research/Verification Entry Point
+
+- First action next session should be to restore device connectivity and resume
+  the phone-only proof backlog, not to reopen local source audit work.
+- Highest-value remaining phone proofs:
+  - weekly SESC reminder `resume draft`
+  - MDOT 1174R shared-shell fill/edit/preview/export/attach
+  - broader 1126 / SESC workflow polish validation

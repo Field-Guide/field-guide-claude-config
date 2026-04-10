@@ -20,6 +20,91 @@ Locked intent:
 - 1174R Concrete should be phased into the same rollout, after the shell is
   proven on IDR/1126.
 
+## Progress Snapshot
+
+Closed in source and verification on 2026-04-09:
+
+- IDR canonical export fidelity hardening is landed and green:
+  - day autofill now writes the canonical field correctly
+  - contractor/equipment row ordering is deterministic
+  - equipment checkbox coverage is mapped and tested
+- MDOT 1126 now uses the shared open workflow shell with visible sections for:
+  - Header
+  - Inspection Dates & Precipitation
+  - Type of Control / Location / Corrective Action
+  - Remarks
+  - Inspector Signature
+- MDOT 1126 nightly intent correction is now closed in source and local
+  verification:
+  - user-facing weekly reporting period is no longer exposed in the shell
+  - user-facing average/high temperature inputs are no longer exposed
+  - new 1126 drafts now open with a visible starter measure row instead of an
+    empty measures list
+  - saved 1126 responses now normalize legacy measure payloads into the
+    explicit canonical keys:
+    - `measure_type`
+    - `location_station`
+  - filler, validator, carry-forward, and UI all preserve backward
+    compatibility with old `description` / `location` rows
+  - header labels now match the intended 1126 terminology:
+    - storm water operator number
+    - comprehensive training number
+  - workflow-only daily-entry attachment is no longer counted as a numbered PDF
+    section; it now lives in a trailing workflow tools card
+- Forms gallery is now split into `Create / Saved / History` inside the
+  existing `/forms` route.
+- MDOT 1174R is now a shipped runtime builtin form with the canonical asset
+  path `assets/templates/forms/mdot_1174r_form.pdf`.
+- MDOT 1174R canonical template inventory is now locked by regression test at
+  `226` named fields.
+- MDOT 1174R now has a real shared-shell editor, seeded initial-data schema,
+  canonical PDF filler, project-known autofill, and mapping-matrix coverage.
+- MDOT 1174R now follows the same section-vs-workflow pattern as 1126:
+  - numbered sections stay aligned to the PDF
+  - daily-entry attachment lives in a trailing workflow tools card instead of
+    masquerading as a paper-form section
+- Canonical template inventory locking is now even across the shipped runtime
+  PDFs instead of stopping at 1174R:
+  - IDR exact runtime field count is locked at `179`
+  - MDOT 1126 exact runtime field count is locked at `62`
+  - MDOT 0582B exact runtime field count is locked at `269`
+  - MDOT 1174R remains locked at `226`
+- MDOT 1174R now uses the shared relevant-date seam for filename/attach
+  behavior:
+  - `report_date` is now treated as the relevant form date when
+    `inspection_date` is absent
+  - the generic attach step now uses the resolved form date instead of
+    hardcoding `inspection_date`
+- MDOT 1126 export now matches the latest product intent more closely:
+  - `WEEKLY REPORTING PERIOD` is no longer populated
+  - `AVERAGE TEMPERATURE` is no longer populated
+  - `HIGH TEMPERATURE` is no longer populated
+
+Closed with S21 proof on 2026-04-09:
+
+- Forms gallery `Create` mode clearly shows 0582B, 1126, and 1174R workflows.
+- Forms gallery `Saved` mode groups editable responses by form type.
+- Forms gallery `History` mode isolates export history from editable work.
+- MDOT 1126 shared shell renders correctly on-device with the new open
+  section-based workflow.
+- MDOT 1126 preview still opens the shared PDF preview on-device.
+- MDOT 1126 export still routes through the shared attach/export decision on
+  the live build.
+- MDOT 1174R launches from the gallery into the runtime form surface on-device.
+
+Still open against this spec:
+
+- broader MDOT 1126 / SESC workflow hardening beyond the shell refit
+- MDOT 1174R still needs direct S21 fill/edit/preview/export/attach proof on
+  the fresh shared-shell implementation
+- weekly SESC reminder `resume draft` still needs direct S21 proof in the real
+  reminder state even though source/test coverage is now closed
+- the latest local source/test slice is green, but fresh S21 verification is
+  still blocked because `adb devices -l` currently returns no attached device
+- the current device-verification sweep is temporarily blocked by ADB/device
+  disconnect; local source/test work continued, but fresh S21 proof is still
+  required for the remaining open items
+
 ## Key Changes
 
 ### 1. Canonical export fidelity closure
@@ -58,12 +143,17 @@ Locked intent:
   - route/location
   - construction engineer / maintenance coordinator
   - storm water operator number
-  - training number
+  - comprehensive training number
   - date of last inspection
-  - weekly reporting period
-  - average temperature
-  - high temperature
+  - precipitation summary
+  - type of SESC measure
+  - location/station
   - remarks
+- Leave weekly reporting period blank for now instead of surfacing it in the
+  shell; if product later restores it, treat that as a new explicit
+  requirement.
+- Keep winter-only average/high temperature fields out of the user-facing shell
+  unless a future product requirement restores them.
 - Verify signature stamping targets the real 1126 signature area and stays
   editable after export.
 - Remove remaining drawn-signature assumptions from 1126 specs/comments/tests.
@@ -71,12 +161,24 @@ Locked intent:
 #### 1174R Concrete
 
 - Add `1174R Concrete.pdf` to the canonical template inventory now.
+- Runtime registration landed on 2026-04-09:
+  - canonical asset shipped as `assets/templates/forms/mdot_1174r_form.pdf`
+  - builtin id `mdot_1174r`
+  - seeded as `MDOT 1174R Concrete`
+  - shared-shell editor, seeded schema, and PDF filler are now landed
 - Perform the same first-pass audit:
   - field inventory
   - field types
-  - likely header/row/remarks/signature seams
-- Do not implement 1174 UI first; use the audit to shape its later onboarding
-  onto the shared shell.
+  - header/row/remarks/closeout seams
+- 1174 now follows the shared workflow shell with sections for:
+  - Header & Placement Details
+  - Temperatures - Air - Slump
+  - QA Cylinder Table
+  - Item / Quantity Table
+  - Remarks / Computations
+  - Closeout
+- 1174 attachment now lives in the shared workflow tools area rather than the
+  numbered PDF section list
 
 ### 2. Shared form workflow shell
 
@@ -167,11 +269,11 @@ Replace the current dense mixed gallery with a split-by-mode surface.
 
 Once IDR fidelity and 1126 shell refit are stable:
 
-- register 1174R against the shared shell
-- define its canonical field mapping
-- define its section set using the same building blocks
-- verify preview/export/attachment behavior according to the same contract as
-  other non-pay-app forms
+- [x] register 1174R against the shared shell
+- [x] define its canonical field mapping
+- [x] define its section set using the same building blocks
+- [ ] verify preview/export/attachment behavior on the S21 against the fresh
+      shared-shell implementation
 
 ## Interface / Contract Changes
 
@@ -199,8 +301,10 @@ Once IDR fidelity and 1126 shell refit are stable:
   - carry-forward values export correctly
   - signature area and editable export behavior remain correct
 - 1174R:
-  - inventory test only in this phase
-  - implementation tests added when its shell work starts
+  - inventory test locked at `226` named fields
+  - filler keys all exist in the shipped template
+  - generated PDF writes mapped values into the shipped template
+  - seeded initial row-group lengths are covered
 
 ### Workflow shell / UI
 
@@ -209,6 +313,9 @@ Once IDR fidelity and 1126 shell refit are stable:
 - signed-edit invalidation still works
 - shared attach-to-entry flow still works
 - preview/export remain owner-driven
+- 1174 shell now has local widget coverage for:
+  - shared shell sections/actions
+  - project-known autofill into the response payload
 
 ### Gallery
 
@@ -233,9 +340,19 @@ Once IDR fidelity and 1126 shell refit are stable:
 3. Extract the shared form workflow shell.
 4. Refit 1126 onto that shell.
 5. Redesign the Forms gallery into `Create / Saved / History`.
-6. Audit and register 1174R onto the new standardization backlog, then
-   implement it after the shell is proven.
+6. Land 1174R onto the shared shell with canonical filler, schema, and tests.
 7. Re-run targeted tests and S21 end-to-end verification.
+
+## Next Session Restart Checklist
+
+1. Reconnect the S21 and confirm `adb devices -l` shows the device again.
+2. Reinstall the latest driver build before any new validation work.
+3. Resume phone-only proof in this order:
+   - weekly SESC reminder `resume draft`
+   - MDOT 1174R fill/edit/preview/export/attach
+   - broader 1126 / SESC workflow polish validation
+4. Revisit standalone-form dated-folder/export-destination UX once device proof
+   is unblocked.
 
 ## Assumptions
 

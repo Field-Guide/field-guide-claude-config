@@ -105,6 +105,218 @@ Beta is not done until all of these are true:
 - `dart run custom_lint` is clean.
 - current repo-backed size and importance inventory is captured in the research artifact.
 
+## 2026-04-09 22:10 ET Form Fidelity + Workflow Standardization
+
+[x] Land the shared non-pay-app workflow shell and move MDOT 1126 onto it
+
+What closed:
+- `FormWorkflowShell` now owns section navigation, completion state, validation
+  summary, and the open section-driven layout for non-pay-app forms
+- `MDOT 1126` now renders as visible sections instead of the older narrow
+  forced-step flow
+- section bodies no longer own nested viewport scrolling, which removed the
+  layout/semantics failures surfaced by the refit tests
+
+Verification:
+- [x] targeted `flutter test` for `mdot_1126_form_screen`,
+      `mdot_1126_steps`, `header_step`, and `auto_fill_service`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_1126_shell.png`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_1126_preview.png`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_1126_export_waited.png`
+
+[x] Replace the dense Forms gallery with `Create / Saved / History`
+
+What closed:
+- `Create` is now the default workflow-start surface
+- `Saved` groups editable responses by form type
+- `History` isolates exported artifact history from editable work
+- export history is lazy-loaded only when `History` is selected
+
+Verification:
+- [x] targeted `form_gallery_screen_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_forms_gallery.png`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_forms_saved_mode.png`
+- [x] S21 screenshot proof:
+      `.codex/tmp/device_forms_history_mode.png`
+
+[x] Register MDOT 1174R as a canonical shipped runtime form
+
+What closed:
+- runtime builtin id: `mdot_1174r`
+- canonical asset path:
+  `assets/templates/forms/mdot_1174r_form.pdf`
+- seeded builtin label: `MDOT 1174R Concrete`
+- inventory baseline captured at `226` named fields
+
+Verification:
+- [x] targeted seed/model/datasource/forms-list tests
+- [x] `mdot_1174r_template_inventory_test.dart`
+- [x] root `dart run custom_lint`
+- [x] S21 create-flow proof:
+      `.codex/tmp/device_1174_after_start.png`
+
+## 2026-04-09 23:05 ET 1126 Nightly Intent Corrections + 1174 Shell Hardening
+
+[x] Align MDOT 1126 with the latest product intent instead of the older winter-field plan
+
+What closed:
+- the user-facing shell no longer exposes:
+  - weekly reporting period
+  - average temperature
+  - high temperature
+- the shell now captures the actual PDF table fields for each SESC row:
+  - `Type of control`
+  - `Location / station`
+- header copy now matches the intended terminology:
+  - `Storm water operator number`
+  - `Comprehensive training number`
+- local validator/test coverage now locks those expectations instead of leaving
+  the nightly intent only in chat
+
+Verification:
+- [x] targeted `flutter test` for:
+      `mdot_1126_form_screen_test.dart`
+- [x] targeted `flutter test` for:
+      `mdot_1126_steps_test.dart`
+- [x] targeted `flutter test` for:
+      `sesc_measures_checklist_test.dart`
+- [x] targeted `flutter test` for:
+      `header_step_test.dart`
+- [x] targeted `flutter test` for:
+      `mdot_1126_validator_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+[x] Move MDOT 1174R from runtime registration only to a real shared-shell form
+
+What closed:
+- `MDOT 1174R` now has:
+  - seeded initial-data schema
+  - canonical PDF filler
+  - shared-shell editor
+  - gallery/new-form creation support
+  - project-known autofill for the printable header block
+- 1174 now has deterministic coverage instead of inventory-only coverage:
+  - filler keys exist in the shipped template
+  - generated PDF writes mapped values into the shipped template
+  - shell widget test proves the shared workflow surface and autofill path
+- the Forms gallery test matrix now includes 1174 as a first-class workflow
+
+Verification:
+- [x] `flutter test` batch covering:
+      `auto_fill_service_test.dart`,
+      `form_export_mapping_matrix_test.dart`,
+      `mdot_1174r_form_screen_test.dart`,
+      `form_gallery_screen_test.dart`,
+      `form_new_dispatcher_screen_test.dart`,
+      `mdot_1174r_pdf_filler_test.dart`,
+      `mdot_1174r_schema_test.dart`,
+      `form_seed_service_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+Still honestly open after this slice:
+- fresh S21 proof for the new 1174 shared-shell fill/edit/preview/export/attach path
+- reminder-surface `resume draft` proof for 1126
+- standalone-form export destination UX / dated-folder policy
+
+## 2026-04-10 00:30 ET Canonical PDF Inventory Locks + Shared Form-Date Repair
+
+[x] Remove the remaining shared-date drift between 1174 attach/export and the generic form contracts
+
+What closed:
+- `FormExportFilenamePolicy.resolveRelevantDate()` now falls back to
+  `report_date` when `inspection_date` is absent
+- the generic `AttachStep` now uses the shared resolved form date instead of
+  hardcoding `inspection_date`
+- the attach-step copy is now generic to `form date`, which keeps 1126 and
+  1174 on the same reusable contract
+- 1174 text/row/remarks fields now expose deterministic `ValueKey` coverage so
+  the live driver sweep can edit them without brittle text tapping
+
+Verification:
+- [x] targeted `flutter test`:
+      `form_export_filename_policy_test.dart`
+- [x] targeted `flutter test`:
+      `attach_step_test.dart`
+- [x] targeted `flutter test`:
+      `mdot_1174r_form_screen_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+[x] Tighten canonical shipped-template inventory protection for the remaining beta PDFs
+
+What closed:
+- IDR exact runtime template count is now locked at `179`
+- MDOT 1126 exact runtime template count is now locked at `62`
+- MDOT 0582B exact runtime template count is now locked at `269`
+- dedicated inventory tests now exist for 1126 and 0582B instead of relying
+  only on mapping-matrix coverage
+
+Verification:
+- [x] targeted `flutter test`:
+      `test/services/pdf_field_mapping_test.dart`
+- [x] targeted `flutter test`:
+      `test/features/forms/services/mdot_1126_template_inventory_test.dart`
+- [x] targeted `flutter test`:
+      `test/features/forms/services/mdot_0582b_template_inventory_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+[x] Align MDOT 1126 export with the latest product intent on unused fields
+
+What closed:
+- the filler no longer populates:
+  - `WEEKLY REPORTING PERIOD`
+  - `AVERAGE TEMPERATURE`
+  - `HIGH TEMPERATURE`
+- local mapping tests now assert those fields remain blank/omitted
+
+Verification:
+- [x] targeted `flutter test`:
+      `test/features/forms/data/pdf/mdot_1126_pdf_filler_test.dart`
+- [x] targeted `flutter test --plain-name "MDOT 1126"`:
+      `test/features/forms/services/form_export_mapping_matrix_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+[x] Strengthen weekly SESC reminder source coverage while live device proof is still pending
+
+What closed:
+- reminder banner/card behavior now has widget coverage
+- route-intent coverage for `resume draft` vs `start new` remains green
+
+Verification:
+- [x] targeted `flutter test`:
+      `weekly_sesc_reminder_banner_test.dart`
+- [x] targeted `flutter test`:
+      `weekly_sesc_reminder_card_test.dart`
+- [x] targeted `flutter test`:
+      `weekly_sesc_route_intents_test.dart`
+- [x] targeted `flutter test`:
+      `compute_weekly_sesc_reminder_use_case_test.dart`
+- [x] targeted `flutter analyze`
+- [x] root `dart run custom_lint`
+
+[!] Honest blocker on the live S21 sweep
+
+Current blocker:
+- ADB dropped the physical device entirely during the reinstall attempt:
+  `adb devices -l` now returns no attached devices
+- local source/test work continued and stayed green, but fresh S21 proof for:
+  - 1174 fill/edit/preview/export/attach
+  - weekly SESC reminder `resume draft`
+  remains pending until the phone is visible to ADB again
+
 ## Active Triage: Sync UX, Conflict Inflation, And Resume Stability
 
 ## 2026-04-09 20:47 ET Entry PDF Preview Red-Screen Closure
@@ -2774,3 +2986,64 @@ Still honestly open after this closure:
   - cross-account trash device proof
   - broader app-wide resume/back validation
   - Windows-only validation follow-up
+
+## 2026-04-10 00:48 ET 1126 Canonical Measure Schema + 1174 Workflow-Only Attach Cleanup
+
+- MDOT 1126 is now tighter in source than the earlier tracker snapshot
+  suggested.
+  - new drafts now seed one visible starter SESC row instead of opening with
+    an empty measures list
+  - the canonical row contract is now explicit:
+    - `measure_type`
+    - `location_station`
+  - old saved rows using `description` / `location` are still supported by the
+    filler and validator, but the active shell/carry-forward path now writes
+    the explicit keys
+  - the shell copy now matches the PDF more honestly:
+    - `Inspection Dates & Precipitation`
+    - `Type of Control / Location / Corrective Action`
+    - `Inspector Signature`
+  - workflow-only daily-entry attachment is no longer counted as a numbered PDF
+    section; it now lives in a trailing tools card
+- MDOT 1174R now follows the same section-vs-workflow rule:
+  - numbered sections stay aligned to the paper form
+  - daily-entry attachment moved into a trailing workflow tools card
+- Deterministic local verification completed and is green:
+  - targeted `flutter test` for 1126 schema/filler/validator/carry-forward/UI
+  - targeted `flutter test` for 1174 shell
+  - broader `form_export_mapping_matrix_test.dart` coverage still green for
+    1126 and 1174
+  - targeted `flutter analyze`
+  - root `dart run custom_lint`
+- Honest blocker:
+  - fresh device proof is still blocked
+  - `adb devices -l` currently returns no attached devices even after
+    `adb kill-server` / `adb start-server`
+
+### Current Accurate Forms/PDF Backlog
+
+- Weekly SESC reminder surfaces still need direct S21 proof in a real
+  reminder-visible state.
+- Broader `1126 / SESC` workflow validation/polish remains open, but it is now
+  workflow polish rather than missing baseline field capture.
+- MDOT 1174R still needs direct S21 fill/edit/preview/export/attach proof on
+  the fresh shared-shell implementation.
+- Standalone-form export destination UX remains the main unresolved
+  forms/export product gap:
+  - dated-folder behavior/product decision
+  - whether standalone forms need an entry-style folder flow
+- Device-only tail still open:
+  - cross-account trash proof
+  - broader app-wide resume/back validation
+  - Windows-only validation follow-up
+- External blocker:
+  - current ADB/device disconnect
+
+### Next Session Resume Order
+
+1. Restore ADB/S21 connectivity and reinstall the latest driver build.
+2. Close weekly SESC reminder live proof.
+3. Close MDOT 1174R live fill/edit/preview/export/attach proof.
+4. Re-run broader 1126 / SESC workflow validation on-device.
+5. Resume the standalone-form export destination UX decision/fix after the
+   phone-only validation backlog is clear.
