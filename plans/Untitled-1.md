@@ -110,4 +110,28 @@ Lint Rules -
 
 Testing Notes - 
 
-  - 0582B isn't writing to the preview, I click send to form after filling out the header, weights, and testing sections and then click pdf preview and it shows no data. You confirmed you fully verified all the mappings on the device as well as the exported forms, it appears this was never actually done or not completed. 
+  - 0582B isn't writing to the preview, I click send to form after filling out the header, weights, and testing sections and then click pdf preview and it shows no data. You confirmed you fully verified all the mappings on the device as well as the exported forms, it appears this was never actually done or not completed.
+  - 0582B has no way to enter in the density and moisture value ranges as well as the density and moisture reading. We need to fix this.
+  - We need to create a navigation bar equivalant to phones/tablets because currently there are several screens you can get 'stuck' on.
+  - Our PDF preview needs to have a pan and zoom.
+  - There is data being entered into the remarks section for some reason in the 0582B
+  - Columns F, G, H aren't being autofilled like they usually are, if you view the original form by itself, and enter in data it will auto fill those 3 columns from entered in data from previous columns
+  - Need to match the original formatting of the form in the entered text fields, all your data is being entered into a flattened form,  the form fields must be preserved. (the text is sitting on the left edge of every column, but when entering text into the actual pdf, text sits centered in the cells, this is an issue on ALL of our forms)
+  - The connected samsung device is still having trouble recovering after a bad sync/resuming from a background state, its acting like the connectivity is broken. Take a screenshot.
+  - please review all of these items, add them to a todo list, and fully verify all fixes/tests/verification is green before reporting back
+
+
+
+
+
+
+
+  - When on the inspector role and no project is selected, there is a create project button in the calendar tab, this shouldn't be there, inspectors cant create projects. (Re check)
+
+
+  - We need to create a new role; Office Technician, this person can also assign inspectors to projects and create projects. They review inspectors entries and can leave comments on their work via a comment system. Engineers can do the same. We will need a place for the comments to land, I was thinking a tab in the TODO's for the inspector that the comments land in, so they can check these and see them and make appends to any of the things found wrong. the inspector could get a small notification card in the dashboard when there is a new review comment in TODOs
+  - when attaching a photo you should be able to click on the name and edit the name after its been attached
+  - On the daily entrie wizard contractor card, when adding personnel types I want the scroll list to be the same as the contained scroll list when adding equipment types
+  - For the HMA calculator I want this to say HMA Yield Calculator; I want the density portion removed from this. It's assumed HMA is 110 lb per sq/yd per 1 inch depth. 2 inches thick is 220 lb per sq/yard ect. The calculator should allow you to input width and lengths for varying road widths.
+  - We need a second calculation for HMA; a weighback calculator. This will used an assumed yield (from the last calculated yield) or it can be manually entered, we will use this and the length/width left to finish and give an estimated yield.
+  - The concrete calculator doesn't need to say concrete calculator, it just needs to say Calculator, it should be an interactive calculator for calculating area. it should have ways to switch from cft/cyd, syd/sft.
