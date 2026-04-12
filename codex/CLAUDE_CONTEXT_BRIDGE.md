@@ -8,27 +8,32 @@ for Codex. Open only the files needed for the current task.
 - `.claude/autoload/_state.md`
 - `.claude/memory/MEMORY.md`
 - `.claude/state/PROJECT-STATE.json`
-- `.claude/state/FEATURE-MATRIX.json`
 
-## Feature Context
+## Current Work Context
 
-For a feature `<name>`, prefer:
+Feature-specific context now lives primarily in active plans, specs, rules, and
+repo code. Do not assume the older per-feature docs, implementation guides,
+architecture-decision files, or feature-matrix surface still exists.
 
-1. `.claude/state/feature-<name>.json`
-2. `.claude/architecture-decisions/<name>-constraints.md`
-3. `.claude/docs/features/feature-<name>-overview.md`
-4. `.claude/docs/features/feature-<name>-architecture.md`
-5. optional active plan/spec or GitHub issue context only if needed
+Prefer:
+
+1. `.codex/PLAN.md`
+2. the matching file in `.codex/plans/`
+3. the matching file in `.claude/plans/`
+4. the matching file in `.claude/specs/`
+5. the matching directory in `.claude/tailor/`
+6. repo code plus the relevant `.claude/rules/` files
 
 ### Sync Shortcut
 
 For sync work, prefer:
 
-1. `.claude/docs/features/feature-sync-overview.md`
-2. `.claude/docs/features/feature-sync-architecture.md`
-3. `.claude/docs/guides/implementation/sync-architecture.md`
-4. `.claude/rules/sync/sync-patterns.md`
-5. active sync plan/spec only if needed
+1. `.claude/rules/sync/sync-patterns.md`
+2. the active sync item in `.codex/plans/`
+3. the matching upstream sync plan/spec in `.claude/plans/` or
+   `.claude/specs/`
+4. repo code under `lib/features/sync/`
+5. `.claude/test-flows/` only when verification flow details matter
 
 ## Shared Rules
 
@@ -69,6 +74,7 @@ Live `.claude` skill entrypoints:
 - `systematic-debugging`
 - `test`
 - `audit-docs`
+- legacy Codex alias only: `audit-config`
 
 Codex-facing wrappers:
 
@@ -81,20 +87,21 @@ Codex-facing wrappers:
 - `.codex/skills/systematic-debugging.md`
 - `.codex/skills/test.md`
 - `.codex/skills/audit-docs.md`
+- `.codex/skills/audit-config.md`
 
 Persona notes live in:
 
 - `.codex/skills/references/codex-agent-personas.md`
 
-## Documentation Layers
+## Shared References
 
-- `.claude/docs/INDEX.md`
-- `.claude/docs/features/`
-- `.claude/docs/guides/`
-- `.claude/architecture-decisions/`
-- `.claude/prds/`
+- `.claude/CLAUDE.md`
+- `.claude/doc-drift-map.json` for audit-only path/reference drift work
+- `.claude/outputs/`
 - `.claude/test-results/`
 - `.claude/code-reviews/`
+- `.claude/agent-memory/` only when a matching review persona needs durable
+  context
 
 ## Permissions Bridge
 
@@ -109,4 +116,5 @@ Avoid by default:
 
 - `.claude/logs/*`
 - `.claude/plans/completed/*`
+- `.claude/backlogged-plans/*`
 - `.claude/.git/*`

@@ -1,8 +1,8 @@
 # Session State
 
-**Last Updated**: 2026-04-07
+**Last Updated**: 2026-04-10
 **Branch**: `sync-engine-refactor`
-**Status**: `sync-engine-refactor` has completed the sync release-proof sweep. The broad sync lints are active, the sync-hint ownership lints are active, and the remaining work is closeout or optional non-blocking harness cleanup rather than a pending live proof lane.
+**Status**: `sync-engine-refactor` still carries the completed sync release-proof sweep, but the active lane in this workspace is now the controlling form-fidelity/device-validation spec in `.codex/plans/2026-04-10-form-fidelity-device-validation-spec.md`: real-auth-only Samsung verification, read-only preview separation, 0582B standards relocation into Proctor with the corrected two-box chart contract, and a required two-pass live verification cycle across 0582B, 1174R, 1126, and IDR. The filled reference/export artifact bundle now exists under `.codex/artifacts/2026-04-10/pdf_fidelity_verification/`, the current 0582B export externally proves saved raw `/V` values for `B/C/D/E/F/G/H`, the production writer now writes AcroForm text values directly to `/V` so loaded read-only fields are not skipped by Syncfusion's public setter, and ad-hoc appearance-key comparison shows zero `/DA` `/Q` `/Ff` `/FT` `/AP` `/MK` drift between the generated PDFs and the shipped/original baselines for the audited forms. Latest Samsung replay proves the patched build reaches the live 0582B draft and launches preview from the saved-form path, but the specific saved draft on-device did not contain a clean proctor/test data set and raw `adb` standards entry automation was not reliable enough to count as final live proof.
 
 ## Current State
 
@@ -64,9 +64,9 @@ Cross-file sync drift is now guarded in CI by:
 
 ## Resume Priorities
 
-1. Burn down the broad sync-architecture lint backlog without narrowing the rules, starting with raw Supabase sync-table I/O still living in legacy remote datasources.
-2. Keep driver registries, testing keys, screen contracts, and sync adapter validation aligned in the same change when UI/sync seams move.
-3. Address only non-blocking harness follow-up if needed, such as the tiny-PNG `/driver/inject-photo-direct` 500, without weakening the sync architecture rules.
+1. Keep real-auth-only device verification as the contract. Do not validate auth or sync on mock-auth builds again.
+2. Continue the reopened Samsung live-device verification on the corrected real-auth build, including the bad-sync/background-resume cycle that still needs a fresh replay.
+3. Use the original debug/source PDFs as the fidelity baseline and do not close the form lane until preview/export typography, alignment, and auto-filled fields match the source AcroForms closely enough to satisfy the live reference check.
 
 ### Session 747 (2026-04-07, Codex)
 **Work**: Merged the UI design-system refactor, closed the last UI issues, added structural sync adapter drift validation, and switched the workspace back to `sync-engine-refactor`.
@@ -92,3 +92,18 @@ Cross-file sync drift is now guarded in CI by:
 **Work**: Completed the remaining live validation lanes on Windows + S21, including global full sync, dirty-scope isolation, private channel teardown/rebind, and the final mixed-flow soak. Fixed the last scoped-hint parsing gap by normalizing nested private-broadcast envelopes in `RealtimeHintHandler`, then proved the final release matrix end to end.
 **Decisions**: The release-proof sweep is complete. Full sync remains the no-hint catch-up path, quick sync now respects strict dirty scopes from private broadcasts, `sync_hint_subscriptions` is confirmed as the private-channel lifecycle source of truth, and the broad sync lints stay in place with no narrowing.
 **Next**: Close out artifacts, review any optional non-blocking harness cleanup, and keep future sync changes behind the existing ownership and hint-contract lint gates.
+
+### Session 752 (2026-04-10, Codex)
+**Work**: Closed the 0582B preview/export fidelity issues, added density/moisture standards entry in the hub flow, restored form-field alignment/pan-zoom/navigation behavior, and captured Samsung sync recovery screenshots. A later Samsung settings screenshot proved the installed build was still using mock auth (`Test User` / `test@example.com`), so runtime mock-auth support was removed from config/router/auth provider paths, the explicit `MOCK_AUTH` ban was added to `.codex/AGENTS.md`, and the old mock-autologin test file was deleted. `flutter clean` and `flutter pub get` completed, but the fresh debug APK rebuild was interrupted after the editor/session slowdown.
+**Decisions**: Do not validate auth or sync on mock-auth builds again. Prefer real sessions, real backend state, and stale-state cleanup guards over runtime auth bypasses. Treat `.codex/plans/2026-04-10-0582b-preview-sync-recovery-plan.md` as the primary crash-safe handoff for this lane.
+**Next**: Rebuild the debug APK after the notes are saved, uninstall the stale Samsung app, install the fresh APK, capture a new device screenshot proving real-auth state, and continue live sync verification only on the real backend path.
+
+### Session 753 (2026-04-10, Codex)
+**Work**: Restarted the local build/device layer, rebuilt and reinstalled a fresh real-auth debug APK, proved the Samsung now opens on the real login screen instead of the old mock-auth session, signed in with the real inspector account, passed consent, and confirmed sync health on-device. That live replay exposed a post-auth routing bug: after consent the app landed on `Dashboard` with `No Project Selected`. Fixed the route owners so fresh auth/consent and no-project dashboard taps land on `Projects` instead. Also audited the handoff notes with two agent passes, reopened the still-live device items, and identified a separate inspector-role contract bug in the Calendar no-project state: it still shows `Create Project`.
+**Decisions**: Treat code/test green and live-device green as separate states in the notes. Keep the reopened TODO list explicit until the real-device Samsung replay and the project-backed 0582B lane are both complete.
+**Next**: Fix the inspector Calendar no-project CTA so inspectors never see `Create Project`, then continue Samsung live-device validation. After that, resume 0582B device verification only when a real project exists for the inspector account.
+
+### Session 754 (2026-04-10, Codex)
+**Work**: Fixed the inspector Calendar no-project CTA so inspector empty states route to `View Projects` instead of exposing `Create Project`, restarted the local Android/ADB/driver layer from a clean state, re-ran the Samsung bad-sync/background-resume recovery on the corrected real-auth build, inserted and assigned a real MDOT project through the live backend, and resumed the real on-device 0582B flow through project selection, form creation, and PDF preview. The live preview proved the 0582B path is no longer blank, but the user then raised a stricter remaining defect: preview/export formatting still drifts from the original PDF font/field behavior and 0582B columns F/G/H still do not match the original form's auto-fill contract.
+**Decisions**: The form lane is not closed by "preview not blank." The closeout gate is now the original/source PDFs themselves. Verification must compare against the original AcroForms, fill every field in the reference forms, preserve original appearance as closely as possible, and save durable filled-reference artifacts for 0582B, 1174R, 1126, and IDR.
+**Next**: Inspect `DEBUG_mdot_0582b_density.pdf` and `DEBUG_mdot_1174r_concrete.pdf` directly, enumerate field/appearance expectations, repair the remaining font/alignment/F-G-H fidelity gaps, generate/save the four fully filled verification PDFs, and then finish targeted tests plus final on-device validation.
