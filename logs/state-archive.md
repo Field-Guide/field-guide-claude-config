@@ -1567,3 +1567,23 @@ Phases 0-4: Observability, clustering, header detection, structural keywords, de
 
 ### Session 739 (2026-04-06, Codex)
 **Work**: Reverified live sync on Android/Windows, fixed consent insert-only push and driver-build Help & Support gating.
+
+### Session 747 (2026-04-07, Codex)
+**Work**: Merged the UI design-system refactor, closed the last UI issues, added structural sync adapter drift validation, and switched the workspace back to `sync-engine-refactor`.
+**Decisions**: Treat GitHub issues as the defect system of record; do not use `.claude/defects`. Enforce sync adapter drift with a structural validator instead of count-based CI checks.
+**Next**: Catch `sync-engine-refactor` up to the merged UI baseline, then continue the sync delete-orchestration split against the new UI orchestrator/provider/controller endpoints.
+
+### Session 748 (2026-04-07, Codex)
+**Work**: Locked in the broad sync ownership lints, added a pull-only local-write guard, repaired upgraded-install sync drift, and ran `custom_lint` to expose the remaining legacy Supabase sync access layer instead of hiding it.
+**Decisions**: Keep `no_raw_supabase_sync_table_io_outside_supabase_sync` broad even if it surfaces many violations; treat the exposed remote datasource and shared datasource usage as real Phase 0 architecture debt before final release proof.
+**Next**: Burn down the broad lint backlog starting with legacy remote datasources and `BaseRemoteDatasource`, then resume live proof at remove-from-device/fresh-pull parity using the phased plan.
+
+### Session 749 (2026-04-07, Claude Opus 4.6)
+**Work**: Implemented the full MDOT 1126 Weekly SESC Report plan via the implement skill, adding signature tables, signature feature module, sync adapters, forms use cases, MDOT 1126 validator/PDF filler/registrations, wizard UI, export-bundling block-on-unsigned, weekly reminder bindings, and sync registry/lint allowlist integration.
+**Decisions**: Use Agent tool dispatch instead of headless mode. Verify agent completion claims with direct grep. Header lives only in `FormResponse.headerData`; date helpers consolidated in `lib/shared/utils/date_format.dart`.
+**Next**: Manually verify the 1126 wizard, weekly reminder visibility, edit-after-sign export blocking, and daily export bundle.
+
+### Session 750 (2026-04-07, Codex)
+**Work**: Closed the foreground private-channel hint lane live, then locked the contract into docs and lint rules. Added `SyncHintRemoteEmitter`, simplified active-channel lookup to `sync_hint_subscriptions`, updated sync docs/state, and added four sync-hint lint rules.
+**Decisions**: Foreground invalidation is an owned contract: `RealtimeHintHandler` subscribes, `SyncHintRemoteEmitter` emits, and raw client `/realtime/v1/api/broadcast` use is forbidden.
+**Next**: Resume live proof at `global-full-sync-proof`, followed by dirty-scope isolation, private channel register/teardown, and final mixed-flow soak.

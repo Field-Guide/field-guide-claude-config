@@ -1,8 +1,8 @@
 # Session State
 
-**Last Updated**: 2026-04-10
+**Last Updated**: 2026-04-13
 **Branch**: `sync-engine-refactor`
-**Status**: `sync-engine-refactor` still carries the completed sync release-proof sweep, but the active lane in this workspace is now the controlling form-fidelity/device-validation spec in `.codex/plans/2026-04-10-form-fidelity-device-validation-spec.md`: real-auth-only Samsung verification, read-only preview separation, 0582B standards relocation into Proctor with the corrected two-box chart contract, and a required two-pass live verification cycle across 0582B, 1174R, 1126, and IDR. The filled reference/export artifact bundle now exists under `.codex/artifacts/2026-04-10/pdf_fidelity_verification/`, the current 0582B export externally proves saved raw `/V` values for `B/C/D/E/F/G/H`, the production writer now writes AcroForm text values directly to `/V` so loaded read-only fields are not skipped by Syncfusion's public setter, and ad-hoc appearance-key comparison shows zero `/DA` `/Q` `/Ff` `/FT` `/AP` `/MK` drift between the generated PDFs and the shipped/original baselines for the audited forms. Latest Samsung replay proves the patched build reaches the live 0582B draft and launches preview from the saved-form path, but the specific saved draft on-device did not contain a clean proctor/test data set and raw `adb` standards entry automation was not reliable enough to count as final live proof.
+**Status**: The active lane is pay-app export / analytics / tablet UI closeout using `.codex/plans/2026-04-13-pay-app-export-tablet-analytics-spec.md` as the working spec. The highest-value pay-app XLSX copy path is now live-proven on S21 `RFCNC0Y975L`: from `/quantities`, selecting saved Pay Application #5's export-copy action opened Android DocumentsUI, saved visible workbook copies in Downloads, produced a repeat copy with Android's `(1)` suffix, and Microsoft Excel opened the second copy with the `Quantities` sheet. `flutter analyze` and targeted quantities/pay-app export tests passed after the export feedback cleanup. Commit `f2133ea248d10bb6824c9403ef40b5f2d19ae494` was pushed to `origin/sync-engine-refactor`, PR #290 merged into `main` at `d97066540c53d9ca97c0030aacf7fb7e21b9916f`, and CodeMagic workflow `ios-testflight` build `69dc8febbe1c98fae68a2cc7` passed with signed IPA artifact `construction_inspector.ipa`.
 
 ## Current State
 
@@ -37,6 +37,17 @@
   - dirty-scope isolation
   - private channel register/teardown
   - final mixed-flow soak
+- Google Cloud Vision OCR prerelease status:
+  - remote `google-cloud-vision-ocr` Edge Function is active
+  - direct Flutter/client code is lint-blocked from owning Vision calls
+  - company OCR mode is server-guarded by `company_app_config`
+  - full Google OCR readiness now passes
+- Pay-app export / analytics / tablet UI status:
+  - `.codex/plans/2026-04-13-pay-app-export-tablet-analytics-spec.md` is the current working spec
+  - saved pay apps are selectable from the pay-app export UI
+  - saved pay-app XLSX copies export through Android DocumentsUI instead of the in-app summary screen
+  - S21 proof pulled `/sdcard/Download/pay_app_5_2026-04-12_2026-04-18 (1).xlsx` and verified it as a valid XLSX containing `Springfield DWSRF`, `Mobilization`, `Pre-Construction`, `Video Survey`, and the `Quantities` sheet
+  - Microsoft Excel opened the second visible S21 copy and showed document title `pay_app_5_2026-04-12_2026-04-18 (1)` with `Quantities` selected
 
 ## Quality Gates
 
@@ -64,29 +75,9 @@ Cross-file sync drift is now guarded in CI by:
 
 ## Resume Priorities
 
-1. Keep real-auth-only device verification as the contract. Do not validate auth or sync on mock-auth builds again.
-2. Continue the reopened Samsung live-device verification on the corrected real-auth build, including the bad-sync/background-resume cycle that still needs a fresh replay.
-3. Use the original debug/source PDFs as the fidelity baseline and do not close the form lane until preview/export typography, alignment, and auto-filled fields match the source AcroForms closely enough to satisfy the live reference check.
-
-### Session 747 (2026-04-07, Codex)
-**Work**: Merged the UI design-system refactor, closed the last UI issues, added structural sync adapter drift validation, and switched the workspace back to `sync-engine-refactor`.
-**Decisions**: Treat GitHub issues as the defect system of record; do not use `.claude/defects`. Enforce sync adapter drift with a structural validator instead of count-based CI checks.
-**Next**: Catch `sync-engine-refactor` up to the merged UI baseline, then continue the sync delete-orchestration split against the new UI orchestrator/provider/controller endpoints.
-
-### Session 748 (2026-04-07, Codex)
-**Work**: Locked in the broad sync ownership lints, added a pull-only local-write guard, repaired upgraded-install sync drift, and ran `custom_lint` to expose the remaining legacy Supabase sync access layer instead of hiding it.
-**Decisions**: Keep `no_raw_supabase_sync_table_io_outside_supabase_sync` broad even if it surfaces many violations; treat the exposed remote datasource and shared datasource usage as real Phase 0 architecture debt before final release proof.
-**Next**: Burn down the broad lint backlog starting with legacy remote datasources and `BaseRemoteDatasource`, then resume live proof at remove-from-device/fresh-pull parity using the phased plan.
-
-### Session 749 (2026-04-07, Claude Opus 4.6)
-**Work**: Implemented the full MDOT 1126 Weekly SESC Report plan via the implement skill (10 phases) using Agent-tool dispatch (no headless), with code-review + completeness reviewers only (no security per user request). Added signature_files / signature_audit_log SQLite v54 + Postgres migration, signatures feature module, sync adapters, 7 forms domain use cases, MDOT 1126 validator + PDF filler + registrations, full wizard presentation layer (controller, header step, rainfall, tri-state measures, drawn signature pad, attach), export-bundling block-on-unsigned, weekly reminder UI bindings, and Phase 10 sync registry + lint allowlist integration. Caught and fixed: HIGH SECURITY DEFINER search_path injection in Postgres trigger functions; CRITICAL WizardActivityTracker DI lookup that would have crashed every wizard launch; HIGH infinite refresh loop in SescReminderProvider (resolved/pending sets); two plan gaps (missing header step, missing GPS capture per SEC-1126-08) per user option C. Working tree on `sync-engine-refactor` was broken into 13 logical commits by layer (sync refactor / sync lint rules / project assignments / 10 MDOT 1126 phase commits) and pushed.
-**Decisions**: Headless mode is too slow/lossy — use Agent tool for all dispatches per global feedback. Run review/fix sweeps from main conversation, not inside the orchestrator. Always verify agent "done" claims with direct grep before accepting. Mixed-DI files (app_dependencies.dart, app_providers.dart, sync_registry.dart, sync_engine_tables.dart, simple_adapters.dart, project_lifecycle_integration_test.dart) are committed in their MDOT 1126 phase commit with the message acknowledging they bundle concurrent-session refactor work — splitting hunks across commits would have required interactive `git add -p`. Header lives only in `FormResponse.headerData` (canonical 0582B pattern); date helpers consolidated in `lib/shared/utils/date_format.dart`. AppVersion sourced from `AppConfigProvider` with a drift test instead of hardcoding pubspec strings.
-**Next**: Manual driver verification of the 1126 wizard end-to-end (first-week + carry-forward), weekly reminder visibility on dashboard/entry/toolbox, edit-after-sign export blocking, and daily export bundle (IDR + 1126 PDF + photos in one folder). Run `npx supabase db push` to land `20260408000000_signature_tables.sql` before any device test. Follow-ups documented in checkpoint: back-fill spec §2 audit table to mention `signature_png_sha256`, abstract `dart:io` out of `sign_form_response_use_case.dart` via a `SignatureFileStore` port, address pre-existing `lib/features/entries/data/datasources/remote/remote_datasources.dart` dangling export error, clean stale flusseract Windows ephemeral build cache so `dart run custom_lint` can run locally again. Phase 10 sync_registry/sync_engine_tables changes should also be smoke-tested for the auto-trigger generation path the implementer noted as a future hardening target.
-
-### Session 750 (2026-04-07, Codex)
-**Work**: Closed the foreground private-channel hint lane live, then locked the contract into docs and lint rules. Added `SyncHintRemoteEmitter` as the explicit push-side owner of `emit_sync_hint(...)`, simplified active-channel lookup to `sync_hint_subscriptions`, updated the `.claude` sync docs/state to match the shipped architecture, and added four sync-hint lint rules to stop future ownership drift.
-**Decisions**: Foreground invalidation is now an owned contract, not a trigger side effect. `RealtimeHintHandler` is the only normal client subscriber, `SyncHintRemoteEmitter` is the only normal client emitter, and raw client `/realtime/v1/api/broadcast` use is forbidden.
-**Next**: Resume live proof at `global-full-sync-proof`, followed by dirty-scope isolation, private channel register/teardown, and the final mixed-flow soak.
+1. Use CodeMagic build `69dc8febbe1c98fae68a2cc7` artifact `construction_inspector.ipa` for iPad testing.
+2. Continue the remaining UI polish from `.codex/plans/2026-04-13-pay-app-export-tablet-analytics-spec.md`, especially analytics pay-app/item drilldown visual polish after the iPad build gate is underway.
+3. Keep Google OCR admin/company opt-in only; do not put the Google key in Flutter env/client code and do not reintroduce `codex-admin-sql`.
 
 ### Session 751 (2026-04-07, Codex)
 **Work**: Completed the remaining live validation lanes on Windows + S21, including global full sync, dirty-scope isolation, private channel teardown/rebind, and the final mixed-flow soak. Fixed the last scoped-hint parsing gap by normalizing nested private-broadcast envelopes in `RealtimeHintHandler`, then proved the final release matrix end to end.
@@ -107,3 +98,13 @@ Cross-file sync drift is now guarded in CI by:
 **Work**: Fixed the inspector Calendar no-project CTA so inspector empty states route to `View Projects` instead of exposing `Create Project`, restarted the local Android/ADB/driver layer from a clean state, re-ran the Samsung bad-sync/background-resume recovery on the corrected real-auth build, inserted and assigned a real MDOT project through the live backend, and resumed the real on-device 0582B flow through project selection, form creation, and PDF preview. The live preview proved the 0582B path is no longer blank, but the user then raised a stricter remaining defect: preview/export formatting still drifts from the original PDF font/field behavior and 0582B columns F/G/H still do not match the original form's auto-fill contract.
 **Decisions**: The form lane is not closed by "preview not blank." The closeout gate is now the original/source PDFs themselves. Verification must compare against the original AcroForms, fill every field in the reference forms, preserve original appearance as closely as possible, and save durable filled-reference artifacts for 0582B, 1174R, 1126, and IDR.
 **Next**: Inspect `DEBUG_mdot_0582b_density.pdf` and `DEBUG_mdot_1174r_concrete.pdf` directly, enumerate field/appearance expectations, repair the remaining font/alignment/F-G-H fidelity gaps, generate/save the four fully filled verification PDFs, and then finish targeted tests plus final on-device validation.
+
+### Session 755 (2026-04-12, Codex)
+**Work**: Implemented and live-proved Google Cloud Vision OCR via the Supabase Edge Function: added server-side company opt-in/auth checks, sanitized provider errors, tightened the direct-Google lint rule, added Edge Function contract tests, set the Supabase Google key secret, applied the missing remote OCR config table/RPC SQL, fixed Google billing/key restrictions, deployed the function, and deleted the remote `codex-admin-sql` debug function.
+**Decisions**: Cloud OCR remains admin/company opt-in and defaults through `auto`; Google credentials stay server-side in Supabase secrets; Flutter code may only use the approved OCR adapter; direct Google and Edge Function smoke tests are valid setup proof, while corpus extraction quality still requires the standard PDF hardening harness.
+**Next**: Resume prerelease work at PDF corpus hardening: run the new PDFs one at a time through the existing app/harness path, compare against Springfield baseline/goldens, and only make general algorithmic extraction changes.
+
+### Session 756 (2026-04-13, Codex)
+**Work**: Implemented the pay-app export UI path for selecting saved pay applications and exporting XLSX copies without prompting for a new pay-app number; added recovered workbook rebuilding when a saved pay app lacks a linked artifact; changed Android/iOS save-copy behavior to use `FilePicker.saveFile` with bytes so DocumentsUI writes a visible workbook; cleaned saved-copy success/error wording. Live-verified on S21 through Flutter run: saved Pay App #5 exported to Downloads, a second export produced `pay_app_5_2026-04-12_2026-04-18 (1).xlsx`, the pulled file was a valid XLSX with expected Springfield/pay-item strings, and Microsoft Excel opened the second copy on-device with `Quantities` selected. Targeted quantities/pay-app export tests and `flutter analyze` passed.
+**Decisions**: The high-value export artifact is the visible Excel workbook, not the in-app pay-app detail/summary screen. Saved pay-app copy export should preserve the source pay-app row and produce a user-visible XLSX copy. If a historical pay app has no linked artifact, rebuilding the workbook from saved snapshots through that pay app number is acceptable as a recovery path.
+**Next**: Use CodeMagic build `69dc8febbe1c98fae68a2cc7` / `construction_inspector.ipa` for iPad testing, then resume the remaining analytics/tablet polish from the pay-app export spec.
