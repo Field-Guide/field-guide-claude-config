@@ -94,6 +94,19 @@
   failures are resolved; the next implementation queue is the remaining
   `Traf Regulator Control` row collapse, the `Maintenance Gravel` row collapse,
   then a full original-baseline plus MDOT zero-regression replay.
+- `2026-04-15-extraction-pipeline-decomposition-trace-spec.md`:
+  Active verification gate before further MDOT heuristic iteration. Decompose
+  the upstream PDF extraction pipeline in behavior-preserving slices while
+  threading the existing `StageTrace`/debug system through every new substage
+  with structured inputs, outputs, decisions, mutations, and provenance.
+- `2026-04-15-pdf-extraction-heuristic-testing-standard.md`:
+  Standing post-decomposition testing and iteration standard for PDF extraction
+  heuristic changes, including the current original-four/full-corpus replay
+  baselines, all manifest PDFs, canonical replay commands, artifact
+  requirements, no-regression gates, and acceptance rules. Durable tracked copy
+  lives at `docs/testing/pdf-extraction-heuristic-testing-standard.md`; the
+  condensed agent rule lives at
+  `.claude/rules/pdf/pdf-extraction-testing.md`.
 
 ## Archived Codex Plans
 

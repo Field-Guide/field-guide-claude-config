@@ -1375,3 +1375,37 @@ validation alone.
    - [ ] Continue treating MDOT fixtures as `needs_visual_review_ledger` until
      the full visual ledger is complete.
 
+## Spec TODO Audit 2026-04-15
+
+Leftover unchecked work from the full spec, appended here so the active
+continuation list has one bottom-of-file gate. The current implementation lane
+remains the focused 04/03 MDOT row-collapse repair first, then the full
+baseline-plus-MDOT replay.
+
+1. [ ] Close the focused `mdot_2026_04_03_estqua-pay-items` row-count gap:
+   recover both missing rows (`Traf Regulator Control` and `Maintenance
+   Gravel`) with geometry/source-id/quantity/unit/sequence-based rules only.
+2. [ ] Rerun the focused 04/03 replay after each rule and require `677/677`
+   rows, no item-number pattern failures, exact mismatch artifacts, and
+   first-bad-stage/root-cause evidence for any remaining mismatch.
+3. [ ] Rerun all available cached PDFs together after the focused replay is
+   stable, using the original four baseline PDFs as the no-regression gate and
+   including every MDOT cache present under `.tmp/gocr_ocr_cache`.
+4. [ ] Keep the four original baseline blockers visible: Springfield still
+   needs visual/source resolution for items `63`, `64`, and `106`; all four
+   baseline ledgers still need full row-by-row visual verification before they
+   can be marked locked.
+5. [ ] Keep the MDOT ground-truth status honest: every MDOT pay-item and
+   measurement-payment fixture remains `needs_visual_review_ledger` until each
+   rendered-page ledger row and compared cell is visually checked.
+6. [ ] Finish trace-schema coverage gates: required per-stage payload tests,
+   complete final-field source provenance, stable rule/reason attribution for
+   every changed value, and confirmed first-bad-stage classification instead of
+   placeholder root-cause evidence.
+7. [ ] Finish the trace viewer/debug surface: row timeline from OCR through
+   comparison, root-cause/stage dashboard, source-provenance drilldown, and run
+   dashboard row count/item count/checksum/artifact links.
+8. [ ] Preserve extraction-rule discipline on every iteration: no production
+   branching on document key, fixture path, contractor/agency name, literal
+   expected description, or one-off item number.
+
