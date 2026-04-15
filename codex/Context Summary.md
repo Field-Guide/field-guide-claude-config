@@ -21,7 +21,11 @@
 - Latest session handoff source: `.claude/autoload/_state.md`
 - Durable project patterns: `.claude/memory/MEMORY.md`
 - Auto-load testing preference reference: `.codex/testing-principles.md`
-- Highest-priority active Codex tracker: `.codex/plans/2026-04-08-beta-central-tracker.md`
+- Highest-priority active Codex tracker: `.codex/plans/2026-04-13-pay-app-export-tablet-analytics-spec.md`
+- Current build lane: CodeMagic `ios-testflight` build `69dc8febbe1c98fae68a2cc7` passed and produced signed IPA artifact `construction_inspector.ipa` for iPad testing
+- PR status: PR #290 merged `sync-engine-refactor` into `main` at `d97066540c53d9ca97c0030aacf7fb7e21b9916f`
+- CodeMagic build status: `ios-testflight` build `69dc8febbe1c98fae68a2cc7` passed on commit `f2133ea248d10bb6824c9403ef40b5f2d19ae494`
+- Current verified pay-app export evidence: S21 `RFCNC0Y975L` exported saved Pay App #5 as a visible XLSX through Android DocumentsUI, repeated export created `/sdcard/Download/pay_app_5_2026-04-12_2026-04-18 (1).xlsx`, the pulled file was a valid XLSX with the `Quantities` sheet and expected Springfield/pay-item strings, and Microsoft Excel opened that second copy on-device
 - Environment handoff state: Supabase CLI, remote project access, Docker/Desktop, and local Supabase stack validation are working; `supabase start`, `supabase status`, `supabase migration list --local`, and `supabase db reset` now succeed from repo state
 - Current verified refactor state:
   - `driver_server.dart` is reduced to dispatch plus remaining diagnostics/admin seams; interaction/navigation now lives in `lib/core/driver/driver_interaction_handler.dart`

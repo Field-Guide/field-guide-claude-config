@@ -12,6 +12,11 @@
   now the primary source of truth for gate honesty, custom-lint enforcement,
   forms-first S21 validation, Office Technician / review-comment verification,
   pre-release blockers, CodeMunch structural debt, and final evidence gates.
+- `2026-04-12-prerelease-final-canonical-tracker.md`:
+  Concise current prerelease closeout tracker. Latest state: Google Cloud
+  Vision OCR is live behind Supabase Edge Function/company opt-in, full OCR
+  readiness passes, `codex-admin-sql` was deleted remotely, and the next active
+  lane is PDF corpus hardening plus final tracker reconciliation.
 - `2026-04-08-beta-research-inventory.md`:
   Durable Notion + CodeMunch audit artifact backing the central beta tracker,
   including current blocker reconciliation, routing audit results, and
@@ -67,6 +72,28 @@
   pay-app/contractor comparison closure, and final device evidence. Latest
   addendum: Daily Entry/IDR equipment-row proof requires at least five realistic
   equipment records per active Springfield contractor before acceptance.
+- `2026-04-13-pay-app-export-tablet-analytics-spec.md`:
+  Current working spec for the pay-app export UI, previous pay-app copy export,
+  analytics pay-app/item drilldown, tablet daily-entry/quantities/projects
+  layout repairs, quantity calculator styling, and S21 verification checklist.
+- `2026-04-13-google-assisted-ocr-provider-plan.md`:
+  Active research-backed plan for the Google Assisted OCR provider bakeoff,
+  preserving two company-facing pipelines while comparing Vision image OCR,
+  Vision raw-PDF OCR, Document AI Enterprise Document OCR, Form Parser, and
+  Layout Parser against the prerelease/Springfield gates.
+- `2026-04-13-google-assisted-ocr-fast-iteration-spec.md`:
+  To-do style implementation spec for the Google Assisted OCR fast iteration
+  loop, including the 8-pair Michigan corpus target, MDOT/AASHTOWare stress
+  inputs, OCR-cache replay runner, cleanup policy, and final S10 verification
+  gate.
+- `2026-04-14-gocr-stage-trace-ground-truth-spec.md`:
+  Controlling GOCR diagnostics and ground-truth discipline spec. Current
+  direction: harden the baseline-plus-MDOT GOCR replay through exact
+  comparison and single-endpoint traces. Latest focused MDOT state:
+  `mdot_2026_04_03_estqua-pay-items` is at `675/677`; item-number pattern
+  failures are resolved; the next implementation queue is the remaining
+  `Traf Regulator Control` row collapse, the `Maintenance Gravel` row collapse,
+  then a full original-baseline plus MDOT zero-regression replay.
 
 ## Archived Codex Plans
 

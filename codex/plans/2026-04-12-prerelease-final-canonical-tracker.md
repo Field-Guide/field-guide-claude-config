@@ -20,8 +20,22 @@ status surface so we do not lose our place.
 ## Active Priority Order
 
 1. [x] Reconcile stale prerelease tracker state into this canonical tracker.
-2. [ ] Refactor and test `lib/features/pdf/services/idr_pdf_template_writer.dart`.
-3. [ ] Strengthen PDF extraction/post-processing with new pay-item and M&P
+2. [x] Set Supabase `GOOGLE_CLOUD_VISION_API_KEY` for the
+   `google-cloud-vision-ocr` Edge Function before Google Cloud Vision live
+   import proof.
+   - 2026-04-12: Hardened function deployed. Readiness with debug-function
+     allowance now passes after setting the Supabase
+     `GOOGLE_CLOUD_VISION_API_KEY` secret.
+   - 2026-04-12 live smoke: remote `company_app_config` table and
+     `admin_set_company_app_config` RPC were applied. Google billing/API key
+     restrictions were corrected. Direct Google Vision smoke and deployed
+     Supabase Edge Function smoke both returned `PAY ITEM 204` through a real
+     authenticated session with company OCR mode set to `auto`.
+   - 2026-04-12 prerelease cleanup: remote `codex-admin-sql` Edge Function was
+     deleted. Full Google Cloud OCR readiness now passes without debug-function
+     allowance.
+3. [ ] Refactor and test `lib/features/pdf/services/idr_pdf_template_writer.dart`.
+4. [ ] Strengthen PDF extraction/post-processing with new pay-item and M&P
    fixture/golden tests, then refactor
    `lib/features/pdf/services/extraction/shared/post_process_utils.dart`.
    - Standard harness/pointer: `integration_test/pre_release_pdf_corpus_test.dart`
@@ -31,14 +45,14 @@ status surface so we do not lose our place.
      Valley and Grand Blanc pay-item PDFs extract zero items, and their paired
      M&P PDFs parse zero entries. Treat as general OCR/table extraction
      hardening, not filename-specific patching.
-4. [ ] Review `lib/core/logging/logger.dart` for a small seam split around the
+5. [ ] Review `lib/core/logging/logger.dart` for a small seam split around the
    high-complexity `_log` path, without weakening sanitizer/Sentry/support-log
    contracts.
-5. [ ] Review large 1126/1174R UI files; split only if the change is low-risk
+6. [ ] Review large 1126/1174R UI files; split only if the change is low-risk
    and backed by focused widget tests.
-6. [ ] Define a phased `shared.dart` barrel import migration or document an
+7. [ ] Define a phased `shared.dart` barrel import migration or document an
    explicit prerelease deferral.
-7. [ ] Run and record final completeness review after the above decisions.
+8. [ ] Run and record final completeness review after the above decisions.
 
 ## Reconciled Large-Tracker Items
 
