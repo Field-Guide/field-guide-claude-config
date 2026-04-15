@@ -23,6 +23,14 @@ Before changing extraction heuristics, read:
   `reason_code`, mutation kind, before/after values, and source provenance.
 - Evidence comes from mismatch JSON/CSV and stage trace artifacts, not console
   text.
+- After replay, run
+  `powershell -ExecutionPolicy Bypass -File scripts/audit_pdf_extraction_replay.ps1 -RunDir .tmp/google_ocr_research/<run_id>`
+  and use the dated `.claude/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-*`
+  summary/CSVs for routine benchmark review.
+- Do not broad-audit giant replay JSON with ad hoc
+  `Get-Content -Raw | ConvertFrom-Json` or dump nested mismatch JSON through
+  `ConvertTo-Json`; use compact CSVs first and open large JSON only for one
+  targeted provenance row.
 - Standard loop: classify first bad stage, add focused tests, implement the
   general rule, run touched/adjacent tests, run original-four replay, run full
   cached-corpus replay, then record deltas.

@@ -13,6 +13,9 @@ test-results root without inventing wave agents or fixer agents.
 ## Output Root
 
 - `.claude/test-results/YYYY-MM-DD_HHmm_codex_<descriptor>/`
+- PDF extraction replay audits must write compact outputs under
+  `.claude/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-<time>-<run_id>/`
+  by running `scripts/audit_pdf_extraction_replay.ps1`.
 
 ## Core Rules
 
@@ -27,6 +30,9 @@ test-results root without inventing wave agents or fixer agents.
 - if a test is hard to write honestly, extract a real production seam instead of
   inventing a test-only escape hatch
 - use `TestingKeys`; do not rely on fake test IDs
+- for PDF extraction replay review, use compact failure CSVs and the audit
+  script; do not broad-load huge replay JSON files with PowerShell or rely on
+  truncated console/JSON dumps
 
 ## Workflow
 
