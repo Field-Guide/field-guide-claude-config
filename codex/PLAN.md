@@ -125,6 +125,22 @@
   pipeline. It preserves the zero-mismatch/zero-trace-contract baseline while
   splitting new post-processing heuristics, row-data parsing, provenance, and
   test counterparts away from god-class/god-test shapes.
+- `2026-04-16-external-pdf-heldout-validation.md`:
+  Held-out first-try validation record for three PDFs outside the original
+  four-plus-eight training corpus: Baraga municipal bid form, MDOT ESTQ&A
+  schedule, and MDOT bid tab. Latest Windows Google capture and cache replay
+  both ran `ocr_only` and passed count/item-number structural checks with zero
+  expected failures, but native-text proxy evidence is explicitly not accepted
+  as field-level truth. Current artifacts include rendered visual review pages,
+  OCR candidate review ledgers, raw-to-final mutation CSVs, and S21
+  `/sdcard/Download/FieldGuide_HeldOut_OCR_20260416/` device staging.
+- `2026-04-16-heldout-ocr-generalization-hardening-spec.md`:
+  To-do style follow-on spec for hardening OCR generalization after the first
+  three held-out PDFs. It locks those three PDFs as baseline, expands the next
+  iteration set to nine additional PDFs across the same three layout families,
+  keeps exact no-normalization visual comparison as the acceptance rule, and
+  tracks raw visual token preservation, confidence/auto-accept fidelity gaps,
+  trace-token audits, app-level S21 verification, and the final baseline retry.
 
 ## Archived Codex Plans
 
