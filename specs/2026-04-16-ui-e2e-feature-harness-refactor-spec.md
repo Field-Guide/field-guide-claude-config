@@ -177,7 +177,7 @@ UX-facing features for per-feature `.md` migration (16):
 | 12 | `calculator` | calculator (HMA + concrete tabs) | all |
 | 13 | `todos` | todos | all |
 | 14 | `settings` | settings, edit-profile, saved-exports, legal-document, oss-licenses, personnel-types, app-lock-settings, app-lock-unlock, trash, consent, help-support, admin-dashboard | admin-only subset (admin-dashboard, personnel-types, trash); rest all |
-| 15 | `sync_ui` | sync-dashboard, conflict-viewer | all |
+| 15 | `sync_ui` | sync-dashboard, conflict-viewer (**`/sync/conflicts` registered only when `kDebugMode` — sub-flows referencing it collapse in release builds**) | all |
 | 16 | `contractors` | contractor-selection | all |
 
 Role gating source of truth: `lib/features/auth/data/models/user_role.dart` (`UserRole.canManageProjects`, `UserRole.canEditFieldData`, `UserRole.isAdmin`). Sub-flow YAML `appliesTo.roles` must match the role gating column above; any mismatch is a rubric failure.
@@ -188,10 +188,10 @@ Infrastructure-only modules (no per-feature `.md`, but screens/widgets still aud
 
 Every `_screen.dart` must pass all 11:
 
-1. **Design tokens** — no raw `Colors.*` in presentation (15 files currently fail)
-2. **Testing keys** — no hardcoded `Key('...')` in presentation (8 files currently fail); every interactive widget references `TestingKeys.*`
-3. **Sentinel key** — screen exposes one unique `TestingKeys.*` sentinel for `/driver/find` identification
-4. **File-size compliance** — `scripts/audit_ui_file_sizes.ps1` green (300-line ceiling)
+1. **Design tokens** — no raw `Colors.*` in presentation. Audit baseline (2026-04-16, tailor): 166 occurrences across 107 presentation files (spec's earlier "15 files" claim was stale — the grep pattern was narrowed by mistake). Burn-down is per-feature.
+2. **Testing keys** — no hardcoded `Key('...')` in presentation; every interactive widget references `TestingKeys.*`. Audit baseline (2026-04-16, tailor): 10 occurrences across 5 widget/controller files (no `_screen.dart` offenders remain). Spec's "8 files" claim was stale.
+3. **Sentinel key** — screen exposes one unique `TestingKeys.*` sentinel for `/driver/find` identification. Owned in the matching `lib/shared/testing_keys/<feature>_keys.dart` and re-exported through the `TestingKeys` facade.
+4. **File-size compliance** — `scripts/audit_ui_file_sizes.ps1` green (300-line ceiling). Audit baseline (2026-04-16, tailor): 45 files over 300 lines; the script scans `presentation|design_system|widgets|screens|controllers|providers`, so mixins/helpers/actions count toward the same ceiling.
 5. **Decomposition** — screens >200 lines split into composable widgets; mixins/helpers use existing `*_mixin.dart` / `*_helpers.dart` / `*_actions.dart` pattern
 6. **Wiring integrity** — provider/controller composition lives in `di/*screen_providers.dart`; no ad-hoc wiring
 7. **go_router compliance** — route in `lib/core/router/routes/*.dart`; no raw `Navigator.push`
@@ -298,27 +298,42 @@ Every feature file follows this shape:
 
 ### PDF AcroForm Inspection Helper
 
-Research first. Dart/Flutter candidates to evaluate in `/tailor`:
-- `pdf` package (nfet/dart_pdf) — write-only, not useful
-- `syncfusion_flutter_pdf` — reads AcroForm fields; commercial license concern
-- `pdfrx` — newer reader; check AcroForm field enumeration
-- Byte-compare fallback — canonical golden PDF per form type
+**Tailor decision (2026-04-16):** build on `syncfusion_flutter_pdf` (already in `pubspec.yaml` at `^32.1.25` and already used by `lib/features/forms/data/services/form_pdf_field_writer.dart` + `form_pdf_rendering_service.dart` in production). The "commercial license concern" originally flagged is moot — the license is already accepted for production exports. No new dependency required.
 
-Helper must expose **the following capabilities** (exact API surface is a sketch to be locked in `/tailor`, not a contract):
+Existing read-capable seams proven in `test/features/forms/services/form_pdf_field_writer_test.dart`:
+- `PdfDocument(inputBytes: bytes)` → open
+- `document.form.fields[i].name` / `.text` / `.readOnly` → enumerate + read
+- `document.form.fields.count` → flatten detection (zero = flattened)
+
+Helper must expose **the following capabilities** (exact API surface sketched in `.claude/tailor/.../patterns/pdf-acroform-helper.md`, not a contract):
 - Read every AcroForm field with name + value + editability flag
 - Assert that every expected field has a non-empty value (population check)
 - Assert that the PDF still has an AcroForm dictionary and fields are editable (flatten check)
 
-Exact implementation decision and final API shape deferred to `/tailor`.
+Byte-compare fallback stays last-resort — PDF builds often reorder object streams without content change, causing false positives. Use only when AcroForm has been intentionally flattened (e.g. final-signed exports).
 
 ---
 
 ## Open Questions / Deferred to Tailor
 
-1. `/driver/seed` endpoint shape — direct repository call vs HTTP body with SQL fixtures vs named factory invocation
-2. PDF AcroForm helper — which Dart package, license implications, fallback strategy
-3. Sentinel-key assignment for screens that currently lack one — one per screen, naming convention
-4. Feature-spec YAML schema — exact validation rules and where validator lives
-5. Retirement bookkeeping — how old tier files are deleted and what proves coverage parity before retirement
-6. Registry update automation — whether any codegen is added, or updates stay manual
-7. Migration parallelism — how agents coordinate when multiple features are migrated simultaneously
+Tailor pass completed 2026-04-16. Findings cross-referenced into `.claude/tailor/2026-04-16-ui-e2e-feature-harness-refactor/`.
+
+1. `/driver/seed` endpoint shape — direct repository call vs HTTP body with SQL fixtures vs named factory invocation.
+   - **Tailor verified:** `HarnessSeedData.seedBaseData` + `seedScreenData(screen, data)` + `seedPayAppData(data)` already exist in `lib/core/driver/harness_seed_data.dart` and `harness_seed_pay_app_data.dart`. New endpoint is a thin HTTP wrapper, not a new fixture system.
+   - **Still open:** body shape — screen-keyed (`{"screen": "X", "data": {…}}`) vs precondition-keyed (`{"preconditions": [{"name": "…", "args": {…}}, …]}`). Plan must pick one; precondition-keyed aligns more cleanly with feature-spec YAML `requires:`.
+2. PDF AcroForm helper — which Dart package, license implications, fallback strategy.
+   - **Resolved:** see updated `PDF AcroForm Inspection Helper` section above.
+3. Sentinel-key assignment for screens that currently lack one — one per screen, naming convention.
+   - **Tailor verified:** existing per-feature `<feature>_keys.dart` modules already follow `static const fooScreen = Key('foo_screen')` snake-case convention. Facade re-export through `TestingKeys` is mandatory.
+   - **Still open:** whether every `screenRegistry` entry needs a `screenContract` (20 currently lack one), or whether contract membership stays sub-flow-scoped (rubric item 11: sync-visible only). Plan must decide.
+4. Feature-spec YAML schema — exact validation rules and where validator lives.
+   - **Still open.** Precedent: `scripts/validate_sync_adapter_registry.py`; `tools/validate_feature_spec.py` suggested.
+5. Retirement bookkeeping — how old tier files are deleted and what proves coverage parity before retirement.
+   - **Tailor verified:** the 121 flow IDs catalogued in `.claude/test-flows/flow-dependencies.md` are the retirement universe. Per-feature `Retired flow IDs` section is the proof artifact; each old ID must appear under exactly one feature file (or be flagged explicitly as out-of-scope sync/P06).
+6. Registry update automation — whether any codegen is added, or updates stay manual.
+   - **Tailor verified:** three registries (`screenRegistry`, `screenContracts`, `flowRegistry`) update atomically in the same commit. No codegen exists today.
+   - **Still open:** add a Dart unit test (or PowerShell lint) asserting `screenContracts.keys ⊆ screenRegistry.keys` for every sync-visible screen, and that every `flowRegistry` entry's `seedScreens` reference a real `screenRegistry` key.
+7. Migration parallelism — how agents coordinate when multiple features are migrated simultaneously.
+   - **Still open.** No tailor evidence changes the answer — this is a process question, not a code question.
+8. `/sync/conflicts` is `kDebugMode`-only (`lib/core/router/routes/sync_routes.dart:15-19`).
+   - **Tailor verified.** Release builds cannot reach it. `sync_ui.md` sub-flows that target conflict viewer must declare `appliesTo` collapse or skip in release builds.
