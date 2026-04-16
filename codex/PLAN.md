@@ -141,6 +141,11 @@
   keeps exact no-normalization visual comparison as the acceptance rule, and
   tracks raw visual token preservation, confidence/auto-accept fidelity gaps,
   trace-token audits, app-level S21 verification, and the final baseline retry.
+- `2026-04-16-android-codemagic-firebase-cicd-plan.md`:
+  Active Android CI/CD setup plan for using GitHub release tags as the
+  controlled beta switch, Codemagic as the single build/distribution system,
+  Firebase App Distribution as the Android TestFlight equivalent, and
+  `field-guide-beta-v<version>+<build>` as the shared iOS/Android beta label.
 
 ## Archived Codex Plans
 
