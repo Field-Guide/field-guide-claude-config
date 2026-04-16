@@ -28,6 +28,24 @@ Use only this root for new runs.
    signal appears.
 4. Do not auto-fix failures or dispatch fixer agents from this skill.
 5. Bugs live in GitHub Issues, not local defect files.
+6. Keep flows feature-scoped. Do not thread setup or auth through downstream
+   features; use `/driver/seed` preconditions unless the selected feature is
+   `auth`.
+
+## Concise Flow Shape
+
+Anthropic's prompting guidance favors short, structured subtasks with clear
+fixed context and variable inputs. Apply the same shape to E2E flows:
+
+- one feature file owns one user surface
+- one sub-flow verifies one navigation or behavior edge
+- `requires` declares state setup; steps do not replay setup UI
+- split a sub-flow when it needs more than one route transition, one mutation,
+  and one assertion checkpoint
+- keep assertions concrete: sentinel key, current route, exported file, or PDF
+  field state
+- auth is tested in `auth.md`; other features start from seeded, role-specific
+  app state
 
 ## Sync Hard Rules
 
@@ -52,16 +70,24 @@ Always load these first:
 - `references/driver-and-navigation.md`
 - `references/debug-server-and-logs.md`
 
-Then load only the tier or sync docs the requested scope needs:
+Then load only the feature or sync docs the requested scope needs:
 
-- `test-flows/tiers/setup-and-auth.md`
-- `test-flows/tiers/entry-crud.md`
-- `test-flows/tiers/toolbox-and-pdf.md`
-- `test-flows/tiers/pay-app-and-exports.md`
-- `test-flows/tiers/settings-and-admin.md`
-- `test-flows/tiers/mutations.md`
-- `test-flows/tiers/verification.md`
-- `test-flows/tiers/manual-flows.md`
+- `test-flows/features/auth.md`
+- `test-flows/features/dashboard.md`
+- `test-flows/features/projects.md`
+- `test-flows/features/entries.md`
+- `test-flows/features/forms.md`
+- `test-flows/features/pay_applications.md`
+- `test-flows/features/quantities.md`
+- `test-flows/features/analytics.md`
+- `test-flows/features/pdf.md`
+- `test-flows/features/gallery.md`
+- `test-flows/features/toolbox.md`
+- `test-flows/features/calculator.md`
+- `test-flows/features/todos.md`
+- `test-flows/features/settings.md`
+- `test-flows/features/sync_ui.md`
+- `test-flows/features/contractors.md`
 - `test-flows/flow-dependencies.md`
 - `test-flows/sync/framework.md`
 - `test-flows/sync/flows-S01-S03.md`
@@ -75,6 +101,8 @@ Supported command shapes:
 
 - `/test auth`
 - `/test entries`
+- `/test entries deep_link_entry --device s21`
+- `/test forms --device s10`
 - `/test sync`
 - `/test S01`
 - `/test T15-T23`
@@ -95,17 +123,18 @@ Prefer `tools/start-driver.ps1` over manual launch commands.
 
 ### 2. Execute Flows
 
-For each flow:
+For each feature sub-flow:
 
-1. perform the steps from the tier or sync doc
-2. verify the expected state
-3. scan for new errors
-4. save a screenshot
-5. record PASS or FAIL in the checkpoint
+1. call `POST /driver/seed` with each YAML `requires` precondition
+2. perform the steps from the feature or sync doc
+3. verify the expected state with `/driver/find` and `/driver/current-route`
+4. scan for new errors
+5. save a screenshot
+6. record PASS or FAIL in the checkpoint
 
-### 3. Per-Tier Wrap-Up
+### 3. Per-Feature Wrap-Up
 
-After each tier:
+After each feature:
 
 - scan debug-server errors since tier start
 - capture a log summary if needed for the report
@@ -114,7 +143,7 @@ After each tier:
 
 ### 4. Compaction / Resume
 
-After every 2 tiers, or at the sync compaction boundaries, stop with:
+After every 4 features, or at the sync compaction boundaries, stop with:
 
 ```text
 Checkpoint written. Say 'continue' to proceed.
