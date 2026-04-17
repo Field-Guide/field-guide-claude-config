@@ -1,0 +1,16 @@
+[
+  {
+    "key": "quantities_screen",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "AppScaffold"
+  },
+  {
+    "key": "quantities_import_button",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "_IconAppButton"
+  }
+]

@@ -1,0 +1,7 @@
+flow=todos.back_at_root
+result=FAIL
+steps:
+- back dismisses add dialog
+- back at todos root: navigatedBack false
+state:
+- /todos hasBottomNav false

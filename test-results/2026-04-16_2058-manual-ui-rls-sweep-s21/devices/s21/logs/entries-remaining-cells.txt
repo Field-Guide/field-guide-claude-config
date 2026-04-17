@@ -1,0 +1,8 @@
+flow=entries.orientation_change
+result=FAIL
+reason=entry_editor_screen sentinel is absent on visible editor; orientation cannot be credited against spec sentinel gate.
+linked finding: S21-005
+
+flow=entries.role_restriction
+result=BLOCKED
+reason=inspector account/role switch is deferred to the role-boundary/RLS section; admin-only pass cannot satisfy inspector matrix cell.

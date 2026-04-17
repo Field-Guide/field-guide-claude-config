@@ -1,0 +1,26 @@
+[
+  {
+    "key": "settings_screen",
+    "exists": true,
+    "visible": true,
+    "widgetType": "SettingsScreenControllerScope"
+  },
+  {
+    "key": "settings_admin_dashboard_tile",
+    "exists": false,
+    "visible": null,
+    "widgetType": null
+  },
+  {
+    "key": "settings_personnel_types_tile",
+    "exists": false,
+    "visible": null,
+    "widgetType": null
+  },
+  {
+    "key": "settings_trash_tile",
+    "exists": true,
+    "visible": true,
+    "widgetType": "ListTile"
+  }
+]

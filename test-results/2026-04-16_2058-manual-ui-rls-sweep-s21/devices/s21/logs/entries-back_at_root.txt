@@ -1,0 +1,14 @@
+flow=entries.back_at_root
+result=FAIL
+steps:
+- navigate /entries: navigated true
+- wait entries_list_screen: found true
+- back: navigatedBack false
+state:
+- current route: /entries
+- hasBottomNav: false
+- canPop: false
+expected:
+- back at entries root resolves predictably to dashboard/home or exits shell without stranding
+actual:
+- back did nothing and entries root has no bottom nav, leaving a stranded screen

@@ -1,0 +1,12 @@
+flow=forms.export_verification_preview
+result=FAIL
+steps:
+- navigate /form/harness-response-001
+- tap form_preview_pdf_button
+- observe visible PDF Preview
+- find form_pdf_preview_screen: exists false
+- debug errors: OK: 0 errors
+expected:
+- PDF preview route exposes form_pdf_preview_screen sentinel
+actual:
+- visible PDF Preview has no form_pdf_preview_screen key; form_viewer_screen still reports true

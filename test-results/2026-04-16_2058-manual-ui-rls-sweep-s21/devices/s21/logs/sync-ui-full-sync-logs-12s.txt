@@ -1,0 +1,138 @@
+01:51:30 INFO  sync   Reachability check passed (HTTP 401)
+01:51:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:51:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:51:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=96ms
+01:51:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:51:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:51:50 INFO  sync   SyncCoordinator: starting quick sync
+01:51:50 INFO  sync   Reachability check passed (HTTP 401)
+01:51:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:51:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:51:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=11ms
+01:52:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:52:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:52:10 INFO  sync   SyncCoordinator: starting quick sync
+01:52:10 INFO  sync   Reachability check passed (HTTP 401)
+01:52:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:52:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:52:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:52:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:52:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:52:30 INFO  sync   SyncCoordinator: starting quick sync
+01:52:30 INFO  sync   Reachability check passed (HTTP 401)
+01:52:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:52:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:52:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=8ms
+01:52:37 INFO  nav    Route push: sync-dashboard args={} (from _PageBasedMaterialPageRoute<void> args={})
+01:52:37 INFO  nav    Route remove: _PageBasedMaterialPageRoute<void> args={} (from none)
+01:52:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:52:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:52:50 INFO  sync   SyncCoordinator: starting quick sync
+01:52:50 INFO  sync   Reachability check passed (HTTP 401)
+01:52:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:52:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:52:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=9ms
+01:53:03 INFO  ui     breakpoint changed | {"from":"large","to":"expanded"}
+01:53:03 INFO  ui     density changed | {"breakpoint":"expanded","variant":"standard"}
+01:53:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:53:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:53:10 INFO  sync   SyncCoordinator: starting quick sync
+01:53:10 INFO  sync   Reachability check passed (HTTP 401)
+01:53:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:53:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:53:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=4ms
+01:53:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:53:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:53:30 INFO  sync   SyncCoordinator: starting quick sync
+01:53:30 INFO  sync   Reachability check passed (HTTP 401)
+01:53:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:53:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:53:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=12ms
+01:53:50 INFO  nav    Route push: help-support args={subject: Sync Issue, issueCode: blocked_queue, issueTitle: Some sync items on this device need repair, message: Sync issue code: blocked_queue
+Sync issue type: Some sync items on this device need repair
+9 items exhausted retries and need repair before those items can sync again.
+Build: 0.1.3
+Schema: v60
+Repair catalog: 2026-04-11.1
+Counts: pending=0, blocked=9, conflicts=0
+Recent notices: 6 sync items are stuck on this device and may need repair before those items ...[truncated]
+01:53:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:53:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:53:50 INFO  sync   SyncCoordinator: starting quick sync
+01:53:50 INFO  sync   Reachability check passed (HTTP 401)
+01:53:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:53:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:53:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=18ms
+01:54:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:54:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:54:10 INFO  sync   SyncCoordinator: starting quick sync
+01:54:10 INFO  sync   Reachability check passed (HTTP 401)
+01:54:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:54:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:54:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=4ms
+01:54:11 INFO  nav    Route pop: help-support args={subject: Sync Issue, issueCode: blocked_queue, issueTitle: Some sync items on this device need repair, message: Sync issue code: blocked_queue
+Sync issue type: Some sync items on this device need repair
+9 items exhausted retries and need repair before those items can sync again.
+Build: 0.1.3
+Schema: v60
+Repair catalog: 2026-04-11.1
+Counts: pending=0, blocked=9, conflicts=0
+Recent notices: 6 sync items are stuck on this device and may need repair before those items c...[truncated]
+01:54:11 ERROR app    FlutterError: setState() or markNeedsBuild() called when widget tree was locked.
+This _InheritedProviderScope<SupportProvider?> widget cannot be marked as needing to build because the framework is locked.
+The widget on which setState() or markNeedsBuild() was called was:
+  _InheritedProviderScope<SupportProvider?>
+01:54:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:54:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:54:30 INFO  sync   SyncCoordinator: starting quick sync
+01:54:30 INFO  sync   Reachability check passed (HTTP 401)
+01:54:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:54:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:54:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:54:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:54:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:54:50 INFO  sync   SyncCoordinator: starting quick sync
+01:54:50 INFO  sync   Reachability check passed (HTTP 401)
+01:54:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:54:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:54:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=8ms
+01:55:02 INFO  nav    Route remove: sync-dashboard args={} (from none)
+01:55:02 INFO  nav    Route push: sync-conflicts args={} (from sync-dashboard args={})
+01:55:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:55:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:55:10 INFO  sync   SyncCoordinator: starting quick sync
+01:55:10 INFO  sync   Reachability check passed (HTTP 401)
+01:55:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:55:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:55:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=125ms
+01:55:24 INFO  nav    Route push: sync-dashboard args={} (from sync-conflicts args={})
+01:55:24 INFO  nav    Route remove: sync-conflicts args={} (from none)
+01:55:26 INFO  sync   SyncCoordinator: starting full sync
+01:55:26 INFO  sync   Reachability check passed (HTTP 401)
+01:55:26 INFO  sync   full push complete: 0 pushed, 0 errors
+01:55:29 INFO  sync   Pull skip (adapter.skipPull): form_exports
+01:55:29 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+01:55:29 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+01:55:29 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+01:55:30 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+01:55:30 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+01:55:30 INFO  sync   full pull complete: 0 pulled, 0 errors
+01:55:30 INFO  sync   RealtimeHintHandler: fallback poll skipped while sync in progress
+01:55:30 INFO  sync   ScopeRevocationCleaner: repairing 1 stale project shell(s)
+01:55:30 INFO  sync   Remove step 1: starting removeFromDevice projectId=363f5712-4a41-402c-9428-f46adeeb1961 force=true
+01:55:30 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+01:55:30 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=363f5712-4a41-402c-9428-f46adeeb1961 photoPaths=0
+01:55:30 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+01:55:30 INFO  sync   Full sync scope repair: 1 stale local project shell(s) evicted
+01:55:30 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 363f5712-4a41-402c-9428-f46adeeb1961
+01:55:32 INFO  sync   INTEGRITY DRIFT: signature_files - Count mismatch: local=0, remote=24
+01:55:33 INFO  sync   Integrity check incomplete or failed; preserving previous last_integrity_check timestamp
+01:55:33 INFO  sync   INTEGRITY DRIFT: signature_audit_log - Count mismatch: local=0, remote=24
+01:55:33 INFO  sync   Cleared cursor for signature_files
+01:55:33 INFO  sync   Cleared cursor for signature_audit_log
+01:55:37 INFO  sync   Sync cycle (full): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=11116ms
+01:55:38 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:55:38 INFO  sync   PostSyncHooks: Company members pulled
+01:55:38 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:55:38 INFO  sync   PostSyncHooks: last_synced_at updated
+

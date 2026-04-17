@@ -1,0 +1,9 @@
+observation=dashboard.select_existing_project_recovery
+result=PASS
+steps:
+- navigate /projects
+- tap project_card_75ae3283-d4b2-4035-ba2f-7b4adb018199
+- route becomes /
+- project_dashboard_screen/dashboard_toolbox_card/dashboard_analytics_card/dashboard_project_title all exist
+note:
+- does not erase S21-001; seeded harness project still failed to become selected.

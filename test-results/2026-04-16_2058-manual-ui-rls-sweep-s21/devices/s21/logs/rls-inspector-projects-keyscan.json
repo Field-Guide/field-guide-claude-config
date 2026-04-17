@@ -1,0 +1,37 @@
+[
+  {
+    "key": "project_list_screen",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "AppScaffold"
+  },
+  {
+    "key": "project_create_button",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "FloatingActionButton"
+  },
+  {
+    "key": "company_projects_tab",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "synced_projects_tab",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "project_card_75ae3283-d4b2-4035-ba2f-7b4adb018199",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "Card"
+  }
+]

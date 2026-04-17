@@ -1,0 +1,12 @@
+flow=settings.forward_happy
+result=FAIL
+steps:
+- navigate /settings
+- wait settings_screen: found true
+- tap settings_edit_profile_tile: tapped true
+- wait edit_profile_screen: failed
+state:
+- visible title: Edit Profile
+- route reports /settings
+- settings_screen still exists true
+- profile fields visible but edit_profile_screen key absent

@@ -1,0 +1,7 @@
+{
+  "tapped": true,
+  "text": "Sign In",
+  "contains": false,
+  "index": 0,
+  "targetWidgetType": "GestureDetector"
+}

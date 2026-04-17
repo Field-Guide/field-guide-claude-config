@@ -1,0 +1,6 @@
+flow=quantities.deep_link_entry
+result=PASS
+steps:
+- navigate /quantity-calculator/harness-entry-001
+- wait quantity_calculator_screen: found true
+- visible calculate form has length/width/calculate controls

@@ -1,0 +1,33 @@
+flow=dashboard.nav_bar_switch_mid_flow
+started=2026-04-17T01:02:24.3140812Z
+navigate /: {"navigated":true,"path":"/"}
+tap projects_nav_button: {"tapped":true,"key":"projects_nav_button"}
+wait project_list_screen: {"found":true,"key":"project_list_screen","elapsedMs":29}
+tap dashboard_nav_button: {"tapped":true,"key":"dashboard_nav_button"}
+wait project_dashboard_screen ERROR: Response status code does not indicate success: 408 (Request Time-out).
+route: {"route":"/projects","hasBottomNav":true,"canPop":false}
+errors:
+OK: 0 errors
+
+sync tail:
+01:02:27 INFO  sync   Pull skip (adapter.skipPull): form_exports
+01:02:27 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+01:02:27 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+01:02:28 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+01:02:28 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+01:02:28 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+01:02:28 INFO  sync   quick pull complete: 0 pulled, 0 errors
+01:02:28 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=2847ms
+01:02:28 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+01:02:28 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=2
+01:02:28 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=2
+01:02:28 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=4
+01:02:28 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=6
+01:02:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:02:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:02:30 INFO  sync   SyncCoordinator: starting quick sync
+01:02:30 INFO  sync   Reachability check passed (HTTP 401)
+01:02:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:02:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:02:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=28ms
+

@@ -1,0 +1,121 @@
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/ba95458d-a0bb-4390-ab8f-955c11f8ba41
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/d76e8dc0-fcda-485c-9ca0-6be8cd671534
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/db4c4626-8ae3-4995-b928-e63c6903853a
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/5563a81d-db5b-4e01-842b-25459448031b
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/8b810144-fef2-4034-9b60-1817d94fdf22
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/0e1d4339-7e21-495c-9d88-fdb04654c3ba
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/639c8e98-a542-4967-a5f5-a0e4060d84b8
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/e2088f59-7af3-4fbc-87c8-71eb9352cb7f
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/64da8d2b-0eef-4726-bc68-7db917df96a6
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/23b97464-8d0c-4f97-b537-2f7f851d7e5d
+02:06:20 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:06:20 INFO  sync   quick pull complete: 69 pulled, 0 errors
+02:06:20 INFO  sync   Sync cycle (quick): pushed=0 pulled=69 errors=0 conflicts=0 skippedFk=24 skippedPush=0 duration=3207ms
+02:06:20 INFO  sync   AppInitializer: triggering quick sync after auth context became ready
+02:06:20 INFO  sync   SyncCoordinator: starting quick sync
+02:06:20 INFO  sync   Reachability check passed (HTTP 401)
+02:06:20 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:06:20 INFO  sync   quick push complete: 0 pushed, 0 errors
+02:06:22 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:06:22 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:06:22 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:06:22 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:06:22 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:06:22 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:06:22 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:06:22 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=2236ms
+02:06:25 INFO  db     INSERT user_consent_records id=11be9d2e-1cc4-4eae-acbb-0880af5be0d3 type=privacy_policy v=1.0.0
+02:06:25 INFO  db     INSERT user_consent_records id=698d2dbb-ed98-4415-b6ce-a0594f19bfcc type=terms_of_service v=1.0.0
+02:06:25 INFO  lifecycle User accepted consent for policy v1.0.0
+02:06:25 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from consent args={})
+02:06:25 INFO  nav    Route remove: consent args={} (from none)
+02:06:25 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:06:26 INFO  sync   Reachability check passed (HTTP 401)
+02:06:26 INFO  sync   SyncCoordinator: starting quick sync
+02:06:26 INFO  sync   Reachability check passed (HTTP 401)
+02:06:26 INFO  sync   RealtimeHintHandler: marked dirty project=null table=null
+02:06:26 INFO  sync   RealtimeHintHandler: sync already in progress, queued one follow-up quick sync
+02:06:26 INFO  sync   [DirtyScopeTracker] markDirty projectId=ALL tableName=ALL
+02:06:26 INFO  sync   quick push complete: 2 pushed, 0 errors
+02:06:26 INFO  sync   RealtimeHintHandler: sync already in progress, queued one follow-up quick sync
+02:06:26 INFO  sync   [DirtyScopeTracker] markDirty projectId=ALL tableName=ALL
+02:06:26 INFO  sync   RealtimeHintHandler: marked dirty project=null table=null
+02:06:28 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:06:28 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:06:28 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:06:28 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:06:28 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:06:29 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:06:29 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:06:29 INFO  sync   Sync cycle (quick): pushed=2 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=2653ms
+02:06:29 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:06:29 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=2
+02:06:29 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=2
+02:06:29 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=4
+02:06:29 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=2
+02:07:59 INFO  lifecycle [TEST_MODE] Debug HTTP log server transport enabled
+02:07:59 INFO  lifecycle [ConfigValidator] Validating app configuration...
+02:07:59 INFO  lifecycle [ConfigValidator] Configuration summary:
+02:07:59 INFO  lifecycle   - Supabase: configured
+02:07:59 INFO  lifecycle [ConfigValidator] WARNING: SUPABASE_ANON_KEY appears too short - verify it is correct.
+02:07:59 INFO  lifecycle   - Test mode: disabled
+02:07:59 INFO  lifecycle   - Mock data: disabled
+02:07:59 INFO  lifecycle   - Mock weather: disabled
+02:07:59 INFO  db     Opening database at: /data/user/0/com.fieldguideapp.inspector/databases/construction_inspector.db
+02:07:59 INFO  db     Database opened successfully
+02:07:59 INFO  db     SchemaVerifier: verified 40 tables in 70ms — SchemaReport(drift=0, missing_cols=0, missing_tables=0)
+02:07:59 INFO  db     Database initialized successfully
+02:07:59 INFO  ocr    Initializing Tesseract OCR engine...
+02:07:59 INFO  ocr    Tesseract initialized successfully | {"tessdataPath":"/data/user/0/com.fieldguideapp.inspector/files/tessdata","languages":["eng"]}
+02:07:59 INFO  auth   Initializing Supabase with configured credentials
+02:07:59 INFO  auth   Supabase initialized successfully
+02:07:59 INFO  sync   Firebase initialized successfully
+02:07:59 INFO  db     ORPHAN_CHECK found 0 orphaned projects
+02:07:59 INFO  db     ORPHAN_CHECK found 0 orphaned projects
+02:07:59 INFO  sync   SyncCoordinator: Initializing...
+02:07:59 INFO  sync   Registered 26 adapters
+02:07:59 INFO  sync   SyncInitializer.create() complete
+02:07:59 INFO  sync   SyncCoordinator: Initialization complete
+02:07:59 INFO  sync   FCM permission status=AuthorizationStatus.authorized
+02:07:59 INFO  sync   WorkManager initialized and task registered
+02:08:00 INFO  sync   FCM initialization error: [firebase_messaging/unknown] java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: FIS_AUTH_ERROR
+02:08:00 INFO  sync   AppInitializer: triggering quick sync after company context changed
+02:08:00 INFO  sync   SyncCoordinator: starting quick sync
+02:08:00 INFO  sync   RealtimeHintHandler: rebinding from none to 26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:08:00 INFO  sync   RealtimeHintHandler: reload registration state
+02:08:00 INFO  sync   Reachability check passed (HTTP 401)
+02:08:00 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:08:00 INFO  sync   CIRCUIT BREAKER: change_log exceeds 1000. Push suspended.
+02:08:00 INFO  sync   quick push complete: 0 pushed, 1 errors
+02:08:00 INFO  lifecycle Driver mode ready on port 4949
+02:08:00 INFO  lifecycle Consent state loaded: accepted=true, storedUser=88054934-9cc5-4af3-b1c6-38f262a7da23, currentUser=88054934-9cc5-4af3-b1c6-38f262a7da23, version=1.0.0, current=1.0.0, valid=true
+02:08:00 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:08:00 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:08:01 INFO  sync   RealtimeHintHandler: subscribed to private channel (sub=1eb837e9-1483-47a1-b1e1-257eb30bca59)
+02:08:01 INFO  sync   RealtimeHintHandler: reload registration state
+02:08:01 INFO  sync   RealtimeHintHandler: channel closed
+02:08:01 INFO  sync   RealtimeHintHandler: starting fallback polling (channel_closed) every 20s
+02:08:01 INFO  sync   RealtimeHintHandler: reload registration state
+02:08:01 INFO  sync   RealtimeHintHandler: channel closed
+02:08:02 INFO  sync   Reachability check passed (HTTP 401)
+02:08:02 INFO  sync   SyncCoordinator: starting quick sync
+02:08:03 INFO  sync   Reachability check passed (HTTP 401)
+02:08:03 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:08:03 INFO  sync   [SyncMutex] lock already held: DatabaseException(UNIQUE constraint failed: sync_lock.id (code 1555 SQLITE_CONSTRAINT_PRIMARYKEY[1555])) sql 'INSERT INTO sync_lock (id, locked_at, locked_by, last_heartbeat) VALUES (1, strftime('%Y-%m-%dT%H:%M:%f', 'now'), ?, strftime('%Y-%m-%dT%H:%M:%f', 'now'))' args [foreground]
+02:08:03 INFO  sync   Lock held by another process, skipping sync
+02:08:03 INFO  sync   Non-retryable error detected, skipping retry: [Sync skipped: another sync is already in progress]
+02:08:03 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=2
+02:08:03 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=2
+02:08:03 INFO  sync   RealtimeHintHandler: subscribed to private channel (sub=1eb837e9-1483-47a1-b1e1-257eb30bca59)
+02:08:03 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=7
+02:08:03 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=5
+02:08:04 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:08:04 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:08:04 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:08:05 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:08:05 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:08:05 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:08:05 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:08:05 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=1 conflicts=0 skippedFk=1 skippedPush=0 duration=5456ms
+02:08:05 INFO  sync   Non-retryable error detected, skipping retry: [Circuit breaker tripped: too many pending changes]
+

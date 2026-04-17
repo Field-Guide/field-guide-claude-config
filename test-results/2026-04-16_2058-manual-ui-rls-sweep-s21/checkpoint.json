@@ -1,0 +1,43 @@
+{
+  "runId": "2026-04-16_2058-manual-ui-rls-sweep-s21",
+  "platform": "android",
+  "devices": [
+    "s21",
+    "s10"
+  ],
+  "currentRole": "admin-restored-on-s21-and-s10-before-driver-sequencing",
+  "completedFlows": [
+    "s21.admin.dashboard/projects/entries/forms/pay_apps/quantities/analytics/pdf/gallery/toolbox/calculator/todos/settings/sync/contractors",
+    "s21.inspector.role_boundaries_corrected_policy",
+    "s10.admin.role_boundaries",
+    "s10.inspector.role_boundaries_corrected_policy"
+  ],
+  "blockedFlows": [
+    "engineer role: no real credentials in .claude/test-credentials.secret",
+    "officeTechnician role: no real credentials in .claude/test-credentials.secret",
+    "trash cross-role record isolation: no cross-role trash fixture verified in this run"
+  ],
+  "latestFindings": [
+    "S21-036",
+    "S21-037",
+    "S21-038",
+    "S21-039",
+    "S10-001",
+    "S10-002",
+    "S10-003",
+    "S10-004"
+  ],
+  "artifacts": [
+    "coverage.md",
+    "findings.md",
+    "findings.jsonl",
+    "role-boundary-matrix.md"
+  ],
+  "observations": [
+    "Clarified inspector policy: analytics allowed; assigned project edit allowed; project create/delete/archive denied.",
+    "S21 and S10 both expose inspector project create/delete/archive controls.",
+    "S10 exposes inspector pay-app management controls; S21 tested pay-app route did not expose them.",
+    "Both devices showed sync instability evidence during the broader run."
+  ],
+  "updatedAtUtc": "2026-04-17T02:18:40.5735873Z"
+}

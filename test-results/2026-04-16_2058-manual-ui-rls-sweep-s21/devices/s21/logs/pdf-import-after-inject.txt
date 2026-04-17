@@ -1,0 +1,121 @@
+01:33:01 INFO  pdf    [Pipeline] OCR Pipeline (6 pages)
+01:33:01 INFO  pdf    STAGE_START stage=page_rendering pages=6
+01:33:02 INFO  pdf    MEMORY_SNAPSHOT stage=page_rendering heap=938MB
+01:33:02 INFO  pdf    STAGE_COMPLETE stage=page_rendering elapsed=977ms pages=6
+01:33:02 INFO  pdf    STAGE_START stage=image_preprocessing pages=6
+01:33:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:33:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:33:10 INFO  sync   SyncCoordinator: starting quick sync
+01:33:10 INFO  sync   Reachability check passed (HTTP 401)
+01:33:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:33:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:33:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=7ms
+01:33:17 INFO  pdf    MEMORY_SNAPSHOT stage=image_preprocessing heap=963MB
+01:33:17 INFO  pdf    STAGE_COMPLETE stage=image_preprocessing elapsed=14714ms pages=6
+01:33:17 INFO  pdf    STAGE_START stage=grid_line_detection pages=6
+01:33:23 INFO  pdf    MEMORY_SNAPSHOT stage=grid_line_detection heap=906MB
+01:33:23 INFO  pdf    STAGE_COMPLETE stage=grid_line_detection elapsed=3097ms gridPages=6 nonGridPages=0
+01:33:23 INFO  pdf    STAGE_START stage=grid_line_removal pages=6
+01:33:23 INFO  pdf    MEMORY_SNAPSHOT stage=grid_line_removal heap=1258MB
+01:33:23 INFO  pdf    STAGE_COMPLETE stage=grid_line_removal elapsed=2794ms pagesCleaned=6
+01:33:23 INFO  pdf    [Pipeline] Page Rendering complete: 6 pages rendered
+01:33:23 INFO  pdf    [Pipeline] Image Preprocessing complete: 6 pages preprocessed
+01:33:23 INFO  pdf    [Pipeline] Grid Line Detection complete: 6 grid pages, 0 non-grid pages
+01:33:23 INFO  pdf    [Pipeline] Grid Line Removal complete: 6 pages cleaned
+01:33:23 INFO  pdf    STAGE_START stage=text_recognition pages=6
+01:33:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:33:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:33:30 INFO  sync   SyncCoordinator: starting quick sync
+01:33:30 INFO  sync   Reachability check passed (HTTP 401)
+01:33:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:33:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:33:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:33:45 INFO  pdf    MEMORY_SNAPSHOT stage=text_recognition heap=910MB
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=text_recognition elapsed=18302ms totalElements=2043 pages=6
+01:33:45 INFO  pdf    [Pipeline] Text Recognition complete: 2043 elements
+01:33:45 INFO  pdf    [Pipeline] Element Validation
+01:33:45 INFO  pdf    STAGE_START stage=element_validation
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=element_validation elapsed=10ms
+01:33:45 INFO  pdf    STAGE_START stage=row_merging
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=row_parsing elapsed=191ms items=131
+01:33:45 INFO  pdf    [Pipeline] Row Parsing complete: 131 parsed items
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=row_classification elapsed=86ms rows=150
+01:33:45 INFO  pdf    [Pipeline] Row Classification complete: 150 rows, data=131
+01:33:45 INFO  pdf    STAGE_START stage=header_consolidation_final
+01:33:45 INFO  pdf    STAGE_START stage=header_consolidation_final stageName=header_consolidation_final
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=header_consolidation_final elapsed=0ms rows=149
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=header_consolidation_final rows=149
+01:33:45 INFO  pdf    [Pipeline] Row Merging
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=row_merging elapsed=219ms mergedRows=139
+01:33:45 INFO  pdf    [Pipeline] Cell Extraction
+01:33:45 INFO  pdf    STAGE_START stage=cell_extraction
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=cell_extraction elapsed=81ms rows=138
+01:33:45 INFO  pdf    [Pipeline] Cell Extraction complete: 138 rows in grid
+01:33:45 INFO  pdf    [Pipeline] Numeric Interpretation
+01:33:45 INFO  pdf    STAGE_START stage=numeric_interpretation
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=numeric_interpretation elapsed=70ms rows=138
+01:33:45 INFO  pdf    [Pipeline] Row Parsing
+01:33:45 INFO  pdf    STAGE_START stage=row_parsing
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=post_processing elapsed=2104ms items=131
+01:33:45 INFO  pdf    [Pipeline] Field Confidence Scoring
+01:33:45 INFO  pdf    STAGE_START stage=field_confidence_scoring
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=field_confidence_scoring elapsed=18ms items=131
+01:33:45 INFO  pdf    STAGE_START stage=post_processing
+01:33:45 INFO  pdf    PostProcess: Starting with 131 items | {"enableInference":true,"enableSplitting":true}
+01:33:45 INFO  pdf    PostProcess: Math validation complete | {"validationRate":"1.00","totalItems":131,"validItems":131,"skippedItems":0}
+01:33:45 INFO  pdf    PostProcess: Document checksum computed | {"extracted":null,"computed":7882926.73,"status":"noTotalFound","discrepancy":null}
+01:33:45 INFO  pdf    PostProcess: Complete | {"inputItems":131,"outputItems":131,"warnings":1,"repairs":147,"confidenceBoosts":131}
+01:33:45 INFO  pdf    [Pipeline] Post Processing complete: 131 items, 147 repairs
+01:33:45 INFO  pdf    STAGE_START stage=quality_validation
+01:33:45 INFO  pdf    STAGE_COMPLETE stage=quality_validation elapsed=46ms status=QualityStatus.autoAccept
+01:33:45 INFO  pdf    [Pipeline] Quality Validation complete: status=QualityStatus.autoAccept, score=0.958
+01:33:45 INFO  pdf    [Pipeline] Extraction complete: SUCCESS in 1 attempts (44215ms); selected_attempt=1
+01:33:45 INFO  ocr    GoogleCloudVisionOcrEngine disposed
+01:33:45 INFO  pdf    V2 pipeline complete | {"items":131,"score":0.9575342805525178,"status":"autoAccept","attempts":1}
+01:33:45 INFO  pdf    Persisting extraction metrics to DB
+01:33:45 INFO  pdf    Extraction metrics persisted successfully
+01:33:45 INFO  nav    Route pop: DialogRoute<dynamic> (to quantities args={})
+01:33:45 INFO  pdf    Extraction complete | {"items":131,"projectId":"75ae3283-d4b2-4035-ba2f-7b4adb018199"}
+01:33:45 INFO  nav    Route push: import-preview args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from quantities args={})
+01:33:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:33:50 INFO  sync   SyncCoordinator: starting quick sync
+01:33:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:33:50 INFO  sync   Reachability check passed (HTTP 401)
+01:33:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:33:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:33:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=113ms
+01:33:51 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:33:51 INFO  sync   Reachability check passed (HTTP 401)
+01:33:51 INFO  sync   SyncCoordinator: starting quick sync
+01:33:51 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:33:51 INFO  sync   Reachability check passed (HTTP 401)
+01:33:51 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+01:33:51 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:33:53 INFO  sync   Pull skip (adapter.skipPull): form_exports
+01:33:53 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+01:33:53 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+01:33:54 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+01:33:54 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+01:33:54 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+01:33:54 INFO  sync   quick pull complete: 0 pulled, 0 errors
+01:33:54 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=2934ms
+01:33:54 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+01:33:54 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=2
+01:33:54 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=2
+01:33:54 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=6
+01:33:54 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=8
+01:34:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:34:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:34:10 INFO  sync   SyncCoordinator: starting quick sync
+01:34:10 INFO  sync   Reachability check passed (HTTP 401)
+01:34:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:34:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:34:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:34:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:34:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:34:30 INFO  sync   SyncCoordinator: starting quick sync
+01:34:30 INFO  sync   Reachability check passed (HTTP 401)
+01:34:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:34:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:34:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=6ms
+

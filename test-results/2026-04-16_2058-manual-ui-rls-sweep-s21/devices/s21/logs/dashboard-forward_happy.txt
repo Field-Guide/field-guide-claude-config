@@ -1,0 +1,13 @@
+flow=dashboard.forward_happy
+started=2026-04-17T00:59:36.3129903Z
+result=FAIL
+route={"route":"/","hasBottomNav":true,"canPop":false}
+steps:
+seed base_data: {"seeded":["base_data"]}
+navigate /: {"navigated":true,"path":"/"}
+find project_dashboard_screen: {"exists":true,"key":"project_dashboard_screen","widgetType":"AppScaffold","visible":true}
+errors:
+OK: 0 errors
+
+screenshot=.claude/test-results/2026-04-16_2058-manual-ui-rls-sweep-s21/devices/s21/screenshots/dashboard-forward_happy.png
+notes=tap toolbox failed: Response status code does not indicate success: 404 (Not Found).; toolbox sentinel missing: Response status code does not indicate success: 408 (Request Time-out).

@@ -1,0 +1,11 @@
+retest dashboard.nav_bar_switch_mid_flow started=2026-04-17T01:03:23.6546365Z
+navigate /: {"navigated":true,"path":"/"}
+wait dashboard: {"found":true,"key":"project_dashboard_screen","elapsedMs":19}
+tap projects: {"tapped":true,"key":"projects_nav_button"}
+wait projects: {"found":true,"key":"project_list_screen","elapsedMs":6}
+tap dashboard: {"tapped":true,"key":"dashboard_nav_button"}
+wait dashboard again ERROR: Response status code does not indicate success: 408 (Request Time-out).
+route: {"route":"/projects","hasBottomNav":true,"canPop":false}
+errors:
+OK: 0 errors
+

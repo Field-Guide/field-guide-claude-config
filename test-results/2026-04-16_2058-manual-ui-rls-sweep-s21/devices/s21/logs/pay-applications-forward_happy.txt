@@ -1,0 +1,81 @@
+01:20:50 INFO  pdf    [FormPDF] Field not found for: "KRow5" (tried: KRow5, KROW5)
+01:20:50 INFO  pdf    [FormPDF] Field not found for: "20_10_5" (tried: 20_10_5, 20105, 20 10 5, 20-10-5)
+01:20:50 INFO  pdf    [FormPDF] Field not found for: "TwentyTen5" (tried: TwentyTen5, TWENTYTEN5)
+01:20:50 INFO  pdf    [FormPDF] Set text field "5th" = "5.0" via AcroForm /V
+01:20:50 INFO  pdf    [FormPDF] Field not found for: "Weight5" (tried: Weight5, WEIGHT5)
+01:20:50 INFO  pdf    [FormPDF] Field not found for: "weight_5" (tried: weight_5, weight5, Weight5, Weight 5, weight-5, WEIGHT5)
+01:20:50 INFO  pdf    [FormPDF] Template filled successfully
+01:20:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:20:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:20:50 INFO  sync   SyncCoordinator: starting quick sync
+01:20:50 INFO  pdf    [FormPDF] Temp PDF saved: /data/user/0/com.fieldguideapp.inspector/cache/MDOT_0582B_2026-04-16_harness-.pdf
+01:20:50 INFO  db     INSERT form_exports id=df0a866d-92ac-4d52-806b-d7136b2da020
+01:20:50 INFO  db     INSERT export_artifacts id=1e0106b1-fd5c-4965-b1f2-1abb2172525a
+01:20:50 INFO  nav    Route push: DialogRoute<FormStandaloneExportAction> (from form-fill args={responseId: harness-response-001})
+01:20:50 INFO  sync   Reachability check passed (HTTP 401)
+01:20:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:20:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:20:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=14ms
+01:21:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:21:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:21:10 INFO  sync   SyncCoordinator: starting quick sync
+01:21:10 INFO  sync   Reachability check passed (HTTP 401)
+01:21:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:21:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:21:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=23ms
+01:21:23 INFO  ui     WeatherService: Got location 42.65, -85.28
+01:21:23 INFO  ui     WeatherService: Fetching weather from https://api.open-meteo.com/v1/forecast?latitude=42.65&longitude=-85.28&daily=temperature_2m_max%2Ctemperature_2m_min%2Cweather_code&temperature_unit=celsius&timezone=auto&start_date=2026-04-16&end_date=2026-04-16
+01:21:23 INFO  sync   SyncLifecycleManager: Skipping resume sync trigger
+01:21:23 INFO  ui     WeatherService: Got weather WeatherData(condition: Rain, high: 65, low: 58)
+01:21:23 ERROR app    [BaseListProvider<DailyEntry>] update entry failed
+01:21:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:21:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:21:30 INFO  sync   SyncCoordinator: starting quick sync
+01:21:30 INFO  sync   Reachability check passed (HTTP 401)
+01:21:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:21:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:21:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:21:43 INFO  nav    Route pop: DialogRoute<FormStandaloneExportAction> (to form-fill args={responseId: harness-response-001})
+01:21:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:21:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:21:50 INFO  sync   SyncCoordinator: starting quick sync
+01:21:50 INFO  sync   Reachability check passed (HTTP 401)
+01:21:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:21:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:21:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=6ms
+01:22:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:22:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:22:10 INFO  sync   SyncCoordinator: starting quick sync
+01:22:10 INFO  sync   Reachability check passed (HTTP 401)
+01:22:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:22:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:22:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:22:17 INFO  nav    Route push: payAppDetail args={payAppId: harness-pay-app-001} (from form-fill args={responseId: harness-response-001})
+01:22:17 INFO  nav    Route remove: form-fill args={responseId: harness-response-001} (from none)
+01:22:30 INFO  nav    Route push: contractorComparison args={payAppId: harness-pay-app-001} (from payAppDetail args={payAppId: harness-pay-app-001})
+01:22:30 ERROR app    [ContractorComparisonProvider] loadPayApp failed
+01:22:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:22:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:22:30 INFO  sync   SyncCoordinator: starting quick sync
+01:22:30 INFO  sync   Reachability check passed (HTTP 401)
+01:22:30 INFO  sync   Push error for projects/harness-project-001: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.
+01:22:30 INFO  sync   BLOCKED: bid_items/harness-bid-item-001 -- parent projects/harness-project-001 has failed
+01:22:30 INFO  sync   Delete push skipped: daily_entries/harness-entry-001 -- local row gone and no preserved tombstone metadata
+01:22:30 INFO  sync   Delete push skipped: form_responses/harness-response-001 -- local row gone and no preserved tombstone metadata
+01:22:30 INFO  sync   BLOCKED: pay_applications/harness-pay-app-001 -- parent projects/harness-project-001 has failed
+01:22:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:22:30 INFO  sync   quick push complete: 2 pushed, 3 errors
+01:22:30 INFO  sync   Sync cycle (quick): pushed=2 pulled=0 errors=3 conflicts=0 skippedFk=0 skippedPush=0 duration=60ms
+01:22:30 INFO  sync   Non-retryable error detected, skipping retry: [projects/harness-project-001: Unknown error: StateError: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.]
+01:22:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:22:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:22:50 INFO  sync   SyncCoordinator: starting quick sync
+01:22:50 INFO  sync   Reachability check passed (HTTP 401)
+01:22:50 INFO  sync   Push error for projects/harness-project-001: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.
+01:22:50 INFO  sync   BLOCKED: bid_items/harness-bid-item-001 -- parent projects/harness-project-001 has failed
+01:22:50 INFO  sync   BLOCKED: pay_applications/harness-pay-app-001 -- parent projects/harness-project-001 has failed
+01:22:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:22:50 INFO  sync   quick push complete: 0 pushed, 3 errors
+01:22:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=3 conflicts=0 skippedFk=0 skippedPush=0 duration=13ms
+01:22:50 INFO  sync   Non-retryable error detected, skipping retry: [projects/harness-project-001: Unknown error: StateError: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.]
+

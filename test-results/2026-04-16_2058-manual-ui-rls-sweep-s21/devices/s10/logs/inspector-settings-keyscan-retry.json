@@ -1,0 +1,37 @@
+[
+  {
+    "key": "settings_screen",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "SettingsScreenControllerScope"
+  },
+  {
+    "key": "settings_admin_dashboard_tile",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "settings_personnel_types_tile",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "settings_trash_tile",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "ListTile"
+  },
+  {
+    "key": "settings_sync_dashboard_tile",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "ListTile"
+  }
+]

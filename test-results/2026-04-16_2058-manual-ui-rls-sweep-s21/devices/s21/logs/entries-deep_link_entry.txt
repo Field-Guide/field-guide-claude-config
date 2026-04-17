@@ -1,0 +1,10 @@
+flow=entries.deep_link_entry
+result=FAIL
+steps:
+- navigate /entry/harness-project-001/2026-04-16: navigated true
+- wait entry_editor_screen: failed, widget not found within 5000ms
+state:
+- current route: /entry/harness-project-001/2026-04-16
+- entry_editor_scroll: exists true visible true
+- debug errors since flow window: OK: 0 errors
+linked finding: S21-005

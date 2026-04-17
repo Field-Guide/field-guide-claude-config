@@ -1,0 +1,301 @@
+02:12:34 INFO  nav    Route remove: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:12:36 INFO  nav    Route push: projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199})
+02:12:36 INFO  nav    Route remove: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from none)
+02:12:39 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199})
+02:12:39 INFO  nav    Route remove: projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from none)
+02:12:39 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:12:41 INFO  nav    Route push: quantities args={} (from _PageBasedMaterialPageRoute<void> args={})
+02:12:41 INFO  nav    Route remove: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:12:43 INFO  nav    Route push: payAppDetail args={payAppId: harness-pay-app-001} (from quantities args={})
+02:12:43 INFO  nav    Route remove: quantities args={} (from none)
+02:13:01 INFO  nav    Route push: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from payAppDetail args={payAppId: harness-pay-app-001})
+02:13:01 INFO  nav    Route remove: payAppDetail args={payAppId: harness-pay-app-001} (from none)
+02:13:33 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199})
+02:13:33 INFO  nav    Route remove: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from none)
+02:13:33 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:13:34 INFO  nav    Route push: DialogRoute<void> (from _PageBasedMaterialPageRoute<void> args={})
+02:13:35 INFO  sync   SyncCoordinator: starting full sync
+02:13:35 INFO  sync   Reachability check passed (HTTP 401)
+02:13:35 INFO  sync   CIRCUIT BREAKER: change_log exceeds 1000. Push suspended.
+02:13:35 INFO  sync   full push complete: 0 pushed, 1 errors
+02:13:39 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:13:39 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:13:39 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:13:39 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:13:39 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:13:39 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:13:40 INFO  sync   full pull complete: 0 pulled, 0 errors
+02:13:40 INFO  sync   INTEGRITY DRIFT: projects - Count mismatch: local=6, remote=7
+02:13:40 INFO  sync   INTEGRITY TOLERATED: projects count diff 1 <= threshold 5. Not resetting cursor.
+02:13:40 INFO  sync   INTEGRITY DRIFT: project_assignments - Count mismatch: local=7, remote=8
+02:13:40 INFO  sync   INTEGRITY TOLERATED: project_assignments count diff 1 <= threshold 5. Not resetting cursor.
+02:13:42 INFO  sync   INTEGRITY DRIFT: signature_files - Count mismatch: local=0, remote=24
+02:13:42 INFO  sync   INTEGRITY DRIFT: signature_audit_log - Count mismatch: local=0, remote=24
+02:13:42 INFO  sync   Integrity check incomplete or failed; preserving previous last_integrity_check timestamp
+02:13:42 INFO  sync   Cleared cursor for signature_files
+02:13:42 INFO  sync   Cleared cursor for signature_audit_log
+02:13:47 INFO  sync   Sync cycle (full): pushed=0 pulled=0 errors=1 conflicts=0 skippedFk=1 skippedPush=0 duration=12066ms
+02:13:47 INFO  sync   Non-retryable error detected, skipping retry: [Circuit breaker tripped: too many pending changes]
+02:13:47 INFO  nav    Route pop: DialogRoute<void> (to _PageBasedMaterialPageRoute<void> args={})
+02:13:48 INFO  sync   RealtimeHintHandler: refresh state after channel deactivation (sign_out_deactivate)
+02:13:48 INFO  sync   RealtimeHintHandler: channel closed
+02:13:48 INFO  sync   RealtimeHintHandler: disposed
+02:13:48 INFO  sync   RealtimeHintHandler: starting fallback polling (channel_closed) every 20s
+02:13:48 INFO  sync   RealtimeHintHandler: skipping deactivate RPC because auth session is unavailable
+02:13:48 INFO  nav    Route push: login args={} (from _PageBasedMaterialPageRoute<void> args={})
+02:13:48 INFO  nav    Route remove: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:14:07 INFO  lifecycle Consent state loaded: accepted=false, storedUser=d1ca900e-d880-4915-9950-e29ba180b028, currentUser=88054934-9cc5-4af3-b1c6-38f262a7da23, version=null, current=1.0.0, valid=false
+02:14:07 INFO  sync   SyncCoordinator: starting quick sync
+02:14:07 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:07 INFO  sync   RealtimeHintHandler: rebinding from none to 26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:14:07 INFO  nav    Route push: consent args={} (from login args={})
+02:14:07 INFO  nav    Route remove: login args={} (from none)
+02:14:08 INFO  sync   Reachability check passed (HTTP 401)
+02:14:08 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:14:08 INFO  sync   CIRCUIT BREAKER: change_log exceeds 1000. Push suspended.
+02:14:08 INFO  sync   quick push complete: 0 pushed, 1 errors
+02:14:08 INFO  sync   Cleared cursor for locations
+02:14:08 INFO  sync   Cleared cursor for contractors
+02:14:08 INFO  sync   RealtimeHintHandler: reload registration state
+02:14:08 INFO  sync   Cleared cursor for equipment
+02:14:08 INFO  sync   Cleared cursor for bid_items
+02:14:08 INFO  sync   Cleared cursor for personnel_types
+02:14:08 INFO  sync   Cleared cursor for daily_entries
+02:14:08 INFO  sync   Cleared cursor for photos
+02:14:08 INFO  sync   Cleared cursor for entry_equipment
+02:14:08 INFO  sync   Cleared cursor for entry_quantities
+02:14:08 INFO  sync   Cleared cursor for entry_contractors
+02:14:08 INFO  sync   Cleared cursor for entry_personnel_counts
+02:14:08 INFO  sync   Cleared cursor for inspector_forms
+02:14:08 INFO  sync   Cleared cursor for form_responses
+02:14:08 INFO  sync   Cleared cursor for todo_items
+02:14:08 INFO  sync   Cleared cursor for calculation_history
+02:14:08 INFO  sync   Cleared cursor for documents
+02:14:08 INFO  sync   Cleared cursor for entry_exports
+02:14:08 INFO  sync   Cleared cursor for form_exports
+02:14:08 INFO  sync   Cleared cursor for export_artifacts
+02:14:08 INFO  sync   Cleared cursor for pay_applications
+02:14:08 INFO  sync   Cleared cursor for signature_files
+02:14:08 INFO  sync   Cleared cursor for signature_audit_log
+02:14:08 INFO  sync   Cleared 17 project-scoped pull cursor(s) after assignment scope user changed
+02:14:08 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:08 INFO  sync   RealtimeHintHandler: subscribed to private channel (sub=ad8e65e4-75b6-4e8b-b1c4-5c5618aed8ed)
+02:14:09 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:09 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:10 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:10 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:11 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:11 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:12 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:12 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:13 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:13 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:14 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:14 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:14 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:14:14 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:14:15 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:14:15 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:15 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/90b0189c-bce7-4da8-bab1-8745dc636d1a
+02:14:15 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/42748b6a-783d-4730-9e38-b17a1a7c9657
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/f6b7db60-e137-44b5-92bf-327e191211cf
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/cef41ab4-8c53-49f1-a5ab-1b2347954dcf
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/63425d4e-6c86-41c7-a2b6-a237c27ed71a
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/7bffde8e-8983-488a-8418-4b31b7f30ab7
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/943b2899-0d16-4bc8-8aa2-e306a3b47659
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/040dc385-8c1c-4286-8f0e-5d44c2f1f894
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/c3cae4f9-3398-4564-81b3-9efb5b354049
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/4825a547-deb2-423f-84a0-86f5dca10cb1
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/924af444-fa9a-49fa-a83d-b4db052e043a
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/f14d7e47-b617-4dc0-a779-d8fdcc5dbd42
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/eccdcb9d-1303-47ff-893a-ab1eb247914a
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/2269c0fd-83d7-49b5-b346-812c1bc39101
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/0afcd15e-39ea-4f1e-8d0d-7ea9d10bbccb
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/332666ea-5891-4375-a035-e832da32fd47
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/fb3bbb0d-cb2d-45be-8749-32405818fd79
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/b45c7f40-2493-4541-a3c2-383eb9dd2376
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/2ef4dd16-f685-406d-8ecd-e3ffce5ed279
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/b228ece7-ef23-42fd-b4a5-a693d6c28d2d
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/94dec663-e5ce-4fc4-8c48-6e64adb474ef
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/3791d72e-9288-46d5-85c9-0b41bfa025e7
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/99eddb39-1918-4e3e-8f83-3c073594f647
+02:14:15 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/e64b6142-e559-4211-b98a-9794ee14a0f5
+02:14:16 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/d665a603-484a-4bc6-8362-87518474efe6
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/b8d19630-db2a-43ca-8319-19b0f5678602
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/1dd72cc9-0706-4735-9258-ce6a0ef7b67f
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/50ca66f9-1b9d-4777-90e0-a3df2bb14391
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/4e0a7efb-5647-4e0d-9691-39b24c37b053
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/adfcc787-f721-43b8-be1d-954f7f725509
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/ee56a215-edc4-4a2a-83e7-348c26c876a0
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/c26d436e-f15e-4b5d-8db0-a2885ca0d0ee
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/3f4cbc3f-a9f0-4bdd-89fa-7426d0bf383c
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/a440322d-e933-4a0b-809f-a9a20fa9fccf
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/4f08c227-b325-4f9e-beec-8ebd3864ae09
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/74db209e-deba-4493-941b-3bc3d9c4537e
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/ba95458d-a0bb-4390-ab8f-955c11f8ba41
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/d76e8dc0-fcda-485c-9ca0-6be8cd671534
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/db4c4626-8ae3-4995-b928-e63c6903853a
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/5563a81d-db5b-4e01-842b-25459448031b
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/8b810144-fef2-4034-9b60-1817d94fdf22
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/0e1d4339-7e21-495c-9d88-fdb04654c3ba
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/639c8e98-a542-4967-a5f5-a0e4060d84b8
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/e2088f59-7af3-4fbc-87c8-71eb9352cb7f
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/64da8d2b-0eef-4726-bc68-7db917df96a6
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/23b97464-8d0c-4f97-b537-2f7f851d7e5d
+02:14:16 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:14:16 INFO  db     INSERT user_consent_records id=e3b807e8-b78c-4e67-87b7-c470150b17a3 type=privacy_policy v=1.0.0
+02:14:16 INFO  db     INSERT user_consent_records id=0fb0e49d-5820-46d0-8d58-25d66c9688dd type=terms_of_service v=1.0.0
+02:14:16 INFO  lifecycle User accepted consent for policy v1.0.0
+02:14:16 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:16 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from consent args={})
+02:14:16 INFO  nav    Route remove: consent args={} (from none)
+02:14:16 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:14:16 INFO  sync   Remove step 1: starting removeFromDevice projectId=7b0c7bdd-0daf-4504-82bc-c4d943899133 force=true
+02:14:16 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+02:14:16 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=7b0c7bdd-0daf-4504-82bc-c4d943899133 photoPaths=0
+02:14:16 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+02:14:16 INFO  sync   Remove step 1: starting removeFromDevice projectId=9fb43e3e-aeac-4afa-a4e8-1ac6f0b025db force=true
+02:14:16 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+02:14:16 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 7b0c7bdd-0daf-4504-82bc-c4d943899133
+02:14:17 INFO  sync   Reachability check passed (HTTP 401)
+02:14:17 INFO  sync   SyncCoordinator: starting quick sync
+02:14:17 INFO  sync   AppInitializer: waiting for in-progress sync to finish before auth context became ready follow-up
+02:14:17 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+02:14:17 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=9fb43e3e-aeac-4afa-a4e8-1ac6f0b025db photoPaths=0
+02:14:17 INFO  sync   Remove step 1: starting removeFromDevice projectId=1d89880d-fb8d-4dcb-8ed4-2509613e3779 force=true
+02:14:17 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+02:14:17 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 9fb43e3e-aeac-4afa-a4e8-1ac6f0b025db
+02:14:17 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+02:14:17 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=1d89880d-fb8d-4dcb-8ed4-2509613e3779 photoPaths=0
+02:14:17 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 1d89880d-fb8d-4dcb-8ed4-2509613e3779
+02:14:17 INFO  sync   EnrollmentHandler: cleaned 3 unassigned synced_projects entries
+02:14:17 INFO  sync   Reachability check passed (HTTP 401)
+02:14:17 INFO  sync   [SyncMutex] lock already held: DatabaseException(UNIQUE constraint failed: sync_lock.id (code 1555 SQLITE_CONSTRAINT_PRIMARYKEY[1555])) sql 'INSERT INTO sync_lock (id, locked_at, locked_by, last_heartbeat) VALUES (1, strftime('%Y-%m-%dT%H:%M:%f', 'now'), ?, strftime('%Y-%m-%dT%H:%M:%f', 'now'))' args [foreground]
+02:14:17 INFO  sync   Lock held by another process, skipping sync
+02:14:17 INFO  sync   Non-retryable error detected, skipping retry: [Sync skipped: another sync is already in progress]
+02:14:17 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:14:17 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=1
+02:14:17 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=1
+02:14:17 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=3
+02:14:17 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=2
+02:14:17 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:14:17 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=1 conflicts=0 skippedFk=24 skippedPush=0 duration=9634ms
+02:14:17 INFO  sync   Non-retryable error detected, skipping retry: [Circuit breaker tripped: too many pending changes]
+02:14:17 INFO  sync   AppInitializer: triggering quick sync after auth context became ready
+02:14:17 INFO  sync   SyncCoordinator: starting quick sync
+02:14:17 INFO  sync   Reachability check passed (HTTP 401)
+02:14:17 INFO  sync   CIRCUIT BREAKER: change_log exceeds 1000. Push suspended.
+02:14:17 INFO  sync   quick push complete: 0 pushed, 1 errors
+02:14:17 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:14:18 INFO  sync   FK rescue: inserted parent project 1d89880d-fb8d-4dcb-8ed4-2509613e3779 and enrolled
+02:14:18 INFO  sync   FK rescue: pulled parent project 1d89880d-fb8d-4dcb-8ed4-2509613e3779 for assignment af3a5aeb-b43c-44f9-906e-b644f32f0bef
+02:14:18 INFO  sync   Pulled 1 project_assignments, enrolling projects
+02:14:20 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:14:20 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:14:20 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:14:20 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:14:20 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:14:20 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:14:20 INFO  sync   Remove step 1: starting removeFromDevice projectId=1d89880d-fb8d-4dcb-8ed4-2509613e3779 force=true
+02:14:20 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+02:14:21 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+02:14:21 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=1d89880d-fb8d-4dcb-8ed4-2509613e3779 photoPaths=0
+02:14:21 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 1d89880d-fb8d-4dcb-8ed4-2509613e3779
+02:14:21 INFO  sync   EnrollmentHandler: cleaned 1 unassigned synced_projects entries
+02:14:21 INFO  sync   quick pull complete: 1 pulled, 0 errors
+02:14:21 INFO  sync   Sync cycle (quick): pushed=0 pulled=1 errors=1 conflicts=0 skippedFk=1 skippedPush=0 duration=3180ms
+02:14:21 INFO  sync   Non-retryable error detected, skipping retry: [Circuit breaker tripped: too many pending changes]
+02:14:43 INFO  lifecycle [TEST_MODE] Debug HTTP log server transport enabled
+02:14:43 INFO  lifecycle [ConfigValidator] Validating app configuration...
+02:14:43 INFO  lifecycle [ConfigValidator] Configuration summary:
+02:14:43 INFO  lifecycle   - Supabase: configured
+02:14:43 INFO  lifecycle   - Test mode: disabled
+02:14:43 INFO  lifecycle [ConfigValidator] WARNING: SUPABASE_ANON_KEY appears too short - verify it is correct.
+02:14:43 INFO  lifecycle   - Mock data: disabled
+02:14:43 INFO  lifecycle   - Mock weather: disabled
+02:14:43 INFO  db     Opening database at: /data/user/0/com.fieldguideapp.inspector/databases/construction_inspector.db
+02:14:43 INFO  db     Database opened successfully
+02:14:43 INFO  db     SchemaVerifier: verified 40 tables in 65ms — SchemaReport(drift=0, missing_cols=0, missing_tables=0)
+02:14:43 INFO  db     Database initialized successfully
+02:14:43 INFO  ocr    Initializing Tesseract OCR engine...
+02:14:43 INFO  ocr    Tesseract initialized successfully | {"tessdataPath":"/data/user/0/com.fieldguideapp.inspector/files/tessdata","languages":["eng"]}
+02:14:43 INFO  auth   Initializing Supabase with configured credentials
+02:14:43 INFO  auth   Supabase initialized successfully
+02:14:43 INFO  sync   Firebase initialized successfully
+02:14:44 INFO  db     INSERT inspector_forms id=mdot_0582b
+02:14:44 INFO  db     ORPHAN_CHECK found 0 orphaned projects
+02:14:44 INFO  db     ORPHAN_CHECK found 0 orphaned projects
+02:14:44 INFO  sync   SyncCoordinator: Initializing...
+02:14:44 INFO  sync   Registered 26 adapters
+02:14:44 INFO  sync   SyncInitializer.create() complete
+02:14:44 INFO  sync   SyncCoordinator: Initialization complete
+02:14:44 INFO  sync   WorkManager initialized and task registered
+02:14:44 INFO  sync   FCM permission status=AuthorizationStatus.authorized
+02:14:44 INFO  sync   RealtimeHintHandler: rebinding from none to 26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:14:44 INFO  sync   AppInitializer: triggering quick sync after company context changed
+02:14:44 INFO  sync   SyncCoordinator: starting quick sync
+02:14:44 INFO  sync   FCM initialization error: [firebase_messaging/unknown] java.io.IOException: java.util.concurrent.ExecutionException: java.io.IOException: FIS_AUTH_ERROR
+02:14:44 INFO  sync   Reachability check passed (HTTP 401)
+02:14:44 INFO  sync   RealtimeHintHandler: reload registration state
+02:14:44 INFO  sync   quick push complete: 0 pushed, 0 errors
+02:14:44 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:14:45 INFO  lifecycle Driver mode ready on port 4948
+02:14:45 INFO  lifecycle Consent state loaded: accepted=true, storedUser=d1ca900e-d880-4915-9950-e29ba180b028, currentUser=d1ca900e-d880-4915-9950-e29ba180b028, version=1.0.0, current=1.0.0, valid=true
+02:14:46 INFO  nav    Route push: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:14:46 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from none)
+02:14:47 INFO  sync   RealtimeHintHandler: subscribed to private channel (sub=2027e9b6-6a10-49f6-bdf0-c411d821fc5a)
+02:14:47 INFO  sync   RealtimeHintHandler: reload registration state
+02:14:47 INFO  sync   RealtimeHintHandler: channel closed
+02:14:47 INFO  sync   RealtimeHintHandler: starting fallback polling (channel_closed) every 20s
+02:14:47 INFO  sync   RealtimeHintHandler: reload registration state
+02:14:47 INFO  sync   RealtimeHintHandler: channel closed
+02:14:47 INFO  sync   Reachability check passed (HTTP 401)
+02:14:47 INFO  sync   SyncCoordinator: starting quick sync
+02:14:47 INFO  sync   RealtimeHintHandler: subscribed to private channel (sub=2027e9b6-6a10-49f6-bdf0-c411d821fc5a)
+02:14:47 INFO  sync   Reachability check passed (HTTP 401)
+02:14:48 INFO  sync   [SyncMutex] lock already held: DatabaseException(UNIQUE constraint failed: sync_lock.id (code 1555 SQLITE_CONSTRAINT_PRIMARYKEY[1555])) sql 'INSERT INTO sync_lock (id, locked_at, locked_by, last_heartbeat) VALUES (1, strftime('%Y-%m-%dT%H:%M:%f', 'now'), ?, strftime('%Y-%m-%dT%H:%M:%f', 'now'))' args [foreground]
+02:14:48 INFO  sync   Lock held by another process, skipping sync
+02:14:48 INFO  sync   Non-retryable error detected, skipping retry: [Sync skipped: another sync is already in progress]
+02:14:48 INFO  sync   FetchRemoteProjectsUseCase: companyId=26fe92cd-7044-4412-9a09-5c5f49a292f9
+02:14:48 INFO  sync   FetchRemoteProjectsUseCase: enrolled projects=2
+02:14:48 INFO  sync   FetchRemoteProjectsUseCase: synced_projects entries=2
+02:14:48 INFO  sync   FetchRemoteProjectsUseCase: total projects in SQLite=4
+02:14:48 INFO  sync   FetchRemoteProjectsUseCase: available (unenrolled)=2
+02:14:49 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:14:49 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:14:49 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:14:50 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:14:50 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:14:50 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:14:50 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:14:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=5680ms
+02:14:57 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from _CustomTransitionPageRoute<void>)
+02:14:57 INFO  nav    Route remove: _CustomTransitionPageRoute<void> (from none)
+02:15:26 INFO  nav    Route push: _CustomTransitionPageRoute<void> (from _CustomTransitionPageRoute<void>)
+02:15:26 INFO  nav    Route remove: _CustomTransitionPageRoute<void> (from none)
+02:15:26 INFO  sync   Reachability check passed (HTTP 401)
+02:15:26 INFO  sync   SyncCoordinator: starting quick sync
+02:15:27 INFO  sync   Reachability check passed (HTTP 401)
+02:15:27 INFO  sync   quick push complete: 0 pushed, 0 errors
+02:15:27 INFO  sync   Quick sync fallback: running scoped incremental pull (no_dirty_scopes)
+02:15:28 INFO  nav    Route push: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from _PageBasedMaterialPageRoute<void> args={})
+02:15:28 INFO  nav    Route remove: _PageBasedMaterialPageRoute<void> args={} (from none)
+02:15:29 INFO  sync   Pull skip (adapter.skipPull): form_exports
+02:15:29 INFO  sync   Pull skip (adapter.skipPull): export_artifacts
+02:15:29 INFO  sync   Pull skip (adapter.skipPull): entry_exports
+02:15:30 INFO  sync   Pull skip (adapter.skipPull): user_consent_records
+02:15:30 INFO  sync   Pull insert ignored (constraint conflict): signature_files/e656e1cf-b055-4b6f-a700-af3f1b8028c9
+02:15:30 INFO  sync   Pull skip (FK violation): signature_audit_log/f6557dab-a522-4faa-9229-acda6d4ac9b0
+02:15:30 INFO  sync   quick pull complete: 0 pulled, 0 errors
+02:15:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=3095ms
+02:15:31 INFO  nav    Route push: projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199})
+02:15:31 INFO  nav    Route remove: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from none)
+02:15:33 INFO  nav    Route push: quantities args={} (from projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199})
+02:15:33 INFO  nav    Route remove: projectAnalytics args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199} (from none)
+02:15:35 INFO  nav    Route push: payAppDetail args={payAppId: harness-pay-app-001} (from quantities args={})
+02:15:35 INFO  nav    Route remove: quantities args={} (from none)
+

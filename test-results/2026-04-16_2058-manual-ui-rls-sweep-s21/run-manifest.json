@@ -1,0 +1,16 @@
+{
+  "runId": "2026-04-16_2058-manual-ui-rls-sweep-s21",
+  "scope": "s21-only",
+  "device": {
+    "model": "SM-G996U",
+    "id": "RFCNC0Y975L",
+    "driverPort": 4948,
+    "name": "S21"
+  },
+  "debugServer": "http://127.0.0.1:3947",
+  "startedAtUtc": "2026-04-17T00:58:13.0220419Z",
+  "spec": ".claude/specs/2026-04-16-ui-e2e-feature-harness-refactor-spec.md",
+  "notes": [
+    "S10 intentionally excluded for this pass per user instruction."
+  ]
+}

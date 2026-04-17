@@ -1,0 +1,12 @@
+flow=entries.nav_bar_switch_mid_flow
+result=FAIL
+steps:
+- navigate /entry/harness-project-001/2026-04-16: navigated true
+- wait entry_editor_scroll: found true
+- find entry_wizard_save_draft: exists false
+- scroll-to-key entry_wizard_save: found true after 3 scrolls
+- find entry_wizard_save: exists true visible true
+expected:
+- feature spec key entry_wizard_save_draft exists and can be tapped
+actual:
+- entry_wizard_save_draft absent; live UI uses entry_wizard_save

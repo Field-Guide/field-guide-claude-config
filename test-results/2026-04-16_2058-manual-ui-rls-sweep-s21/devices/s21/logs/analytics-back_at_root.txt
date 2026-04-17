@@ -1,0 +1,15 @@
+flow=analytics.back_at_root
+result=FAIL
+steps:
+- open analytics deep link
+- tap date filter: visible date range UI opened
+- back: closes date range UI
+- back again: navigatedBack false
+state:
+- route remains /analytics/harness-project-001
+- project_analytics_screen exists true
+- hasBottomNav false
+expected:
+- back returns to dashboard/project context
+actual:
+- root analytics screen is stranded

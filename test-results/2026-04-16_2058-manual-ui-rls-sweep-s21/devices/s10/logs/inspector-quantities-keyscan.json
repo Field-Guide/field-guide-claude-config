@@ -1,0 +1,16 @@
+[
+  {
+    "key": "quantities_screen",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "quantities_import_button",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  }
+]

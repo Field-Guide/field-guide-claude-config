@@ -1,0 +1,16 @@
+[
+  {
+    "key": "project_analytics_screen",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "SingleChildScrollView"
+  },
+  {
+    "key": "analytics_date_filter_button",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  }
+]

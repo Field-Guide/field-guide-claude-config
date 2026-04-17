@@ -1,0 +1,12 @@
+flow=forms.backward_traversal
+result=FAIL
+steps:
+- navigate /form/harness-response-001: navigated true
+- wait mdot_hub_screen: failed, widget not found within 5000ms
+- state before back: form_viewer_screen true, mdot_hub_screen false
+- back: navigatedBack false
+- state after back: route /form/harness-response-001, form_viewer_screen true, form_gallery_screen false
+expected:
+- terminal form screen backs to form_gallery_screen
+actual:
+- deep link is stranded on form_viewer_screen with no bottom nav and back does nothing

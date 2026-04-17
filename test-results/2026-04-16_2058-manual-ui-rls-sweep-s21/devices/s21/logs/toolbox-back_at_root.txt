@@ -1,0 +1,5 @@
+flow=toolbox
+results:
+- forward_happy PASS: toolbox root cards visible; calculator and todos cards open target screens
+- backward_traversal PASS: back from nested toolbox card returns to toolbox root
+- back_at_root FAIL: back at toolbox root returns navigatedBack false; bottom nav absent

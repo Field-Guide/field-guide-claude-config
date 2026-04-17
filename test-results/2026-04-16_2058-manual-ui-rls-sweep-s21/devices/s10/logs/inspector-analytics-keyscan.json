@@ -1,0 +1,16 @@
+[
+  {
+    "key": "project_analytics_screen",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "analytics_date_filter_button",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  }
+]

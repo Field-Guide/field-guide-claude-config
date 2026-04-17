@@ -1,0 +1,101 @@
+01:55:30 INFO  sync   Remove step 1: starting removeFromDevice projectId=363f5712-4a41-402c-9428-f46adeeb1961 force=true
+01:55:30 INFO  sync   SYNC_CONTROL suppressed=true (withDb)
+01:55:30 INFO  sync   Remove step FINAL: completed removeFromDevice projectId=363f5712-4a41-402c-9428-f46adeeb1961 photoPaths=0
+01:55:30 INFO  sync   SYNC_CONTROL suppressed=false (withDb)
+01:55:30 INFO  sync   Full sync scope repair: 1 stale local project shell(s) evicted
+01:55:30 INFO  sync   ScopeRevocationCleaner: fully evicted local scope for 363f5712-4a41-402c-9428-f46adeeb1961
+01:55:32 INFO  sync   INTEGRITY DRIFT: signature_files - Count mismatch: local=0, remote=24
+01:55:33 INFO  sync   Integrity check incomplete or failed; preserving previous last_integrity_check timestamp
+01:55:33 INFO  sync   INTEGRITY DRIFT: signature_audit_log - Count mismatch: local=0, remote=24
+01:55:33 INFO  sync   Cleared cursor for signature_files
+01:55:33 INFO  sync   Cleared cursor for signature_audit_log
+01:55:37 INFO  sync   Sync cycle (full): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=1 skippedPush=0 duration=11116ms
+01:55:38 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:55:38 INFO  sync   PostSyncHooks: Company members pulled
+01:55:38 INFO  sync   RealtimeHintHandler: registration failed: PostgrestException(message: register_sync_hint_channel: too many active subscriptions (max 10), code: P0001, details: Bad Request, hint: null)
+01:55:38 INFO  sync   PostSyncHooks: last_synced_at updated
+01:55:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:55:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:55:50 INFO  sync   SyncCoordinator: starting quick sync
+01:55:50 INFO  sync   Reachability check passed (HTTP 401)
+01:55:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:55:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:55:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=10ms
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_08_equipment_tombstones (0 rows)
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_08_project_assignment_residue (0 rows)
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_08_builtin_form_change_log (0 rows)
+01:56:01 INFO  sync   Cleared cursor for entry_exports
+01:56:01 INFO  sync   Cleared cursor for form_exports
+01:56:01 INFO  sync   Cleared cursor for export_artifacts
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_09_local_only_export_queue (0 rows)
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_09_pay_app_schema_mismatch (0 rows)
+01:56:01 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_10_legacy_todo_sync_residue (0 rows)
+01:56:01 INFO  sync   Cleared cursor for locations
+01:56:01 INFO  sync   Cleared cursor for contractors
+01:56:01 INFO  sync   Cleared cursor for equipment
+01:56:01 INFO  sync   Cleared cursor for bid_items
+01:56:01 INFO  sync   Cleared cursor for personnel_types
+01:56:01 INFO  sync   Cleared cursor for daily_entries
+01:56:01 INFO  sync   Cleared cursor for photos
+01:56:01 INFO  sync   Cleared cursor for entry_equipment
+01:56:01 INFO  sync   Cleared cursor for entry_quantities
+01:56:01 INFO  sync   Cleared cursor for entry_contractors
+01:56:01 INFO  sync   Cleared cursor for entry_personnel_counts
+01:56:01 INFO  sync   Cleared cursor for inspector_forms
+01:56:01 INFO  sync   Cleared cursor for form_responses
+01:56:01 INFO  sync   Cleared cursor for todo_items
+01:56:01 INFO  sync   Cleared cursor for calculation_history
+01:56:01 INFO  sync   Cleared cursor for documents
+01:56:01 INFO  sync   Cleared cursor for entry_exports
+01:56:01 INFO  sync   Cleared cursor for form_exports
+01:56:01 INFO  sync   Cleared cursor for export_artifacts
+01:56:01 INFO  sync   Cleared cursor for pay_applications
+01:56:02 INFO  sync   Cleared cursor for signature_files
+01:56:02 INFO  sync   Cleared cursor for signature_audit_log
+01:56:02 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_11_assignment_scope_cursors (17 rows)
+01:56:02 INFO  sync   SyncStateRepairRunner: applied repair_sync_state_v2026_04_11_photo_storage_paths (0 rows)
+01:56:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:56:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:56:10 INFO  sync   SyncCoordinator: starting quick sync
+01:56:10 INFO  sync   Reachability check passed (HTTP 401)
+01:56:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:56:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:56:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=6ms
+01:56:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:56:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:56:30 INFO  sync   SyncCoordinator: starting quick sync
+01:56:30 INFO  sync   Reachability check passed (HTTP 401)
+01:56:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:56:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:56:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=11ms
+01:56:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:56:50 INFO  sync   SyncCoordinator: starting quick sync
+01:56:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:56:50 INFO  sync   Reachability check passed (HTTP 401)
+01:56:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:56:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:56:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+01:57:04 INFO  nav    Route push: project-edit args={projectId: 75ae3283-d4b2-4035-ba2f-7b4adb018199, tab: 2} (from sync-dashboard args={})
+01:57:04 INFO  nav    Route remove: sync-dashboard args={} (from none)
+01:57:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:57:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:57:10 INFO  sync   SyncCoordinator: starting quick sync
+01:57:10 INFO  sync   Reachability check passed (HTTP 401)
+01:57:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:57:10 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:57:10 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=8ms
+01:57:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:57:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:57:30 INFO  sync   SyncCoordinator: starting quick sync
+01:57:30 INFO  sync   Reachability check passed (HTTP 401)
+01:57:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:57:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:57:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=6ms
+01:57:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:57:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:57:50 INFO  sync   SyncCoordinator: starting quick sync
+01:57:50 INFO  sync   Reachability check passed (HTTP 401)
+01:57:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:57:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:57:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=5ms
+

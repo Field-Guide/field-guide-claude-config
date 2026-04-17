@@ -1,0 +1,51 @@
+01:10:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:10:30 INFO  sync   SyncCoordinator: starting quick sync
+01:10:30 INFO  sync   Reachability check passed (HTTP 401)
+01:10:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:10:30 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:10:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=123ms
+01:10:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:10:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:10:50 INFO  sync   SyncCoordinator: starting quick sync
+01:10:50 INFO  sync   Reachability check passed (HTTP 401)
+01:10:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:10:50 INFO  sync   quick push complete: 0 pushed, 0 errors
+01:10:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=0 conflicts=0 skippedFk=0 skippedPush=0 duration=20ms
+01:11:10 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:11:10 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:11:10 INFO  sync   SyncCoordinator: starting quick sync
+01:11:10 INFO  sync   Reachability check passed (HTTP 401)
+01:11:10 INFO  sync   Push error for projects/harness-project-001: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.
+01:11:10 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:10 INFO  sync   Delete push skipped: daily_entries/dc009ef1-567b-47bf-a7e0-41e18604f186 -- local row gone and no preserved tombstone metadata
+01:11:10 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:10 INFO  sync   BLOCKED: form_responses/harness-response-001 -- parent projects/harness-project-001 has failed
+01:11:10 INFO  sync   quick push complete: 1 pushed, 4 errors
+01:11:10 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:11:10 INFO  sync   Sync cycle (quick): pushed=1 pulled=0 errors=4 conflicts=0 skippedFk=0 skippedPush=0 duration=96ms
+01:11:10 INFO  sync   Non-retryable error detected, skipping retry: [projects/harness-project-001: Unknown error: StateError: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.]
+01:11:30 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:11:30 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:11:30 INFO  sync   SyncCoordinator: starting quick sync
+01:11:30 INFO  sync   Reachability check passed (HTTP 401)
+01:11:30 INFO  sync   Push error for projects/harness-project-001: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.
+01:11:30 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:30 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:30 INFO  sync   BLOCKED: form_responses/harness-response-001 -- parent projects/harness-project-001 has failed
+01:11:30 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:11:30 INFO  sync   quick push complete: 0 pushed, 4 errors
+01:11:30 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=4 conflicts=0 skippedFk=0 skippedPush=0 duration=44ms
+01:11:30 INFO  sync   Non-retryable error detected, skipping retry: [projects/harness-project-001: Unknown error: StateError: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.]
+01:11:50 INFO  sync   RealtimeHintHandler: fallback poll triggering quick sync
+01:11:50 INFO  sync   RealtimeHintHandler: triggering quick sync (realtime_fallback_poll)
+01:11:50 INFO  sync   SyncCoordinator: starting quick sync
+01:11:50 INFO  sync   Reachability check passed (HTTP 401)
+01:11:50 INFO  sync   Push error for projects/harness-project-001: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.
+01:11:50 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:50 INFO  sync   BLOCKED: daily_entries/harness-entry-001 -- parent projects/harness-project-001 has failed
+01:11:50 INFO  sync   BLOCKED: form_responses/harness-response-001 -- parent projects/harness-project-001 has failed
+01:11:50 INFO  sync   quick push complete: 0 pushed, 4 errors
+01:11:50 INFO  sync   Quick sync skipped pull: dirty scopes required but none were present
+01:11:50 INFO  sync   Sync cycle (quick): pushed=0 pulled=0 errors=4 conflicts=0 skippedFk=0 skippedPush=0 duration=85ms
+01:11:50 INFO  sync   Non-retryable error detected, skipping retry: [projects/harness-project-001: Unknown error: StateError: Bad state: Company ID mismatch: projects record has harness-company-001 but current user belongs to 26fe92cd-7044-4412-9a09-5c5f49a292f9. Refusing to push cross-company data.]
+

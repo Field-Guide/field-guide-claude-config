@@ -1,0 +1,16 @@
+[
+  {
+    "exists": false,
+    "key": "sync_repair_banner"
+  },
+  {
+    "exists": false,
+    "key": "sync_state_badge"
+  },
+  {
+    "exists": true,
+    "key": "sync_repair_blocked_queue_tile",
+    "widgetType": "ListTile",
+    "visible": true
+  }
+]

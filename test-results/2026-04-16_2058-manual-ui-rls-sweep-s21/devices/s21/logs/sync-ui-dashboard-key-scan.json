@@ -1,0 +1,72 @@
+[
+  {
+    "key": "sync_now_tile",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "sync_view_conflicts_tile",
+    "exists": true,
+    "visible": false,
+    "enabled": null,
+    "widgetType": "ListTile"
+  },
+  {
+    "key": "sync_view_projects_tile",
+    "exists": true,
+    "visible": false,
+    "enabled": null,
+    "widgetType": "ListTile"
+  },
+  {
+    "key": "sync_repair_blocked_queue_tile",
+    "exists": true,
+    "visible": false,
+    "enabled": null,
+    "widgetType": "ListTile"
+  },
+  {
+    "key": "sync_rebuild_diagnostics_tile",
+    "exists": true,
+    "visible": false,
+    "enabled": null,
+    "widgetType": "ListTile"
+  },
+  {
+    "key": "sync_resume_sync_button",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "sync_now_full_button",
+    "exists": true,
+    "visible": false,
+    "enabled": true,
+    "widgetType": "FilledButton"
+  },
+  {
+    "key": "sync_repair_banner",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "AppBanner"
+  },
+  {
+    "key": "sync_conflict_banner",
+    "exists": false,
+    "visible": null,
+    "enabled": null,
+    "widgetType": null
+  },
+  {
+    "key": "sync_state_badge",
+    "exists": true,
+    "visible": true,
+    "enabled": null,
+    "widgetType": "Icon"
+  }
+]
