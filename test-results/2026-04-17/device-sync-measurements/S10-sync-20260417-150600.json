@@ -1,0 +1,486 @@
+{
+  "deviceLabel": "S10",
+  "driverPort": 4949,
+  "startedAtUtc": "2026-04-17T19:06:00.4897320Z",
+  "completedAtUtc": "2026-04-17T19:06:14.3392712Z",
+  "durationMs": 12921,
+  "triggeredThroughUi": true,
+  "directDriverSyncEndpointUsed": false,
+  "observedSyncing": true,
+  "startStatus": {
+    "isSyncing": false,
+    "pendingCount": 0,
+    "blockedCount": 0,
+    "unprocessedCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerThreshold": 1000,
+    "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+  },
+  "startChangeLog": {
+    "entries": [],
+    "count": 0,
+    "entryLimit": 100,
+    "unprocessedCount": 0,
+    "blockedCount": 0,
+    "maxRetryCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerRiskCount": 0,
+    "circuitBreakerThreshold": 1000,
+    "retryExhaustionThreshold": 5,
+    "grouped": []
+  },
+  "startRuntime": {
+    "available": true,
+    "lastRequestedMode": "quick",
+    "lastRunHadDirtyScopesBeforeSync": false,
+    "stateFingerprint": {
+      "appVersion": "0.1.3",
+      "schemaVersion": 60,
+      "repairCatalogVersion": "2026-04-17.1",
+      "appliedRepairCount": 9,
+      "latestAppliedRepairJobId": "repair_sync_state_v2026_04_17_harness_seed_residue",
+      "latestRepairAppliedAt": "2026-04-17T18:55:18.705379Z",
+      "failedRepairCount": 0,
+      "latestFailedRepairJobId": null,
+      "latestRepairFailureAt": null
+    },
+    "dirtyScopeCount": 0,
+    "dirtyScopes": []
+  },
+  "finalStatus": {
+    "isSyncing": false,
+    "pendingCount": 0,
+    "blockedCount": 0,
+    "unprocessedCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerThreshold": 1000,
+    "lastSyncTime": "2026-04-17T19:06:13.397336Z"
+  },
+  "finalChangeLog": {
+    "entries": [],
+    "count": 0,
+    "entryLimit": 100,
+    "unprocessedCount": 0,
+    "blockedCount": 0,
+    "maxRetryCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerRiskCount": 0,
+    "circuitBreakerThreshold": 1000,
+    "retryExhaustionThreshold": 5,
+    "grouped": []
+  },
+  "finalRuntime": {
+    "available": true,
+    "lastRequestedMode": "full",
+    "lastRunHadDirtyScopesBeforeSync": false,
+    "stateFingerprint": {
+      "appVersion": "0.1.3",
+      "schemaVersion": 60,
+      "repairCatalogVersion": "2026-04-17.1",
+      "appliedRepairCount": 9,
+      "latestAppliedRepairJobId": "repair_sync_state_v2026_04_17_harness_seed_residue",
+      "latestRepairAppliedAt": "2026-04-17T18:55:18.705379Z",
+      "failedRepairCount": 0,
+      "latestFailedRepairJobId": null,
+      "latestRepairFailureAt": null
+    },
+    "dirtyScopeCount": 0,
+    "dirtyScopes": []
+  },
+  "failureClassification": null,
+  "artifactDir": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\device-sync-measurements\\S10-sync-20260417-150600",
+  "screenshotBefore": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\device-sync-measurements\\S10-sync-20260417-150600\\sync-dashboard-before.png",
+  "screenshotAfter": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\device-sync-measurements\\S10-sync-20260417-150600\\sync-dashboard-after.png",
+  "passed": true,
+  "timeoutSeconds": 240,
+  "pollIntervalMilliseconds": 250,
+  "samples": [
+    {
+      "elapsedMs": 592,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 901,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 1198,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 1500,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 1774,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 2056,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 2336,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 2619,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 2913,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 3240,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 3524,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 3820,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 4163,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 4459,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 4772,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 5058,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 5348,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 5626,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 5915,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 6196,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 6467,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 6760,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 7055,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 7346,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 7638,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 7916,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 8201,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 8490,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 8773,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 9074,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 9361,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 9641,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 9923,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 10196,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 10482,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 10758,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 11047,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 11346,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 11652,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 11941,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 12222,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 12497,
+      "isSyncing": true,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:05:54.098378Z"
+    },
+    {
+      "elapsedMs": 12920,
+      "isSyncing": false,
+      "pendingCount": 0,
+      "blockedCount": 0,
+      "unprocessedCount": 0,
+      "circuitBreakerTripped": false,
+      "lastSyncTime": "2026-04-17T19:06:13.397336Z"
+    }
+  ]
+}

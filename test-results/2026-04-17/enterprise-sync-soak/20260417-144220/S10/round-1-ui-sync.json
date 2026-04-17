@@ -1,0 +1,436 @@
+{
+  "actorId": "S10",
+  "deviceLabel": "S10",
+  "driverPort": 4949,
+  "role": "unknown",
+  "round": 1,
+  "durationMs": 15012,
+  "triggeredThroughUi": true,
+  "directDriverSyncEndpointUsed": false,
+  "observedSyncing": true,
+  "startStatus": {
+    "isSyncing": false,
+    "pendingCount": 1694,
+    "blockedCount": 0,
+    "unprocessedCount": 1694,
+    "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+  },
+  "finalStatus": {
+    "isSyncing": false,
+    "pendingCount": 1694,
+    "blockedCount": 0,
+    "unprocessedCount": 1694,
+    "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+  },
+  "samples": [
+    {
+      "elapsedMs": 557,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 857,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 1140,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 1419,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 1704,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 1999,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 2271,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 2582,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 2874,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 3164,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 3441,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 3730,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 4032,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 4341,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 4617,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 4945,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 5233,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 5516,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 5806,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 6099,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 6400,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 6679,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 6956,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 7234,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 7522,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 7822,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 8115,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 8406,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 8695,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 8982,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 9259,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 9543,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 9818,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 10107,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 10387,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 10663,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 10956,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 11240,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 11514,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 11798,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 12106,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 12384,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 12681,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 12970,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 13251,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 13531,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 13823,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 14110,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 14397,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 14688,
+      "isSyncing": true,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    },
+    {
+      "elapsedMs": 15010,
+      "isSyncing": false,
+      "pendingCount": 1694,
+      "blockedCount": 0,
+      "unprocessedCount": 1694,
+      "lastSyncTime": "2026-04-17T15:26:40.408579Z"
+    }
+  ],
+  "passed": false
+}

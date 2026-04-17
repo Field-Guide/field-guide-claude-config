@@ -1,0 +1,32 @@
+{
+  "actorId": "S21",
+  "deviceLabel": "S21",
+  "driverPort": 4948,
+  "role": "unknown",
+  "currentProjectIndex": 1,
+  "round": 1,
+  "startedAtUtc": "2026-04-17T19:07:25.8635725Z",
+  "operation": "ui_sync",
+  "localMutation": null,
+  "passed": true,
+  "failureClassification": null,
+  "completedAtUtc": "2026-04-17T19:07:36.3212381Z",
+  "preSyncStatus": {
+    "isSyncing": false,
+    "pendingCount": 0,
+    "blockedCount": 0,
+    "unprocessedCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerThreshold": 1000,
+    "lastSyncTime": "2026-04-17T19:07:06.694385Z"
+  },
+  "postSyncStatus": {
+    "isSyncing": false,
+    "pendingCount": 0,
+    "blockedCount": 0,
+    "unprocessedCount": 0,
+    "circuitBreakerTripped": false,
+    "circuitBreakerThreshold": 1000,
+    "lastSyncTime": "2026-04-17T19:07:35.587784Z"
+  }
+}

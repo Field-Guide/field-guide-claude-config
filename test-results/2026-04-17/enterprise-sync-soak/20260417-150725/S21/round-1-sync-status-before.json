@@ -1,0 +1,9 @@
+{
+  "isSyncing": false,
+  "pendingCount": 0,
+  "blockedCount": 0,
+  "unprocessedCount": 0,
+  "circuitBreakerTripped": false,
+  "circuitBreakerThreshold": 1000,
+  "lastSyncTime": "2026-04-17T19:07:06.694385Z"
+}

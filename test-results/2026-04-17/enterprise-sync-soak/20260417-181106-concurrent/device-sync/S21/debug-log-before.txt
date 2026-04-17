@@ -1,0 +1,321 @@
+--------- beginning of main
+04-17 18:10:22.753  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+--------- beginning of system
+04-17 18:10:23.101   805   805 D io_stats: !@   8,0 r 1081926 29430272 w 718632 18018892 d 182531 102122644 f 0 0 iot 981436 0 th 0 0 0 pt 0 inp 0 0 106092.631
+04-17 18:10:23.102   805   805 D io_stats: !@ Write_top(KB): kworker/u16:0(12450) 8 martsuggestions(5503) 4 ung.faceservice(26677) 4
+04-17 18:10:23.320  1227  3430 I sensors-hal: handle_sns_client_event:261, auto_rotation_debug_2 mode,255, type,1,0 acc,0.268,-0.014,10.009, ar,0, ver,12
+04-17 18:10:23.369  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][20685] accel_sample [ 0.293, -0.004, 10.003] 106092886139700
+04-17 18:10:23.555  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33957, isSameBssidAndFreq true
+04-17 18:10:23.559  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:23.675  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:23.717  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-43, periodicAdvInt=0x0
+04-17 18:10:25.102   805   805 D io_stats: !@   8,0 r 1081926 29430272 w 718643 18018928 d 182531 102122644 f 0 0 iot 981456 0 th 0 0 0 pt 0 inp 0 0 106094.633
+04-17 18:10:25.385  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][20790] accel_sample [ 0.272,  0.002, 10.005] 106094901935012
+04-17 18:10:25.676  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:25.711  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:26.119  2930  2930 I wpa_supplicant: Heartbeat 10599
+04-17 18:10:26.586  1555  2525 D WifiConnectivityMonitor: Stop WCM Poll. cnt : 5
+04-17 18:10:26.586  1555  2525 I WifiConnectivityMonitor: LinkQualityMonitorCallback was not registered yet
+04-17 18:10:26.678  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33958, isSameBssidAndFreq true
+04-17 18:10:27.104   805   805 D io_stats: !@ Write_top(KB): soft.appmanager(8434) 16 kworker/u16:0(12450) 12
+04-17 18:10:27.402  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][20895] accel_sample [ 0.261, -0.011, 10.015] 106096917729908
+04-17 18:10:27.445  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-41, periodicAdvInt=0x0
+04-17 18:10:28.750  5596  5596 I SDHMS:LOAD: type: LoadsFreqs, value: 0:0:0:844800:844800:844800:727295:1555200:710400:315:315:315
+04-17 18:10:29.233  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:10:29.380  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:42:14, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-70, periodicAdvInt=0x0
+04-17 18:10:29.393  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:29.417  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21000] accel_sample [ 0.293, -0.004, 10.010] 106098933524387
+04-17 18:10:29.817  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33959, isSameBssidAndFreq true
+04-17 18:10:30.523  3931 13845 I NearbyMediums: Found Fast Ble Advertisements :
+04-17 18:10:30.523  3931 13845 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x53 0x30 0x35 0x51 0x11 0x34 0xa3 0x5d 0xa9 0x6a 0xd9 0x4b 0x6f 0xbb 0xb1 0xab 0x22 0x1b 0x62 0x27 0xb2 0xa9 ], deviceToken=[ 0x19 0xb8 ], rxAdvertisement=[ 0xa0 0x17 0xf9 0xaa 0x5e 0x5b 0x23 0x96 0x72 0xb6 0xf8 0x53 0x82 0x29 0x79 0x29 0xe1 0xca 0xc8 0xf7 0x33 0xaa 0xda 0x6a 0x64 0x7d 0x4d 0xd9 0xca 0x09 0x5e 0x3b 0x50 0x66 0x84 0x15 0x05 0x7f 0xff 0x1f 0x84 0x15 0x06 0x61 0x00 0x00 0x84 0x15 0x04 0x7f 0xff 0x1f 0x84 0x15 0x07 0x7f 0xff 0x1f 0x83 0x15 0x01 0x15 0xcc ] } : 6 times.
+04-17 18:10:30.523  3931 13845 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x39 0x4b 0x4f 0x4f 0x11 0x32 0x92 0xe3 0x9b 0x9c 0x08 0xf4 0x2b 0x36 0xfe 0x3f 0x1b 0x89 0xb9 0x68 0xf6 0x8e ], deviceToken=[ 0x54 0xd3 ], rxAdvertisement=null } : 1 times.
+04-17 18:10:30.523  3931 13845 I NearbyMediums: Total 7 fast advertisements from 2 unique advertisers.
+04-17 18:10:30.524  3931 13845 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-17 18:10:30.839  1555 15767 I ActivityManager: Changes in 10361 19 to 5, 0 to 16
+04-17 18:10:30.910 25497 25507 I PrivacyDashboard: PermissionAccessInformationContentProvider  bulkInsert : 19
+04-17 18:10:31.108   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718660 18019200 d 182531 102122644 f 0 0 iot 981508 0 th 0 0 0 pt 0 inp 0 0 106100.638
+04-17 18:10:31.108   805   805 D io_stats: !@ Read_top(KB): rivacydashboard(25497) 56
+04-17 18:10:31.108   805   805 D io_stats: !@ Write_top(KB): system_server(1555) 240 kworker/u16:1(12758) 32
+04-17 18:10:31.434  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21105] accel_sample [ 0.286,  0.002, 10.010] 106100949318450
+04-17 18:10:32.211  1555 13875 D WifiConnectivityMonitor.DnsThread:  [|210] []
+04-17 18:10:32.211  1555  2527 D WifiConnectivityMonitor.NetworkStatsAnalyzer: DNS resultType : 0, responseTime : 210
+04-17 18:10:32.212  1555  2525 D OpenNetworkQos[4.00]: updateBssidLatestDnsResultType - result: 0
+04-17 18:10:32.212  1555  2525 D OpenNetworkQos[4.00]: updateBssidNoInternet: mBssidNoInternet = false
+04-17 18:10:32.212  1555  2525 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-17 18:10:32.212  1555  2525 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 16 0 0 
+04-17 18:10:32.212  1555  2525 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = wifi_wcm_qos_sharing_score_summary
+04-17 18:10:32.213  1555  2525 I WifiProfileShare: network QoS data was changed (internet), updateQoSData networkType: true, qosData: false
+04-17 18:10:32.214  1555  3551 V WifiProfileShare.Caster: update wips network, size: 0
+04-17 18:10:32.214  1555  3551 D WifiProfileShare: nearby scanning settings run
+04-17 18:10:32.214  1555  3551 D WifiProfileShare: network score provider settings enabled
+04-17 18:10:32.215  1555  3551 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 16 0 0 
+04-17 18:10:32.215  1555  3551 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-17 18:10:32.215  1555  3551 I WifiProfileShare.Caster: current network type: 0, score: [16, 0, 0]
+04-17 18:10:32.224  1555  3551 V WifiProfileShare.Cache: update network score c8:e3:06:**:**:65
+04-17 18:10:32.224  1555  3551 D WifiProfileShare.ScanMatcher: getMcfDataList size:4
+04-17 18:10:32.224  1555  3551 I WifiProfileShare.Caster: qos data was updated , before:type:QOS, pBssid:0c:31:ad, qosData:4b after:type:QOS, pBssid:0c:31:ad, qosData:4b
+04-17 18:10:32.225  1555  3551 I [MCFSDK_android_1.2.27006]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-17 18:10:32.226  1555  3551 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-17 18:10:32.226  1555  3551 D WifiProfileShare.McfCast: updateQoSData ignored, same contents
+04-17 18:10:32.226  1555  3551 D WifiProfileShare.MCF: success update QosData !
+04-17 18:10:32.226  1555  3551 I [MCFSDK_android_1.2.27006]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-17 18:10:32.226  1555  3551 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-17 18:10:32.226  1555  3551 D WifiProfileShare.McfCast: -ME--- updatePasswordDate pwdData size:4
+04-17 18:10:32.912  1555  2402 D ConnectivityService: notifyType CALLBACK_CAP_CHANGED for [101 WIFI]
+04-17 18:10:32.914  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33960, isSameBssidAndFreq true
+04-17 18:10:32.919  1227  3430 I sensors-hal: handle_sns_client_event:261, auto_rotation_debug_2 mode,255, type,1,0 acc,0.280,-0.012,10.021, ar,0, ver,12
+04-17 18:10:32.919  2653  2980 D WifiPickerTracker: updateWifiEntries capabilities
+04-17 18:10:32.923  2653  2980 D WifiPickerTracker: update AutoHotspot Entries() : bleAccessPoints -> 0
+04-17 18:10:32.923  2653  2980 D WifiPickerTracker: handleNetworkCapabilitiesChanged
+04-17 18:10:32.925  1555  2447 D SemWifiApNsd:Client: lpInterface:wlan0
+04-17 18:10:32.925  1555  2447 D SemWifiSwitchForIndividualAppsService: stopTCPMonitoring : already stopped
+04-17 18:10:32.925  1555  2447 I WifiConnectivityMonitor.NCC: sNetworkCallback(oCC) FULL : 101(valid: true/captive: false)
+04-17 18:10:32.926  1555  2447 I WifiConnectivityMonitor.NCC: [ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=6646Kbps LinkDnBandwidth>=158897Kbps TransportInfo: <SSID: <unknown ssid>, BSSID: 02:00:00:**:**:00, MAC: 02:00:00:**:**:00, IP: /192.***.*.51, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11ax, RSSI: -28, Link speed: 1020Mbps, Tx Link speed: 1020Mbps, Max Supported Tx Link speed: 1200Mbps, Rx Link speed: 864Mbps, Max Supported Rx Link speed: 1200Mbps, Frequency: 5580MHz, Net ID: -1, Metered hint: false, score: 60, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: 1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -28 AdminUids: [1000] SSID: "Janet" UnderlyingNetworks: Null]
+04-17 18:10:32.926  1555  2525 D WifiConnectivityMonitor: HANDLE_ON_CAPABILITIES_CHANGED
+04-17 18:10:32.926  1555  2525 I WifiConnectivityMonitor: determineMode : MODE_NON_SWITCHABLE_BY_POOR_NETWORK_DETECTION_DISABLED
+04-17 18:10:32.927  1555  2525 D OpenNetworkQos[4.00]: updateBssidNoInternet: mBssidNoInternet = false
+04-17 18:10:32.927  1555  2525 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-17 18:10:32.927  1555  2447 D SemWifiApTrafficPriority: onCapabilitiesChanged Wifi:wlan0,mGapiValue:158.897Uplink: 6.646
+04-17 18:10:32.927  1555  2525 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 16 0 0 
+04-17 18:10:32.927  1555  2525 D KNOX_MDM_SettingsProvider: isChangeAllowed() : name = wifi_wcm_qos_sharing_score_summary
+04-17 18:10:32.927  1555  2525 I WifiProfileShare: network QoS data was changed (internet), updateQoSData networkType: true, qosData: false
+04-17 18:10:32.932  6839  7374 I HBD     : h onCapabilitiesChanged network : 101 current network state : wifi 
+04-17 18:10:32.932  9685  9898 D WM-NetworkStateTracker: Network capabilities changed: [ Transports: WIFI Capabilities: NOT_METERED&INTERNET&NOT_RESTRICTED&TRUSTED&NOT_VPN&VALIDATED&NOT_ROAMING&FOREGROUND&NOT_CONGESTED&NOT_SUSPENDED&NOT_VCN_MANAGED&NOT_BANDWIDTH_CONSTRAINED LinkUpBandwidth>=6646Kbps LinkDnBandwidth>=158897Kbps TransportInfo: <SSID: <unknown ssid>, BSSID: 02:00:00:00:00:00, MAC: 02:00:00:00:00:00, IP: /192.168.5.51, Security type: 2, Supplicant state: COMPLETED, Wi-Fi standard: 11ax, RSSI: -28, Link speed: 1020Mbps, Tx Link speed: 1020Mbps, Max Supported Tx Link speed: 1200Mbps, Rx Link speed: 864Mbps, Max Supported Rx Link speed: 1200Mbps, Frequency: 5580MHz, Net ID: -1, Metered hint: false, score: 60, isUsable: true, CarrierMerged: false, SubscriptionId: -1, IsPrimary: -1, Trusted: true, Restricted: false, Ephemeral: false, OEM paid: false, OEM private: false, OSU AP: false, FQDN: <none>, Provider friendly name: <none>, Requesting package name: <none><none>MLO Information: , Is TID-To-Link negotiation supported by the AP: false, AP MLD Address: <none>, AP MLO Link Id: <none>, AP MLO Affiliated links: <none>, Vendor Data: <none>> SignalStrength: -28 UnderlyingNetworks: Null]
+04-17 18:10:32.941  1555  3551 V WifiProfileShare.Caster: update wips network, size: 0
+04-17 18:10:32.941  1555  3551 D WifiProfileShare: nearby scanning settings run
+04-17 18:10:32.941  1555  3551 D WifiProfileShare: network score provider settings enabled
+04-17 18:10:32.941  1555  3551 D OpenNetworkQos[4.00]: getOpenNetworkQosScores: 16 0 0 
+04-17 18:10:32.941  1555  3551 D OpenNetworkQos[4.00]: getOpenNetworkQosNoInternetStatus: false
+04-17 18:10:32.942  1555  3551 I WifiProfileShare.Caster: current network type: 0, score: [16, 0, 0]
+04-17 18:10:32.942  1555  3551 V WifiProfileShare.Cache: update network score c8:e3:06:**:**:65
+04-17 18:10:32.942  1555  3551 D WifiProfileShare.ScanMatcher: getMcfDataList size:4
+04-17 18:10:32.942  1555  3551 I WifiProfileShare.Caster: qos data was updated , before:type:QOS, pBssid:0c:31:ad, qosData:4b after:type:QOS, pBssid:0c:31:ad, qosData:4b
+04-17 18:10:32.943  3931  4459 I NullBinder: NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl, calling uid: 1000, calling pid: 0
+04-17 18:10:32.943  3931  4459 W .gms.persistent: Large reply transaction of 1056768 bytes, interface descriptor , code 1
+04-17 18:10:32.944  1555  3551 I [MCFSDK_android_1.2.27006]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-17 18:10:32.944  1555  3551 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-17 18:10:32.944  1555  3551 D WifiProfileShare.McfCast: updateQoSData ignored, same contents
+04-17 18:10:32.944  1555  3551 D WifiProfileShare.MCF: success update QosData !
+04-17 18:10:32.944  1555  3551 I [MCFSDK_android_1.2.27006]_4_McfCasterImpl: isNetworkEnabled - type : 1 ret : true
+04-17 18:10:32.944  1555  3551 D WifiProfileShare.McfCast: -ME--- mIsNetworkEnabled :true
+04-17 18:10:32.944  1555  3551 D WifiProfileShare.McfCast: -ME--- updatePasswordDate pwdData size:4
+04-17 18:10:32.947  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:32.947  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:33.035  6839  6839 I HBD     : h onCapabilityChanged  setNetworkState currentNetworkState : wifi 
+04-17 18:10:33.094  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-47, periodicAdvInt=0x0
+04-17 18:10:33.164  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:33.438  3931 13845 I NearbySharing: Network state changed: NetworkState(isRestricted=false, isOnline=true, isCongested=false, isMetered=false, isWifiConnected=true)
+04-17 18:10:33.449  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21210] accel_sample [ 0.284, -0.008, 10.018] 106102965111991
+04-17 18:10:34.620  1215  1215 I android.hardware.health@2.1-service-samsung: updateLrpSysfs: write: 260
+04-17 18:10:34.816  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-43, periodicAdvInt=0x0
+04-17 18:10:34.883  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:35.112   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718671 18019308 d 182531 102122644 f 0 0 iot 981528 0 th 0 0 0 pt 0 inp 0 0 106104.642
+04-17 18:10:35.112   805   805 D io_stats: !@ Write_top(KB): kworker/u16:4(12175) 84 soft.appmanager(8434) 16
+04-17 18:10:35.463  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21315] accel_sample [ 0.293, -0.008, 10.013] 106104980905221
+04-17 18:10:35.713  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:10:35.806  5596  6578 I SDHMS:x : SIOP:: AP:248 BAT:253 USB:257 CHG:259 PA:270 WIFI:258 CF:235 BLK:0 SUBBAT:0 SKIN:260 SKINF:267 SKINB:263 LRP:267 LRP2:260 LRF:267 LRB:263 LRF2:260 LRB2:260 AP2:260 CHG2:259 MEM2:260 WIFI2:260 UANT2:260 DANT2:253 RCV2:259 SPK2:259 FCAM:257 UPSPK:235 DNSPK:257 AVGCUR:2 AVGSYS:177 POWER:8
+04-17 18:10:36.008  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33961, isSameBssidAndFreq true
+04-17 18:10:36.131  2930  2930 I wpa_supplicant: Heartbeat 10600
+04-17 18:10:36.814  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:36.921  1555  1970 I ActivityManager: Changes in 10361 5 to 15, 16 to 0
+04-17 18:10:37.480  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21420] accel_sample [ 0.279,  0.003, 10.004] 106106996698033
+04-17 18:10:38.607  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:38.610  1555  1923 E Watchdog: !@Sync: 3535 heap(MB): 105 / 143 FD: 1196 [2026-04-17 18:10:38.609]
+04-17 18:10:38.690  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:42:14, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-73, periodicAdvInt=0x0
+04-17 18:10:38.912  5596  5596 I SDHMS:LOAD: type: LoadsFreqs, value: 0:0:0:844800:844800:844800:710400:710400:710400:315:315:315
+04-17 18:10:39.154  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33962, isSameBssidAndFreq true
+04-17 18:10:39.158  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:39.497  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21525] accel_sample [ 0.274, -0.013, 10.011] 106109012490979
+04-17 18:10:40.524  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:40.527  3931 13845 I NearbyMediums: Found Fast Ble Advertisements :
+04-17 18:10:40.527  3931 13845 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x53 0x30 0x35 0x51 0x11 0x34 0xa3 0x5d 0xa9 0x6a 0xd9 0x4b 0x6f 0xbb 0xb1 0xab 0x22 0x1b 0x62 0x27 0xb2 0xa9 ], deviceToken=[ 0x19 0xb8 ], rxAdvertisement=[ 0xa0 0x17 0xf9 0xaa 0x5e 0x5b 0x23 0x96 0x72 0xb6 0xf8 0x53 0x82 0x29 0x79 0x29 0xe1 0xca 0xc8 0xf7 0x33 0xaa 0xda 0x6a 0x64 0x7d 0x4d 0xd9 0xca 0x09 0x5e 0x3b 0x50 0x66 0x84 0x15 0x05 0x7f 0xff 0x1f 0x84 0x15 0x06 0x61 0x00 0x00 0x84 0x15 0x04 0x7f 0xff 0x1f 0x84 0x15 0x07 0x7f 0xff 0x1f 0x83 0x15 0x01 0x15 0xcc ] } : 6 times.
+04-17 18:10:40.527  3931 13845 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x39 0x4b 0x4f 0x4f 0x11 0x32 0x92 0xe3 0x9b 0x9c 0x08 0xf4 0x2b 0x36 0xfe 0x3f 0x1b 0x89 0xb9 0x68 0xf6 0x8e ], deviceToken=[ 0x54 0xd3 ], rxAdvertisement=null } : 1 times.
+04-17 18:10:40.527  3931 13845 I NearbyMediums: Total 7 fast advertisements from 2 unique advertisers.
+04-17 18:10:40.528  3931 13845 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-17 18:10:41.117   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718947 18021124 d 182668 102129920 f 0 0 iot 981572 0 th 0 0 0 pt 0 inp 0 0 106110.648
+04-17 18:10:41.512  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21630] accel_sample [ 0.296, -0.019, 10.009] 106111028283271
+04-17 18:10:42.192  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:10:42.227  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:F2:AB, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:42.294  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33963, isSameBssidAndFreq true
+04-17 18:10:42.312  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:42.520  1227  3430 I sensors-hal: handle_sns_client_event:261, auto_rotation_debug_2 mode,255, type,1,0 acc,0.285,0.007,10.007, ar,0, ver,12
+04-17 18:10:43.121   805   805 D io_stats: !@ Write_top(KB): rivacydashboard(25497) 812 kworker/u16:3(13100) 48
+04-17 18:10:43.527  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21735] accel_sample [ 0.293,  0.001, 10.004] 106113044075354
+04-17 18:10:44.308  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:45.122   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718955 18021148 d 182668 102129920 f 0 0 iot 981584 0 th 0 0 0 pt 0 inp 0 0 106114.653
+04-17 18:10:45.176 31542 31542 I MFContents.Core: AmMFC created! with v2.1.1
+04-17 18:10:45.210  1431  1460 I VSyncReactor: Current= 60, Period= 60, hwcPeriod= 60
+04-17 18:10:45.347  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33964, isSameBssidAndFreq true
+04-17 18:10:45.353  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:45.544  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21840] accel_sample [ 0.288,  0.004, 10.016] 106115059867125
+04-17 18:10:45.936  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:42:14, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-66, periodicAdvInt=0x0
+04-17 18:10:45.937  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:10:46.021  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:10:46.140  2930  2930 I wpa_supplicant: Heartbeat 10601
+04-17 18:10:47.123   805   805 D io_stats: !@ Write_top(KB): soft.appmanager(8434) 16
+04-17 18:10:47.560  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][21945] accel_sample [ 0.288, -0.002, 10.021] 106117075658688
+04-17 18:10:47.942  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:48.016  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:48.366  1555  2446 D UsbStatsMonitor: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 26822070763546
+04-17 18:10:48.443  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33965, isSameBssidAndFreq true
+04-17 18:10:48.671  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:10:49.073  5596  5596 I SDHMS:LOAD: type: LoadsFreqs, value: 0:0:0:844800:844800:844800:710400:710400:710400:315:315:315
+04-17 18:10:49.576  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22050] accel_sample [ 0.278,  0.001, 10.009] 106119091449834
+04-17 18:10:49.730  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-43, periodicAdvInt=0x0
+04-17 18:10:50.373  2653  2653 D MobileSignalTransitionManager: updateSignalTransition
+04-17 18:10:50.395  1431  1460 I VSyncReactor: Current= 60, Period= 60, hwcPeriod= 60
+04-17 18:10:50.410  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:10:50.411  1431  1431 I SurfaceFlinger: SFWD update time=106119942377537
+04-17 18:10:50.413  1431  1431 W Layer   : gatherBufferInfo: Received unknown dataspace from gralloc
+04-17 18:10:50.532  3931 13867 I NearbyMediums: Found Fast Ble Advertisements :
+04-17 18:10:50.532  3931 13867 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x53 0x30 0x35 0x51 0x11 0x34 0xa3 0x5d 0xa9 0x6a 0xd9 0x4b 0x6f 0xbb 0xb1 0xab 0x22 0x1b 0x62 0x27 0xb2 0xa9 ], deviceToken=[ 0x19 0xb8 ], rxAdvertisement=[ 0xa0 0x17 0xf9 0xaa 0x5e 0x5b 0x23 0x96 0x72 0xb6 0xf8 0x53 0x82 0x29 0x79 0x29 0xe1 0xca 0xc8 0xf7 0x33 0xaa 0xda 0x6a 0x64 0x7d 0x4d 0xd9 0xca 0x09 0x5e 0x3b 0x50 0x66 0x84 0x15 0x05 0x7f 0xff 0x1f 0x84 0x15 0x06 0x61 0x00 0x00 0x84 0x15 0x04 0x7f 0xff 0x1f 0x84 0x15 0x07 0x7f 0xff 0x1f 0x83 0x15 0x01 0x15 0xcc ] } : 9 times.
+04-17 18:10:50.532  3931 13867 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x39 0x4b 0x4f 0x4f 0x11 0x32 0x92 0xe3 0x9b 0x9c 0x08 0xf4 0x2b 0x36 0xfe 0x3f 0x1b 0x89 0xb9 0x68 0xf6 0x8e ], deviceToken=[ 0x54 0xd3 ], rxAdvertisement=null } : 1 times.
+04-17 18:10:50.532  3931 13867 I NearbyMediums: Total 10 fast advertisements from 2 unique advertisers.
+04-17 18:10:50.533  3931 13867 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-17 18:10:50.662  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:10:51.128   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718957 18021156 d 182668 102129920 f 0 0 iot 981588 0 th 0 0 0 pt 0 inp 0 0 106120.659
+04-17 18:10:51.129   805   805 D io_stats: !@ Write_top(KB): kworker/u16:0(12450) 8
+04-17 18:10:51.270  1555  8866 I AfterimageCompensationService: AfcThread mLuminance : 10 , AfpcPeriodCount : 621 , rotation : 0 , AOD : false
+04-17 18:10:51.280  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer  at index 0
+04-17 18:10:51.281  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer SurfaceView[com.fieldguideapp.inspector/com.fieldguideapp.inspector.MainActivity]@0(BLAST)#1988 at index 1
+04-17 18:10:51.281  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer com.fieldguideapp.inspector/com.fieldguideapp.inspector.MainActivity$_13355#1983 at index 2
+04-17 18:10:51.282  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer StatusBar$_2653#93 at index 3
+04-17 18:10:51.282  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer com.sec.android.app.launcher/com.samsung.app.honeyspace.edge.edgepanel.app.CocktailBarService$_3194#1717 at index 4
+04-17 18:10:51.282  1431  1471 D RenderEngine: [SEC_SF_EFFECTS] drawLayersInternal,1299, Rendering layer NavigationBar0$_2653#89 at index 5
+04-17 18:10:51.296  1555  8866 D system_server: mAFPC_Read - w = 1080, h = 2400, s = 8, f = 4, s_size = 10444800, luminance = 10, count = 621, captureOrientation = 0
+04-17 18:10:51.537  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33966, isSameBssidAndFreq true
+04-17 18:10:51.591  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22155] accel_sample [ 0.289, -0.010, 10.009] 106121107240875
+04-17 18:10:51.651  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:10:52.117  1227  3430 I sensors-hal: handle_sns_client_event:261, auto_rotation_debug_2 mode,255, type,1,0 acc,0.294,-0.014,10.012, ar,0, ver,12
+04-17 18:10:53.364  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-43, periodicAdvInt=0x0
+04-17 18:10:53.448  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-41, periodicAdvInt=0x0
+04-17 18:10:53.607  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22260] accel_sample [ 0.268,  0.001, 10.008] 106123123031604
+04-17 18:10:54.681  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33967, isSameBssidAndFreq true
+04-17 18:10:54.683  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:54.806  1555  2414 W DeviceStorageMonitorService: updateBroadcasts(/data) oldLevel:0, newLevel:0, seq:1
+04-17 18:10:54.808  1555  2414 D DeviceStorageMonitorService: Available File Node Number is [13382144]
+04-17 18:10:54.808  1555  2414 W DeviceStorageMonitorService: updateBroadcasts_filenode(/data) fn_oldLevel:0, fn_newLevel:0, seq:1
+04-17 18:10:55.131   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718965 18021180 d 182668 102129920 f 0 0 iot 981596 0 th 0 0 0 pt 0 inp 0 0 106124.662
+04-17 18:10:55.131   805   805 D io_stats: !@ Write_top(KB): soft.appmanager(8434) 16
+04-17 18:10:55.153  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:10:55.281  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:42:14, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-67, periodicAdvInt=0x0
+04-17 18:10:55.362  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-49, periodicAdvInt=0x0
+04-17 18:10:55.623  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22365] accel_sample [ 0.270, -0.033, 10.004] 106125138822125
+04-17 18:10:56.031 30464 30541 I Finsky  : [64] AIM: AppInfoManager-Perf > Destroying AppInfoManager ...
+04-17 18:10:56.143  2930  2930 I wpa_supplicant: Heartbeat 10602
+04-17 18:10:57.080  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-44, periodicAdvInt=0x0
+04-17 18:10:57.134   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 718967 18021188 d 182668 102129920 f 0 0 iot 981604 0 th 0 0 0 pt 0 inp 0 0 106126.664
+04-17 18:10:57.161  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-43, periodicAdvInt=0x0
+04-17 18:10:57.639  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22470] accel_sample [ 0.273, -0.004, 10.013] 106127154612542
+04-17 18:10:57.768  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33968, isSameBssidAndFreq true
+04-17 18:10:57.772  2653  2778 D Tile.WifiTile: handleUpdateState isTransient=false transientEnabling =false cb.isTransient=false state.state = 2 mStateBeforeClick.value =false enabled =true
+04-17 18:10:59.079  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-42, periodicAdvInt=0x0
+04-17 18:10:59.137   805   805 D io_stats: !@ Write_top(KB): android.vending(30464) 8
+04-17 18:10:59.173  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:10:59.218  5596  5596 I SDHMS:LOAD: type: LoadsFreqs, value: 0:0:0:844800:844800:844800:710400:710400:710400:315:315:315
+04-17 18:10:59.653  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22575] accel_sample [ 0.276, -0.007, 10.003] 106129170402750
+04-17 18:11:00.007  2653  3208 I DateTimeView: updateAll - getTimeFormat
+04-17 18:11:00.008  2653  2653 D FaceWidgetPagesController: onTimeChanged()
+04-17 18:11:00.008  2653  3208 D QSClockBellTower: onReceive(android.intent.action.TIME_TICK) mTimeZoneString:America/New_York
+04-17 18:11:00.012  2653  2653 D QSClockBellTower: He is ready to ring the bell. (((QSClockBellSound - TimeText:6:11, TimeContentDescription:6:11ΓÇ»PM, DateText:Fri, April 17, ShortDateText:Fri, Apr 17, Demo:false)))
+04-17 18:11:00.014  1555  1555 I EyeComfortSolutionService: action  :  android.intent.action.TIME_TICK
+04-17 18:11:00.014  2653  2653 D QSClock : StatusBar clock=6:11 notifyTimeChanged(QSClockBellSound - TimeText:6:11, TimeContentDescription:6:11ΓÇ»PM, DateText:Fri, April 17, ShortDateText:Fri, Apr 17, Demo:false) clockVisibleByPolicy=true, clockVisibleByUser=true, visible=true, parent=android.widget.LinearLayout{91db5ab V.E...... ......ID 0,0-80,57 #7f0a061e app:id/left_clock_container} caller=com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment.animateShow:47 com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment.updateStatusBarVisibilitiesInner:207 com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment$$ExternalSyntheticLambda3.run:5 com.android.systemui.statusbar.phone.fragment.CollapsedStatusBarFragment.updateStatusBarVisibilities:47 com.android.systemui.statusbar.phone.ongoingactivity.OngoingActivityController.updateParentViewVisibility:99  
+04-17 18:11:00.015  2653  2653 D QSClockBellTower: Everyone heard the bell. run(currentTime:1776463860011, getTime():Fri Apr 17 18:11:00 EDT 2026, getTimeZone():libcore.util.ZoneInfo[mDstSavings=3600000,mUseDst=true,mDelegate=[id="America/New_York",mRawOffset=-18000000,mEarliestRawOffset=-17762000,transitions=360]])
+04-17 18:11:00.032  1431  1460 I VSyncReactor: Current= 60, Period= 60, hwcPeriod= 60
+04-17 18:11:00.049  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:00.067  1431  1431 W Layer   : gatherBufferInfo: Received unknown dataspace from gralloc
+04-17 18:11:00.300  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:00.537  3931 13867 I NearbyMediums: Found Fast Ble Advertisements :
+04-17 18:11:00.537  3931 13867 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x53 0x30 0x35 0x51 0x11 0x34 0xa3 0x5d 0xa9 0x6a 0xd9 0x4b 0x6f 0xbb 0xb1 0xab 0x22 0x1b 0x62 0x27 0xb2 0xa9 ], deviceToken=[ 0x19 0xb8 ], rxAdvertisement=[ 0xa0 0x17 0xf9 0xaa 0x5e 0x5b 0x23 0x96 0x72 0xb6 0xf8 0x53 0x82 0x29 0x79 0x29 0xe1 0xca 0xc8 0xf7 0x33 0xaa 0xda 0x6a 0x64 0x7d 0x4d 0xd9 0xca 0x09 0x5e 0x3b 0x50 0x66 0x84 0x15 0x05 0x7f 0xff 0x1f 0x84 0x15 0x06 0x61 0x00 0x00 0x84 0x15 0x04 0x7f 0xff 0x1f 0x84 0x15 0x07 0x7f 0xff 0x1f 0x83 0x15 0x01 0x15 0xcc ] } : 8 times.
+04-17 18:11:00.537  3931 13867 I NearbyMediums: BleAdvertisement { version=2, socketVersion=2, isFast=true, serviceIdHash=null, data=[ 0x23 0x39 0x4b 0x4f 0x4f 0x11 0x32 0x92 0xe3 0x9b 0x9c 0x08 0xf4 0x2b 0x36 0xfe 0x3f 0x1b 0x89 0xb9 0x68 0xf6 0x8e ], deviceToken=[ 0x54 0xd3 ], rxAdvertisement=null } : 1 times.
+04-17 18:11:00.537  3931 13867 I NearbyMediums: Total 9 fast advertisements from 2 unique advertisers.
+04-17 18:11:00.538  3931 13867 I NearbyMediums: Current Tracked Scanning Clients are : {NearbyConnections.EnvironmentMonitor, NearbySharing, NearbyConnections.TxAdvertisement}
+04-17 18:11:00.791  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-49, periodicAdvInt=0x0
+04-17 18:11:00.886  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-48, periodicAdvInt=0x0
+04-17 18:11:00.896  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33969, isSameBssidAndFreq true
+04-17 18:11:01.632  1227  3463 I sensors-hal: handle_sns_std_sensor_event:155, [SSC_LIGHT] P: 1(1),m:1,c:1,b:12,wb:0,r:42,bl:4,16:1
+04-17 18:11:01.669  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22680] accel_sample [ 0.277,  0.019, 10.016] 106131186192750
+04-17 18:11:01.718  1227  3430 I sensors-hal: handle_sns_client_event:261, auto_rotation_debug_2 mode,255, type,1,0 acc,0.280,-0.012,10.000, ar,0, ver,12
+04-17 18:11:02.538  1555  2575 D NetdEventListenerService: DNS Requested by 101, 10143(com.microsoft.office.excel), 4(FAIL), isBlocked=true, 0ms
+04-17 18:11:03.171  3931 13671 I .gms.persistent: Explicit concurrent copying GC freed 15MB AllocSpace bytes, 11(1844KB) LOS objects, 66% free, 21MB/64MB, paused 279us,46us total 163.116ms
+04-17 18:11:03.177  3931  3938 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+04-17 18:11:03.178  3931  3939 D BluetoothSocket: close() this: XX:XX:XX:XX:00:00, channel: 6, mSocketIS: android.net.LocalSocketImpl$SocketInputStream@c4b287f, mSocketOS: android.net.LocalSocketImpl$SocketOutputStream@391204c, mSocket: null, mSocketState: CLOSED
+04-17 18:11:03.182  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_AdsDynamite_installtime.apk' with 1 weak references
+04-17 18:11:03.182  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_CronetDynamite_installtime.apk' with 1 weak references
+04-17 18:11:03.182  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_DynamiteLoader_installtime.apk' with 1 weak references
+04-17 18:11:03.183  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_DynamiteModulesA_installtime.apk' with 1 weak references
+04-17 18:11:03.184  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_DynamiteModulesC_installtime.apk' with 1 weak references
+04-17 18:11:03.185  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_GoogleCertificates_installtime.apk' with 1 weak references
+04-17 18:11:03.185  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_MapsDynamite_installtime.apk' with 1 weak references
+04-17 18:11:03.186  3931  3939 W .gms.persistent: ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~A0dErcm9qIpJz4hVF9cNUA==/com.google.android.gms-pJljqGFPzBjN49ZYbLb6CQ==/split_MeasurementDynamite_installtime.apk' with 1 weak references
+04-17 18:11:03.686  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22785] accel_sample [ 0.273, -0.018, 10.016] 106133201982438
+04-17 18:11:04.020  1555  4035 D SemWifiUsabilityStatsMonitor: onWifiUsabilityStats - seqNum 33970, isSameBssidAndFreq true
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [                 contacts = {contacts=49, raw_contacts=49, data=258, account={secphone(1)=0, sim(3)=0, agg(4)=0, samsung(8)=0, mobileservice(9)=0, sim2(34)=0, duo(80)=0, com.microsoft.msa.ltw(81)=0, com.microsoft.msa.ltw(83)=0, google(84)=49, google(85)=0, com.microsoft.appmanager(86)=0}, trash=0, trash_acc={}, trash_sync=0, database=contacts2.db} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [               aggregated = {[84]=49} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [                  request = {} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [                    calls = {types={}, database=calllog.db} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [                  profile = {contacts=0, raw_contacts=0, data=0, account={secphone(1)=0, sim(3)=0, agg(4)=0, samsung(8)=0, mobileservice(9)=0, sim2(34)=0, duo(80)=0, com.microsoft.msa.ltw(81)=0, com.microsoft.msa.ltw(83)=0, google(84)=0, google(85)=0, com.microsoft.appmanager(86)=0}, trash=0, trash_acc={}, trash_sync=0, database=profile.db} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [               sa_profile = {contacts=1, raw_contacts=1, data=0, account={secphone(1)=1, sim(3)=0, agg(4)=0, samsung(8)=0, mobileservice(9)=0, sim2(34)=0, duo(80)=0, com.microsoft.msa.ltw(81)=0, com.microsoft.msa.ltw(83)=0, google(84)=0, google(85)=0, com.microsoft.appmanager(86)=0}, trash=0, trash_acc={}, trash_sync=0, database=profile_sa.db} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: [                      etc = {binders=0, country_iso=US, version=15.4.39, db_version=1901, csc=TMB/TMB, sec_enabled=false, is_roaming=false} ]
+04-17 18:11:04.032  4229 14544 V CpEventLog(u0): cp_state: ------------------------------------------------------------------------------
+04-17 18:11:04.510  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:11:04.606  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:11:04.781  1215  1215 I android.hardware.health@2.1-service-samsung: updateLrpSysfs: write: 260
+04-17 18:11:05.141   805   805 D io_stats: !@   8,0 r 1081940 29430328 w 719010 18021364 d 182687 102130056 f 0 0 iot 981624 0 th 0 0 0 pt 0 inp 0 0 106134.672
+04-17 18:11:05.450  2653  2653 D MobileSignalTransitionManager: updateSignalTransition
+04-17 18:11:05.468  1431  1460 I VSyncReactor: Current= 60, Period= 60, hwcPeriod= 60
+04-17 18:11:05.483  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:05.503  1431  1431 W Layer   : gatherBufferInfo: Received unknown dataspace from gralloc
+04-17 18:11:05.700  1227 12908 I sensors-hal: handle_sns_client_event:540, [0][22890] accel_sample [ 0.269, -0.012, 10.007] 106135217771917
+04-17 18:11:05.734  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:05.812  5596  6578 I SDHMS:x : SIOP:: AP:248 BAT:253 USB:257 CHG:259 PA:270 WIFI:256 CF:234 BLK:0 SUBBAT:0 SKIN:260 SKINF:266 SKINB:263 LRP:266 LRP2:260 LRF:266 LRB:263 LRF2:260 LRB2:259 AP2:259 CHG2:258 MEM2:260 WIFI2:259 UANT2:258 DANT2:252 RCV2:258 SPK2:259 FCAM:257 UPSPK:235 DNSPK:257 AVGCUR:1 AVGSYS:174 POWER:4
+04-17 18:11:06.148  2930  2930 I wpa_supplicant: Heartbeat 10603
+04-17 18:11:06.513  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x10, addressType=1, address=XX:XX:XX:XX:18:9E, primaryPhy=1, secondaryPhy=0, advertisingSid=0xff, txPower=127, rssi=-47, periodicAdvInt=0x0
+04-17 18:11:06.601  2885  3433 I BtGatt.ScanHelper: onScanResult to scannerId: 9- eventType=0x0, addressType=1, address=XX:XX:XX:XX:B1:60, primaryPhy=1, secondaryPhy=1, advertisingSid=0x2, txPower=127, rssi=-45, periodicAdvInt=0x0
+04-17 18:11:06.784  1431  1460 I VSyncReactor: Current= 60, Period= 60, hwcPeriod= 60
+04-17 18:11:06.795  1431  1540 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:06.802  1431  1431 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:06.802  1431  1431 I LayerHistory: SurfaceView[com.fieldguideapp.inspector/com.fieldguideapp.inspector.MainActivity]@0(BLAST)#1988 Max (can't resolve refresh rate)
+04-17 18:11:06.802  1431  1431 I SurfaceFlinger: scored - choose 120.00 Hz
+04-17 18:11:06.803  1431  1431 I HWComposer: [4630947232161729154] ActiveConfigToHWC, ID : 0
+04-17 18:11:06.805  1330  1430 I SDM     : HWCDisplay::SubmitDisplayConfig: [DispConfigs] config 2 => 0, hs_mode 3 => 3
+04-17 18:11:06.805  1330  1430 I SDM     : DisplayBase::SetActiveConfig: [DispConfigs] 3 => 0 or hs mode is changed if same config
+04-17 18:11:06.805  1330  1430 I SDM     : HWDeviceDRM::SetDisplaySwitchMode: POMS Switching to Mode	0
+04-17 18:11:06.805  1330  1430 I SDM     : HWDeviceDRM::SetDisplaySwitchMode: [DispConfigs] check hs_mode 3
+04-17 18:11:06.805  1330  1430 I SDM     : HWDeviceDRM::SetDisplaySwitchMode: [DispConfigs] Set mode index:0 1080x2400x120x227020cmdHS, hs_mode(3), found_mode(0)
+04-17 18:11:06.806  1330  1430 I SDM     : HWDeviceDRM::UpdateMixerAttributes: Mixer WxH 1080x2400-1 for Peripheral
+04-17 18:11:06.807  1330  1430 I SDM     : HWCDisplay::SubmitDisplayConfig: Active configuration changed to: 0
+04-17 18:11:06.817  1431  1460 I VSyncReactor: Current= 60, Period= 120, hwcPeriod= 60
+04-17 18:11:06.825  1431  1460 I VSyncReactor: Current= 60, Period= 120, hwcPeriod= 120
+04-17 18:11:06.826  1555  1850 D LocalDisplayAdapter: updateActiveModeLocked for d=4630947232161729154, mActiveModeId=1, mActiveSfDisplayMode=DisplayMode{id=0, width=1080, height=2400, xDpi=391.885, yDpi=393.29, peakRefreshRate=120.00001, vsyncRate=120.00001, appVsyncOffsetNanos=100000, presentationDeadlineNanos=9233333, supportedHdrTypes=[2, 3, 4], group=1080}
+04-17 18:11:06.826  1431  1431 W ComposerExtn: DisplayExtnImpl::SetActiveConfig: HWC Display 0 is not registered!
+04-17 18:11:06.827  1555  1850 I DisplayDeviceRepository: Display device changed render timings: "Built-in Screen", renderFrameRate=120.00001, presentationDeadlineNanos=9233333, appVsyncOffsetNanos=100000
+04-17 18:11:06.828  1555  2056 D BrightnessThermalClamper: Thermal status observer already started
+04-17 18:11:06.830  1416 15453 D AudioFlinger: setParameters: filtered dev setParameters keyvalue screen_state=on
+04-17 18:11:06.830  1555  3860 D LiftUpHandler: [LTW] Stopped already.
+04-17 18:11:06.831  1206  1223 D audio_hw_primary: adev_set_parameters: enter: screen_state=on
+04-17 18:11:06.831  1206  1223 V audio_hw_sec: sec_set_parameters: enter
+04-17 18:11:06.831  1206  1223 D sound_trigger_hw: handle_screen_status_change: screen on
+04-17 18:11:06.831  1206  1223 D audio_hw_primary: adev_set_parameters: exit with code(0)
+04-17 18:11:06.832  1555  1850 D RefreshRateModeManager: updateDefaultDisplayToken: android.os.BinderProxy@9ca0534, isChanged: false
+04-17 18:11:06.832  1206  1225 I Audio_a2dpsink_hw: adev_set_parameters: kevpairs=[screen_state=on]
+04-17 18:11:06.833  1555  1555 D SGM:GameManager: onDisplayChanged. displyId: 0, state: 2
+04-17 18:11:06.833  1555  1555 D AODManagerService: requestReCalToTSP IsSingleTouchMode = falserequestedReCalToTSP = false / previousDisplayState = ON
+04-17 18:11:06.833  1555  2343 D SGM:FgCheckThread: onLooperPrepared(), msg: MSG_LCD_ON
+04-17 18:11:06.834  6839  6839 I VRI[InputMethod]@e1d46f2: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.835  3194 13035 I HoneySpace.RefreshRateSource: singleFrameMs 8
+04-17 18:11:06.836  3194  7524 I HoneySpace.Memory-Monitor: current state = 2, didTrim = false
+04-17 18:11:06.836  3194  3194 I VRI[LauncherActivity]@6873ae: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.836  3194  3194 I VRI[RecentsTransitionOverlay]@bbfd601: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.836  3194  3194 I VRI[CocktailBarService]@5ac14c5: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.836  3194  3194 I VRI[RecentsActivity]@789c5cd: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.836  2653  2778 D StackScroller: onDisplayChanged for predraw skip to 2
+04-17 18:11:06.836  2653  2703 I VRI[ShellDropTarget]@b228434: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.837  2653  2653 D DisplayLifecycle: updateDisplay id = 0
+04-17 18:11:06.837  1555  8193 D WifiDisplayAdapter: isFitToActiveDisplayLocked : false
+04-17 18:11:06.837  2653  2653 I VRI[LockscreenShortcutBlur]@1cd5aa7: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.838  2653  2653 I VRI[NavigationBar0]@a04d04a: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.838  2653  2653 I VRI[NotificationShade]@a4b2ef3: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.838  2653  2653 I VRI[StatusBar]@33a4cc8: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.838  2653  2653 I VRI[Bouncer]@fccaac9: onDisplayChanged oldDisplayState=2 newDisplayState=2
+04-17 18:11:06.852 13355 13355 I VRI[MainActivity]@13ff0d3: onDisplayChanged oldDisplayState=2 newDisplayState=2

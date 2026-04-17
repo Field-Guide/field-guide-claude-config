@@ -1,0 +1,60 @@
+{
+  "route": "/sync/dashboard",
+  "canPop": false,
+  "hasBottomNav": false,
+  "breakpoint": {
+    "breakpoint": "large",
+    "width": 1691.4285714285713,
+    "height": 1056.0,
+    "isCompact": false,
+    "isMediumOrLarger": true,
+    "isExpandedOrLarger": true,
+    "defaultGridColumns": 4
+  },
+  "density": {
+    "variant": "standard",
+    "spacing": {
+      "xs": 4.0,
+      "sm": 8.0,
+      "md": 16.0,
+      "lg": 24.0,
+      "xl": 32.0,
+      "xxl": 48.0
+    }
+  },
+  "animation": {
+    "reduceMotion": false,
+    "variant": "standard",
+    "durationsMs": {
+      "fast": 150,
+      "normal": 300,
+      "slow": 500,
+      "pageTransition": 350
+    }
+  },
+  "theme": {
+    "mode": "dark",
+    "platformBrightness": "dark",
+    "useMaterial3": true
+  },
+  "screen": {
+    "id": "SyncDashboardScreen",
+    "route": "/sync/dashboard",
+    "rootKey": "sync_dashboard_screen",
+    "rootPresent": true,
+    "routes": [
+      "/sync/dashboard"
+    ],
+    "seedArgs": [],
+    "actions": [
+      "sync_now_tile",
+      "sync_view_conflicts_tile",
+      "sync_resume_sync_button",
+      "sync_now_full_button"
+    ],
+    "states": [
+      "sync_dashboard_screen",
+      "sync_state_badge"
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+[31;1menterprise-sync-concurrent-soak.ps1: [31;1mCannot validate argument on parameter 'UiMutationModes'. The argument "daily-entry-activity,quantity,photo" does not belong to the set "none,daily-entry-activity,quantity,photo" specified by the ValidateSet attribute. Supply an argument that is in the set and then try the command again.[0m

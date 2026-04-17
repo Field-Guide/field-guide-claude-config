@@ -1,0 +1,46 @@
+{
+  "runId": "20260417-181106",
+  "startedAtUtc": "2026-04-17T22:11:06.9528087Z",
+  "completedAtUtc": null,
+  "evidenceLayer": "combined_local_lab",
+  "backendRls": {
+    "soakLayer": "backend_rls",
+    "syncEngineExercised": false,
+    "test": "test/harness/soak_ci_10min_test.dart",
+    "durationMinutes": 10,
+    "virtualUsers": 20,
+    "concurrency": 8,
+    "actionDelayMilliseconds": 250,
+    "logPath": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\enterprise-sync-soak\\20260417-181106-concurrent\\backend-rls\\backend-rls-soak-output.txt",
+    "summaryPath": null,
+    "passed": false,
+    "exitCode": null
+  },
+  "deviceSync": {
+    "soakLayer": "device_sync",
+    "syncEngineExercised": true,
+    "actors": [
+      "S21:4948:inspector:1",
+      "S10:4949:inspector:2"
+    ],
+    "rounds": 1,
+    "uiMutationModes": [
+      "daily-entry-activity",
+      "quantity",
+      "photo"
+    ],
+    "failureInjectionModes": [
+      "none"
+    ],
+    "outputRoot": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\enterprise-sync-soak\\20260417-181106-concurrent\\device-sync",
+    "logPath": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\enterprise-sync-soak\\20260417-181106-concurrent\\device-sync\\device-sync-lab-output.txt",
+    "summaryPath": "C:\\Users\\rseba\\Projects\\Field_Guide_App\\.claude\\test-results\\2026-04-17\\enterprise-sync-soak\\20260417-181106-concurrent\\device-sync\\summary.json",
+    "passed": false,
+    "exitCode": null
+  },
+  "overlap": {
+    "backendStartedBeforeDevice": true,
+    "backendFinishedBeforeDeviceStarted": false
+  },
+  "passed": false
+}

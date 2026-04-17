@@ -1,0 +1,15 @@
+{
+  "actorId": "S10",
+  "deviceLabel": "S10",
+  "driverPort": 4949,
+  "role": "unknown",
+  "currentProjectIndex": 2,
+  "round": 1,
+  "startedAtUtc": "2026-04-17T18:41:51.1737098Z",
+  "operation": "ui_sync",
+  "localMutation": null,
+  "passed": false,
+  "failureClassification": "driver_or_sync_error",
+  "completedAtUtc": "2026-04-17T18:41:51.7138012Z",
+  "error": "Response status code does not indicate success: 404 (Not Found)."
+}

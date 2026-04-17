@@ -1,0 +1,13 @@
+{
+  "entries": [],
+  "count": 0,
+  "entryLimit": 100,
+  "unprocessedCount": 0,
+  "blockedCount": 0,
+  "maxRetryCount": 0,
+  "circuitBreakerTripped": false,
+  "circuitBreakerRiskCount": 0,
+  "circuitBreakerThreshold": 1000,
+  "retryExhaustionThreshold": 5,
+  "grouped": []
+}

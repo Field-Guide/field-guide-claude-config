@@ -1,0 +1,6 @@
+{
+  "actorId": "S21",
+  "round": 0,
+  "operation": "initial_capture",
+  "error": "No connection could be made because the target machine actively refused it. (127.0.0.1:4948)"
+}

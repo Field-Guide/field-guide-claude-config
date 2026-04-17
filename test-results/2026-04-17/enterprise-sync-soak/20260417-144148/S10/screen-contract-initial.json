@@ -1,0 +1,66 @@
+{
+  "route": "/projects",
+  "canPop": false,
+  "hasBottomNav": false,
+  "breakpoint": {
+    "breakpoint": "large",
+    "width": 1691.4285714285713,
+    "height": 1056.0,
+    "isCompact": false,
+    "isMediumOrLarger": true,
+    "isExpandedOrLarger": true,
+    "defaultGridColumns": 4
+  },
+  "density": {
+    "variant": "standard",
+    "spacing": {
+      "xs": 4.0,
+      "sm": 8.0,
+      "md": 16.0,
+      "lg": 24.0,
+      "xl": 32.0,
+      "xxl": 48.0
+    }
+  },
+  "animation": {
+    "reduceMotion": false,
+    "variant": "standard",
+    "durationsMs": {
+      "fast": 150,
+      "normal": 300,
+      "slow": 500,
+      "pageTransition": 350
+    }
+  },
+  "theme": {
+    "mode": "dark",
+    "platformBrightness": "dark",
+    "useMaterial3": true
+  },
+  "screen": {
+    "id": "ProjectListScreen",
+    "route": "/projects",
+    "rootKey": "project_list_screen",
+    "rootPresent": true,
+    "routes": [
+      "/projects"
+    ],
+    "seedArgs": [],
+    "actions": [
+      "project_create_button",
+      "project_filter_toggle",
+      "project_search_field",
+      "project_download_button_<projectId>",
+      "project_remove_<projectId>",
+      "delete_sheet_remove_from_device",
+      "delete_sheet_delete_from_database",
+      "delete_sheet_confirm_button"
+    ],
+    "states": [
+      "project_list_screen",
+      "my_projects_list",
+      "company_projects_scroll",
+      "project_delete_sheet"
+    ]
+  }
+}
