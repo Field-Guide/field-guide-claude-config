@@ -151,6 +151,15 @@
   route-only runner passes with manually driven S21/S10 bug-discovery sweeps,
   organized test-result artifacts, debug-log/sync review, and first-class
   RLS/role-boundary coverage.
+- `2026-04-17-sync-system-hardening-implementation-checklist.md`:
+  Codex working checklist for the seven-phase sync hardening and harness plan,
+  deriving actionable gates from
+  `.claude/plans/2026-04-16-sync-system-hardening-and-harness.md` and the
+  controlling spec.
+- `2026-04-17-sync-system-hardening-remaining-work.md`:
+  Final handoff tracker for the sync hardening plan after implementation and
+  commit split, covering the remaining Phase 7 staging, nightly-soak,
+  auto-issue, observability, CI-history, and pre-alpha tag gates.
 
 ## Archived Codex Plans
 
