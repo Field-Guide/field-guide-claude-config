@@ -1,0 +1,4 @@
+SingleChildScrollView key=[<'pay_app_detail_screen'>]
+  _PrimaryAppButton key=[<'pay_app_compare_button'>]
+_IconAppButton key=[<'pay_app_delete_button'>]
+

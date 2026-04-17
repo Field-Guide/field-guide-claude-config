@@ -1,0 +1,2 @@
+AppScaffold key=[<'trash_screen'>]
+

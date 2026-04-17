@@ -1,0 +1,4 @@
+ERRORS: 2 unique (4 total)
+  03:17:37 [app   ] FlutterError: A RenderFlex overflowed by 139 pixels on the right.
+  03:17:45 [app   ] RLS DENIED (42501): projects/harness-project-001
+
