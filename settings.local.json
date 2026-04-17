@@ -32,7 +32,11 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:www.michigan.gov)",
       "WebFetch(domain:docs.codemagic.io)",
-      "WebFetch(domain:codemagic.io)"
+      "WebFetch(domain:codemagic.io)",
+      "Bash(cat .claude/plans/parts/sync-system-hardening-and-harness-writer-1.md)",
+      "Bash(printf '\\\\n\\\\n---\\\\n\\\\n')",
+      "Bash(cat .claude/plans/parts/sync-system-hardening-and-harness-writer-2.md)",
+      "Bash(cat .claude/plans/parts/sync-system-hardening-and-harness-writer-3.md)"
     ]
   },
   "enableAllProjectMcpServers": true,
