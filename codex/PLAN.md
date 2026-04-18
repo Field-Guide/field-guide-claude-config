@@ -320,6 +320,15 @@
   later, with likely near-term adoption focused on checkpoints, scoped
   reconciliation, attachment queues, idempotent replay, and consistency
   contract documentation.
+- `2026-04-18-sync-soak-unified-hardening-todo.md`:
+  Current controlling unified sync-soak hardening checklist. It consolidates
+  the April 18 MDOT 1126, sync-engine external hardening, sync-soak audit
+  task-list, and compact result-index evidence into one ordered todo. It keeps
+  the release path on the current custom sync engine, treats PowerSync/Jepsen
+  as reusable hardening references rather than migration requirements, starts
+  with S10 post-v61 signature proof and MDOT 1174R S21 acceptance, then moves
+  through form exports/gallery, role/RLS/failure/staging, and 15-20 actor
+  scale-up.
 
 ## Active Codex Research In `.codex/research/`
 
@@ -337,6 +346,11 @@
   implementation. Use this for slice-by-slice notes about what was found, what
   changed, what was verified, and what must stay open while the specs remain
   the actual verification gates.
+- `2026-04-18-sync-soak-unified-implementation-log.md`:
+  Append-only implementation log for the unified sync-soak hardening todo.
+  Use it to record each implementation/verification slice, exact artifacts,
+  test evidence, checklist items closed, and any external-tool reuse candidates
+  accepted or rejected.
 
 ## Archived Codex Plans
 

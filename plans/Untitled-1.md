@@ -120,12 +120,6 @@ Testing Notes -
   - The connected samsung device is still having trouble recovering after a bad sync/resuming from a background state, its acting like the connectivity is broken. Take a screenshot.
   - please review all of these items, add them to a todo list, and fully verify all fixes/tests/verification is green before reporting back
 
-
-
-
-
-
-
   - When on the inspector role and no project is selected, there is a create project button in the calendar tab, this shouldn't be there, inspectors cant create projects. (Re check)
 
 
@@ -152,10 +146,35 @@ Tablet layout fixes -
 
 Testing Notes - 
 
-- ALL user flows MUST be tested e2e forwards and backwards through UI navigation. There is a serious problem with how we handle UI navigation, its not standardized and it seems like we get into nested screens alot that can't be traversed backwards easily. This needs to be optimized on the phone, tablet, and Windows builds. We have to make sure that the UI navigation makes sense throughout all of the user flows. We need to devise some kind of a testing flow, broken down by feature, that tests all of the UI. We already have a separate sync flow, but we need something that just verifies the UI flows and the nested screens and the ability to navigate forwards and backwards through each screen on each type of device, like the phones or tablets or Windows. We need to add to our current end-to-end flows, but we need to redesign them with our new UI system in mind while also optimizing and breaking down our UI with our testing in mind. Making sure that everything is completely testable in our flows, that way we can be a little bit more sure and deterministic in our testing and our building. 
+- ALL user flows MUST be tested e2e forwards and backwards through UI navigation. There is a serious problem with how we handle UI navigation, its not standardized and it seems like we get into nested screens alot that can't be traversed backwards easily. This needs to be optimized on the phone, tablet, and Windows builds. We have to make sure that the UI navigation makes sense throughout all of the user flows. We need to devise some kind of a testing flow, broken down by feature, that tests all of the UI. We already have a separate sync flow, but we need something that just verifies the UI flows and the nested screens and the ability to navigate forwards and backwards through each screen on each type of device, like the phones or tablets or Windows. We need to add to our current end-to-end flows, but we need to redesign them with our new UI system in mind while also optimizing and breaking down our UI with our testing in mind. Making sure that everything is completely testable in our flows, that way we can be a little bit more sure and deterministic in our testing and our building. We need to start with phone and tablet views. We must test all user happy paths as well as edge cases and end-to-end flows. We're going to want to start with an audit of our current end-to-end flows and then brainstorm a spec with my intent in mind in a to-do list style format. That way we can have something to reference as we build out all of these different end-to-end flows with all of the different user roles. We can create a good system. 
 
 - All user account roles must be hardened in our sync system. Perform a full e2e audit of each user role on our sync and authentication system. These two systems need to along with the UI need to be seemlessly aligned. We've added a few more accounts to the database and created a few more projects, and metadata is being seen all over the place and having flashing effects. That tells me our state management is very poor. We need to devise a way to test our different roles and authentication extremely thoroughly and tighten everything significantly, in a lot more depth than we currently have. I don't know if we need to use our docker CLI, different docker containers, to fully test all of the different roles in a more in depth way, but we need a better way to harden all of the different roles on Supabase and SQLite. We have people testing the app now so I don't want to make the best practice testing and iterating on the live supabase database anymore, I'm not sure what should be done to standardize this, I was thinking the docker containers. It seems like were having alot of bleed through when creating new projects, if users have already been assigned a project and a new project was created it is flashing meta data of the new project to users. Were having trouble with new users being assigned to older projects. Were having issues with projects being downloaded. Were potentially having issues when multiple accounts with differing roles are signed into the same device. We need a complete and thorough e2e audit of the auth system, all screens, user roles and all of their permissions, and their user flows through the entire app e2e. This is of utmost important. We need to test data flows in all directions. But what is the best, most insightful, resourceful, bug-finding, way for us to build and iterative testing system that tests our sync system integrity and strength going forward, with benchmarks. Sometimes, when refreshing, I can see projects that I shouldn't. They pop up for a second and then disappear. This can be very confusing to inspectors that don't understand what's going on. They shouldn't be able to see other projects. This is part of our role hardening we need to do. 
 
-- We need to set up the equivalent CI/CD for Android. We've already set up Codemagic and App Connect. I'm going to need you to help me walk through the Android equivalent to that. We want to use Codemagic as our comprehensive and singular CI/CD pipeline, but we want it to be a little bit more controlled and run through GitHub. That way we're not always pushing to the new builds, and we can decide when we want to push to the new ones. I know we're going to have to include Firebase to be able to push out updates, because we want the Android equivalent of TestFlight as well. It makes it extremely easy to push builds out to testers, etc. 
+- We need to set up the equivalent CI/CD for Android. We've already set up Codemagic and App Connect. I'm going to need you to help me walk through the Android equivalent to that. We want to use Codemagic as our comprehensive and singular CI/CD pipeline, but we want it to be a little bit more controlled and run through GitHub. That way we're not always pushing to the new builds, and we can decide when we want to push to the new ones. I know we're going to have to include Firebase to be able to push out updates, because we want the Android equivalent of TestFlight as well. It makes it extremely easy to push builds out to testers, etc. (completed - needs a check, waiting for the next build)
 
+
+
+
+Entry wizard/editor problems
+
+- In tablet view, in the activities tab, it should take up more of the left screen on the left side, just to take up some of that free space that's just sitting there. In the header tab, you want to move the location system out. We want to have locations be a way to format our activity tab, so that we can track different activities at different locations. When we export, they will export in a way that the location will be - the location tab, and then below that will be the activities for that location. So something kind of like this; 
+
+'- Location 1
+
+  This is the activities section for location 1.
+
+- Location 2
+
+  This is the activities section for location 2. '
+
+- Every time you load into the entry wizard, whether it be a new entry or editing an entry or looking at an old entry, it reloads the weather and appends it. This should not happen. It should happen one time when creating an entry. 
+
+
+Project Creation problems
+
+- After import says it succeeds and you are on the confidence screen and you click import, the button doesn't do anything. 
+
+
+
+Soak Tests need to be hardened.... I highly highly highly doubt that 19000 actions were successful. I know this isn't representative of live data but we need to make this as close as possible to a live stress test as possible. And if 19,000 actions were successful, were they concurrent? Were they different roles? What happened? What did the test do? Just write 19,000 actions in a row and expected them all to pass. We need an actual soak test. We need to confirm what it's testing, and this needs to be realistic. 
 
