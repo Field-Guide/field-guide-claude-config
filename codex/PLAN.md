@@ -329,6 +329,14 @@
   with S10 post-v61 signature proof and MDOT 1174R S21 acceptance, then moves
   through form exports/gallery, role/RLS/failure/staging, and 15-20 actor
   scale-up.
+- `2026-04-18-sync-soak-decomposition-todo-spec.md`:
+  Structural debt companion for the sync-soak hardening lane. It audits the
+  full soak/device-lab surface, including the 1,922-line
+  `tools/enterprise-sync-soak-lab.ps1`, the largest `tools/sync-soak/Flow.*`
+  modules, and the 998-line Dart `soak_driver.dart`, then orders
+  behavior-preserving extraction into device-lab dispatch, shared flow runtime,
+  mutation targets, cleanup/ledger helpers, storage proof, form-flow helpers,
+  focused self-tests, and later 15-20 actor orchestration.
 
 ## Active Codex Research In `.codex/research/`
 
