@@ -1,0 +1,25 @@
+
+========================================
+  Field Guide Debug Log Server
+  Listening on http://127.0.0.1:3947
+  Bound to localhost ONLY (not exposed)
+  Max entries: 30000
+  Max memory:  100 MB
+========================================
+
+Endpoints:
+  POST /log        Send a log entry
+  POST /clear      Clear all entries
+  GET  /logs       Retrieve logs (filters: hypothesis, category, since, level, last, deviceId)
+                   Add ?format=text for human-readable, ?format=json for JSON array
+  GET  /logs/errors   Error-level logs as plain text (deduplicated)
+  GET  /logs/summary  Counts by level/category (JSON)
+  GET  /health     Server health
+  GET  /categories List categories
+  GET  /artifacts  List artifact files
+  GET  /artifact/<name> Serve file from tools/debug-server/artifacts/
+  POST /artifact/<name> Upload file to tools/debug-server/artifacts/
+  POST /sync/status  Report sync lifecycle event
+  GET  /sync/status  Poll current sync state
+
+Waiting for logs...
