@@ -85,6 +85,18 @@ library:
 - Use `TestingKeys`; do not introduce fake test IDs or assert on placeholder
   widgets.
 
+## Role Policy Non-Negotiables
+
+- Read `.codex/role-permission-matrix.md` before touching role gates/RLS/sync
+  seam tests.
+- Admin-only: admin dashboard, member approval, role changes, company config.
+- Engineer and Office Technician are project/data peers; do not make Office a
+  limited reviewer.
+- Inspector can write assigned field data but cannot manage/delete projects.
+- Trash is not admin-only: every approved user sees only their own `deleted_by`
+  rows.
+- Do not run live admin deactivation/revocation as a beta hardening gate.
+
 ## Permissions
 
 - Claude's local allowlist lives in `.claude/settings.local.json`.
