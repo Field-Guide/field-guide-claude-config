@@ -220,8 +220,39 @@ Known open evidence:
   S21-created `documents` row via UI sync, tapped the document tile, cached a
   local file, and `/driver/local-file-head` proved the receiver bytes/hash
   matched the storage proof before ledger cleanup.
+- [x] Beta backend data cleanup is now a required P1 setup gate before further
+  role-traffic acceptance: preserve the Springfield DWSRF demo project,
+  remove non-Springfield junk project data, create one obvious disposable soak
+  project, assign all four real role accounts, and prove S21/S10 pull only the
+  intended active project scope. Accepted cleanup/visibility/conflict
+  sentinel evidence now proves S21/S10 active project scope is Springfield
+  plus `SYNC SOAK ROLE TRAFFIC TEST - DELETE OK`.
+- [ ] P0 Springfield pull-echo incident is mostly closed but still has one
+  conflict-review gate. The backend kept 131 active Springfield `bid_items`;
+  S21 now has 131 local Springfield pay items, zero pending/blocked/
+  unprocessed queue rows, same-run cursor-repair pull hardening, trigger
+  suppression ownership hardening, conflict-only success blocking, and a
+  targeted pull-echo conflict repair that dismissed 992 verified residue rows.
+  S21 UI Sync Dashboard acceptance
+  `20260419-s21-springfield-pull-echo-after-repair-ui-sync` passed with
+  `directDriverSyncEndpointUsed=false`, `runtimeErrors=0`, `loggingGaps=0`,
+  and queue drained. Remaining gate: classify or baseline the 59 non-pull-echo
+  conflicts before calling the conflict lane clean.
 - [ ] Role/account, RLS denial, failure injection, staging, and scale gates are
-  absent from the indexed results.
+  still incomplete. Current accepted role evidence covers earlier
+  admin/inspector and engineer/office route sweeps, the S10/S21
+  inspector/office daily-entry/review seam, and the strict S10/S21
+  inspector/office role sweep
+  `20260419-s10-s21-role-sweep-inspector-office-draft-dispose-cleanup`; it
+  also now covers S10 inspector -> S21 office-technician quantity proof through
+  `20260419-s10-s21-inspector-office-quantity-cross-device` and the
+  document/storage placement seam through
+  `20260419-s10-s21-inspector-office-document-storage-fileprovider`; it now
+  also covers the S10 inspector -> S21 office-technician photo/storage/
+  local-cache/visual seam through
+  `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`.
+  RLS denial probes, form role traffic, admin/engineer same-project visibility,
+  and scale soak remain open.
 - [x] File/storage/attachment hardening is the active next P1 lane after
   saved-form/gallery lifecycle acceptance. The current implementation pass
   starts with an inventory of production file-backed families, storage buckets,
@@ -276,6 +307,26 @@ No lane is complete until the artifact proves all applicable items:
 - [ ] Screenshots, sync state, and debug logs show no UI/layout/runtime/sync
   defect.
 - [ ] Docs/checkpoints are updated only after the artifact exists.
+
+## Role Permission Matrix For This Lane
+
+Use `.codex/role-permission-matrix.md` as the controlling role-seam reference.
+Do not test office technician as a restricted reviewer role.
+
+- Admin: company/member/admin surfaces, project management, project deletion,
+  field-data writes, and user-scoped Trash.
+- Engineer: project-management peer of office technician, field-data writes,
+  no admin-only company/member surfaces, project delete/restore only where
+  backend ownership policy allows, and user-scoped Trash.
+- Office technician: project-management peer of engineer, field-data writes,
+  no admin-only company/member surfaces, and user-scoped Trash.
+- Inspector: field-data writes for assigned work, but no project creation,
+  project assignment management, archive/restore/delete, or admin-only
+  company/member surfaces. Inspector still has user-scoped Trash for their
+  own deleted records.
+
+Trash is explicitly not admin-only. It must be current-user scoped by
+`deleted_by` so users do not see each other's trash.
 
 ## Completion Model And Ending Parameters
 
@@ -371,6 +422,34 @@ Track progress toward completion with:
   widget targeting, state sentinel, storage proof, cleanup ledger,
   change-log proof, runtime log, auth/RLS denial, queue liveness, and
   reconciliation mismatch.
+
+### P0 - Close Springfield Cursor/Pull-Echo Defect
+
+- [x] Prove the remote Springfield DWSRF seed data is intact, including 131
+  active `bid_items`.
+- [x] Prove S21 local Springfield had missing pay items while sync status
+  reported idle/clean.
+- [x] Determine likelihood of same-project multi-role assignment as cause:
+  role/project scope changes likely exposed the defect; legitimate role edits
+  are unlikely to be the direct cause.
+- [x] Patch trigger suppression ownership so lock-failed sync attempts cannot
+  reset the active pull's suppression flag.
+- [x] Patch full sync to run an immediate repair pull when integrity clears a
+  pull cursor.
+- [x] Patch conflict-only results so they block clean success/freshness.
+- [x] Add `repair_sync_state_v2026_04_19_pull_echo_conflicts` for verified
+  pull-echo conflict residue only.
+- [x] Verify local tests and analyze gates for the repair and sync-engine
+  success/cursor/trigger behavior.
+- [x] Hot-restart S21 and prove the repair applied on-device:
+  992 pull-echo conflicts dismissed.
+- [x] Run S21 UI Sync Dashboard acceptance:
+  `20260419-s21-springfield-pull-echo-after-repair-ui-sync` passed with no
+  runtime/logging gaps and queue drained.
+- [ ] Classify or explicitly baseline the 59 remaining non-pull-echo conflict
+  rows before conflict status is considered clean.
+- [ ] Restore/assign S10 to the shared role-traffic fixture project before
+  accepting same-project role collaboration stress.
 
 ### P0 - Close Post-v61 Signature Drift Proof
 
@@ -562,9 +641,33 @@ Track progress toward completion with:
 
 ### P1 - Role, Scope, Account, And RLS Sweeps
 
-- [ ] Inventory real account fixtures and UI keys for admin, inspector,
+- [x] Inventory real account fixtures and UI keys for admin, inspector,
   engineer, and office technician.
+  - [x] Added live actor-context role diagnostics so future sweeps can prove
+    the real resolved session role, status, company id, and permission
+    booleans from the app provider state.
+  - [x] Confirmed live S21 resolves as approved `admin` for company
+    `26fe92cd-7044-4412-9a09-5c5f49a292f9`, with clean queue state.
+  - [x] Confirmed live S10 resolves as approved `inspector` for company
+    `26fe92cd-7044-4412-9a09-5c5f49a292f9`, with clean queue state.
+  - [x] Confirmed local harness metadata has deterministic admin, engineer,
+    office technician, inspector, and 15-project fixture ids.
+  - [x] User confirmed separate real role-account credentials for admin,
+    engineer, inspector, and office technician are saved in `.env.secret`.
+    Values must not be printed into logs, artifacts, or docs.
+  - [x] Verified engineer and office-technician sessions on real devices
+    through secret-backed UI sign-in:
+    `20260418-s21-s10-role-account-switch-engineer-office-after-signout-wrap`.
 - [ ] Run role sweeps with real sessions and no `MOCK_AUTH`.
+  - [x] Admin/inspector subset accepted with
+    `20260418-s21-s10-role-sweep-admin-inspector-after-sync-tap-retry`:
+    refactored `role-sweep-only`, real actor-context role proof,
+    UI-triggered Sync Dashboard sync, clean queues/logs/runtime, and
+    `directDriverSyncEndpointUsed=false`.
+  - [x] Engineer subset accepted with
+    `20260418-s21-s10-role-account-switch-engineer-office-after-signout-wrap`.
+  - [x] Office-technician subset accepted with
+    `20260418-s21-s10-role-account-switch-engineer-office-after-signout-wrap`.
 - [ ] Prove denied routes and hidden controls for:
   - project management;
   - PDF import;
@@ -573,16 +676,129 @@ Track progress toward completion with:
   - admin surfaces;
   - export/download actions;
   - storage-backed previews.
-- [ ] Add same-device account switching:
-  - admin to inspector;
-  - inspector to office technician;
-  - active user to revoked user;
-  - revoked user back to allowed user.
-- [ ] Prove selected project, providers, realtime channels, local scope cache,
+  - [x] Admin/inspector subset proved admin dashboard/trash/project-new
+    allow/deny behavior, project create control visibility, and inspector
+    denial for pay-app detail and PDF import.
+  - [x] Engineer and office-technician subset proved admin dashboard/trash
+    denial and project-new/project-create allowed behavior.
+  - [ ] Extend export/download/storage-preview checks if role-specific UI
+    controls beyond the current route gates are exposed in the next matrix.
+- [x] Add same-device account switching regression coverage:
+  - [x] admin to inspector:
+    `20260418-s21-s10-role-account-switch-required-transitions` proved S21
+    before `admin` and after `inspector` on the same physical device.
+  - [x] inspector to office technician:
+    `20260418-s21-s10-role-account-switch-required-transitions` proved S10
+    before `inspector` and after `office_technician` on the same physical
+    device.
+  - Same-device switching is retained as a regression guard. The main
+    role-security model remains separate real users on their own devices,
+    same-project collaboration boundaries, RLS denial, and storage/sync
+    placement evidence.
+- [x] Stop treating live account deactivation as a required role-hardening
+  gate. A diagnostic revocation run exists, but future role hardening should
+  not mutate live account status for beta readiness.
+- [x] Prove selected project, providers, realtime channels, local scope cache,
   Sync Dashboard state, screenshots, and debug logs do not leak stale account
   data.
-- [ ] Treat permission grants and revocations as sync changes, not absence
-  inference.
+  - [x] `20260418-s21-s10-role-account-switch-required-transitions-stale-scope`
+    passed. S21 ended as inspector user
+    `6fc4e6cb-9b63-43d0-ab11-32dca39eb6ff`; S10 ended as
+    office-technician user `d1ca900e-d880-4915-9950-e29ba180b028`; both had
+    selected project `null`, dirty scope count `0`, Sync Dashboard route,
+    matching transport company, active realtime, clean queues, zero
+    runtime/logging gaps, and `directDriverSyncEndpointUsed=false`.
+- [ ] Add same-project multi-role beta traffic stress flow.
+  - [ ] Use S21/S10 as separate real accounts, not same-device role churn.
+  - [ ] Select one real shared project and persist the expected company id,
+    project id, assignment map, role capabilities, and starting sync/runtime
+    state in the artifact.
+  - [ ] Inspector creates/edits project-scoped field data through the UI:
+    daily entry, quantities, and at least one file-backed artifact where the
+    current role is allowed.
+    - [x] Daily-entry edit subset accepted in
+      `20260419-s10-s21-role-collaboration-after-popup-route-delay`.
+    - [x] Quantity subset accepted in
+      `20260419-s10-s21-inspector-office-quantity-cross-device`.
+    - [x] File-backed entry-document subset accepted in
+      `20260419-s10-s21-inspector-office-document-storage-fileprovider`.
+    - [x] Photo/storage/local-cache/visual subset accepted in
+      `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`.
+    - [ ] Forms remain open.
+  - [ ] Prove every inspector write landed in the intended remote table,
+    project/company scope, creator/updater fields, change-log path, and storage
+    bucket/path where applicable.
+    - [x] Daily-entry remote proof accepted in
+      `20260419-s10-s21-role-collaboration-after-popup-route-delay`.
+    - [x] Document remote row plus `entry-documents` storage bytes/hash proof
+      accepted in
+      `20260419-s10-s21-inspector-office-document-storage-fileprovider`.
+    - [x] Quantity remote `entry_quantities` proof accepted in
+      `20260419-s10-s21-inspector-office-quantity-cross-device`.
+    - [x] Photo remote row plus `entry-photos` storage bytes/hash proof
+      accepted in
+      `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`.
+  - [ ] Office technician pulls through the UI and proves local visibility of
+    the expected inspector-created data without selected-project/provider/cache
+    bleed from other accounts or projects.
+    - [x] Daily-entry pull/local proof accepted in
+      `20260419-s10-s21-role-collaboration-after-popup-route-delay`.
+    - [x] Document pull/open/local cached-file proof accepted in
+      `20260419-s10-s21-inspector-office-document-storage-fileprovider`.
+    - [x] Quantity pull/local visibility proof accepted in
+      `20260419-s10-s21-inspector-office-quantity-cross-device`.
+    - [x] Photo pull/open/local cached-file proof accepted in
+      `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`.
+  - [ ] Office technician performs the intended review/edit workflow through
+    the UI and the artifact proves the write lands in the intended table/scope
+    without overwriting inspector-owned fields.
+    - [x] Review todo/comment subset accepted in
+      `20260419-s10-s21-role-collaboration-after-popup-route-delay`.
+  - [ ] Inspector pulls the office-technician change and proves final local
+    visibility, final remote state, clean queues, and no unrelated
+    admin/project-management data in the inspector scope.
+- [ ] Add non-destructive RLS and permission-boundary probes.
+  - [ ] Use real non-admin anon sessions for denied RPC/write assertions; do
+    not use service-role credentials for denial proof.
+  - [ ] Deny admin-only member/company RPCs for inspector and office
+    technician accounts.
+  - [ ] Deny wrong-role/wrong-project writes for project setup, assignments,
+    bid items, restricted pay-app/PDF import, trash, and admin surfaces.
+  - [ ] Verify denied attempts do not create local residue, remote residue,
+    storage objects, or retrying change-log rows.
+- [ ] Add storage and local-placement checks for role collaboration.
+  - [ ] Uploaded photos/documents/signatures land in the expected bucket/path
+    for the creating account/project.
+    - [x] Entry document subset accepted in
+      `20260419-s10-s21-inspector-office-document-storage-fileprovider`:
+      `documents/7327af1b-953c-49aa-9000-57cb3cb3db9e`,
+      bucket `entry-documents`, 48 bytes, SHA-256
+      `d7aacd14db7ca489d86ca71c834ac5513f54cbfbab168d7929c086b6a7e61dc6`.
+    - [x] Entry photo subset accepted in
+      `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`:
+      `photos/539b8816-b31e-4ffb-9930-357d8cd01817`, bucket
+      `entry-photos`, 841 bytes, SHA-256
+      `59727940411ccb79f860aeb581f233a985051dc01fe020f920e81df2187af4b9`.
+  - [ ] Pulled files cache locally only for the receiving account/project
+    scope.
+    - [x] S21 office-technician receiver cached the S10 inspector-created
+      document under the soak project/entry path and the local file hash
+      matched the source storage proof.
+    - [x] S21 office-technician receiver cached the S10 inspector-created
+      photo under the soak project/entry path and the local file hash matched
+      the source storage proof.
+  - [ ] Sign-out/account switch leaves no visible stale tiles, previews,
+    selected-project state, provider scope, or Sync Dashboard residue.
+- [ ] After role traffic gates pass, run at-scale sync soak.
+  - [ ] Multi-round real-user traffic on the shared beta project.
+  - [ ] Concurrent writer/reader/reviewer role activity.
+  - [ ] UI-triggered sync only.
+  - [ ] Final quiescence with drained queues, no runtime/logging gaps, no
+    blocked/unprocessed rows, and no direct driver sync.
+  - [ ] Local/remote reconciliation for project-scoped tables.
+  - [ ] Storage object/row consistency for file-backed traffic.
+  - [ ] Every UI/log/runtime/sync anomaly is fixed or logged as an explicit
+    defect before acceptance.
 
 ### P1 - Sync Engine Correctness Hardening
 
@@ -801,6 +1017,222 @@ Track progress toward completion with:
 - [ ] Add GitHub/CI run proof after push.
 - [ ] Preserve repeated green history before release tagging.
 
+### P1 - Current Cleanup And Visibility Gate
+
+- [x] Preserve Springfield DWSRF and clean all other active junk projects from
+  Supabase.
+- [x] Create disposable role/soak project:
+  `SYNC SOAK ROLE TRAFFIC TEST - DELETE OK`
+  (`SOAK-ROLE-TRAFFIC-20260418`).
+- [x] Assign all four live role accounts to the disposable project.
+- [x] Seed enough project data for role seam traffic.
+- [x] Write cleanup artifacts:
+  - `.claude/test-results/2026-04-19/supabase-cleanup/pre-cleanup-inventory.json`
+  - `.claude/test-results/2026-04-19/supabase-cleanup/cleanup-and-seed-result.json`
+  - `.claude/test-results/2026-04-19/supabase-cleanup/post-cleanup-verification.json`
+- [x] Do not accept
+  `20260419-s21-s10-after-supabase-cleanup-seed-ui-pull`; it exposed a
+  harness gap. S10 local SQLite contained the pulled projects while
+  `ProjectProvider` still reported zero visible projects.
+- [x] Refresh `ProjectProvider` after successful UI sync completion.
+- [x] Expand actor diagnostics with provider project ID/name samples.
+- [x] Add harness sentinel for local-project/provider visibility mismatch.
+- [x] Add `/driver/sync-status` conflict-log diagnostics and fail loudly when
+  any undismissed `conflict_log` rows remain instead of trusting dashboard
+  attention cutoffs.
+- [x] Add targeted deleted-project tombstone conflict repair:
+  `repair_sync_state_v2026_04_19_deleted_project_conflicts`. It only dismisses
+  remote-wins conflicts for already-soft-deleted records whose owning local
+  project is also soft-deleted and no pending local `change_log` work exists.
+- [x] Add semantic timestamp conflict hardening:
+  - LWW timestamp comparison parses equivalent offset strings as the same UTC
+    instant.
+  - Conflict diffs treat equivalent timestamp strings as equal, so no-op
+    timestamp-format conflicts are not logged.
+  - `repair_sync_state_v2026_04_19_semantic_conflicts` dismisses existing
+    semantically converged conflict residue only when the current local row
+    still matches `lost_data` and no pending local work exists.
+  - Local evidence: focused `dart analyze`, 54 focused Flutter sync tests,
+    sync-soak harness self-tests, and `git diff --check` passed.
+- [x] Re-query S21/S10 after repair catalog `2026-04-19.3` runs and classify
+  any remaining local-missing/remote-tombstone conflict rows before accepting
+  the conflict lane as clean.
+- [x] Rerun S21/S10 Sync Dashboard UI pull on patched builds and require:
+  UI-triggered sync only, no direct driver sync endpoint, clean queue, clean
+  conflict-log diagnostics, clean runtime/logging state, local rows present,
+  and provider samples showing the disposable project.
+- [x] Treat
+  `20260419-s21-s10-after-provider-refresh-sentinel-ui-pull` as **not
+  accepted** until patched devices prove the new conflict sentinel. Provider
+  visibility was fixed, but review found hidden undismissed conflicts that the
+  previous dashboard cutoff masked.
+- [x] Accept cleanup/visibility/conflict sentinel closure through
+  `20260419-s21-s10-cleanup-visibility-conflict-sentinel-accepted`:
+  S21 and S10 both used UI-triggered Sync Dashboard sync, no direct driver
+  sync endpoint, drained queues, zero raw undismissed conflicts, zero
+  runtime/logging gaps, and project-provider samples showing Springfield plus
+  the disposable soak project.
+- [ ] Only after that, resume role-boundary stress on the disposable project.
+  - [x] Preserve the first S10/S21 role-collaboration run as a failed
+    artifact, not accepted evidence:
+    `20260419-s10-s21-role-collaboration-soak-project-initial`.
+  - [x] Classify the real failure from raw logs: `entry_editor_scroll` was
+    absent because `DailyEntry.fromMap` threw on the synced weather value
+    `"Clear"` while loading the inspector daily entry.
+  - [x] Patch DailyEntry weather deserialization so canonical enum names and
+    weather-service display strings both load without crashing the editor.
+  - [x] Verify the patch locally with focused analyze, focused Flutter model
+    tests, sync-soak harness self-tests, and `git diff --check`.
+  - [x] Rebuild/restart S10 and S21 on the weather-parser patched app.
+  - [x] Preserve
+    `20260419-s10-s21-role-collaboration-after-weather-parser` as a second
+    failed artifact, not accepted evidence. The weather crash was fixed and
+    S10 produced inspector remote write proof, but S21 generated an
+    undismissed remote-wins conflict while pulling the inspector update with
+    no pending local change for that record.
+  - [x] Patch pull conflict classification so remote updates on stale local
+    rows are applied without `conflict_log` when the receiving device has no
+    unprocessed `change_log` row for the same table/record.
+  - [x] Verify the pull-classifier patch locally with focused analyze,
+    focused PullHandler tests, sync engine e2e tests, sync-soak harness
+    self-tests, and `git diff --check`.
+  - [x] Rebuild/restart S10 and S21 on the pull-classifier patch.
+  - [x] Recover reviewed S10/S21 role-run residue through UI sync or
+    conservative reviewed repair only.
+  - [x] Preserve
+    `20260419-s10-s21-role-collaboration-after-pull-classifier` as failed
+    evidence. It proved the stale-pull conflict classifier was fixed, then
+    failed loudly on a S21 `Duplicate GlobalKey` / `InheritedGoRouter`
+    runtime assertion while saving the office review-comment dialog.
+  - [x] Patch review-comment dialog focus/popping and preserve
+    `20260419-s10-s21-role-collaboration-after-review-dialog-focus-fix` as
+    failed evidence because the same route assertion remained.
+  - [x] Patch the report popup-menu review-comment action to wait for popup
+    route teardown before opening the dialog route.
+  - [x] Recover failed-run `todo_items` residue through targeted cleanup plus
+    UI-triggered Sync Dashboard recovery:
+    `20260419-s21-s10-cleanup-after-review-dialog-runtime-failure` and
+    `20260419-s21-s10-cleanup-after-review-popup-route-fix`.
+  - [x] Accept
+    `20260419-s10-s21-role-collaboration-after-popup-route-delay` as the first
+    S10 inspector + S21 office-technician role proof. It passed with
+    UI-triggered sync only, inspector daily-entry remote write proof,
+    office-technician pull/local visibility, office-technician review todo
+    remote write proof, inspector final pull/local visibility, zero queues,
+    zero undismissed conflicts, zero runtime/logging gaps, screenshots, and
+    no direct driver sync endpoint use.
+  - [x] Preserve strict role-sweep/provider-local failures as failed evidence:
+    `20260419-s10-s21-role-sweep-inspector-office-physical`,
+    `20260419-s10-s21-role-sweep-inspector-office-provider-strict`,
+    `20260419-s10-s21-role-sweep-inspector-office-provider-repaired`, and
+    `20260419-s10-s21-role-sweep-inspector-office-sync-surface-repaired`.
+    These runs exposed that the office-technician `/project/new` route could
+    leave a provider-only blank draft at the exact sync acceptance point while
+    local active projects remained only Springfield plus the soak project.
+  - [x] Harden the provider/local project visibility sentinel to fail on
+    provider-only project IDs and provider/local active project count mismatch.
+  - [x] Patch project draft cleanup so blank suppressed drafts are discarded
+    when direct route replacement bypasses `ProjectSetupBackHandler`, including
+    the race where the eager draft insert completes after the route starts
+    disposing.
+  - [x] Accept
+    `20260419-s10-s21-role-sweep-inspector-office-draft-dispose-cleanup` as
+    the current S10 inspector + S21 office-technician strict role sweep. It
+    passed with UI-triggered sync only, S10 route/control denial,
+    S21 office-technician project-create visibility, `Draft discarded:
+    d310380b-578a-48de-ab4a-03c91c9d7e70`, provider/local active project
+    equality on both devices, `providerOnlyIds=[]`, drained queues, zero raw
+    undismissed conflicts, zero runtime/logging gaps, screenshots/logs/debug
+    artifacts, and no direct driver sync endpoint use.
+  - [x] Preserve
+    `20260419-s10-s21-inspector-office-document-storage-cross-device` as
+    **not accepted** despite a green summary because raw S21 adb logcat showed
+    `_openDocument error: FileUriExposedException` when opening the pulled
+    document tile. This exposed a fail-loud gap: UI-level document-open errors
+    were logged too quietly and were not counted by the summary.
+  - [x] Patch Android document opening to use an app `FileProvider`, copy
+    private files into a cache-scoped `document_open/` share path, grant URI
+    read permission, and log document-open failures through `Logger.error`.
+  - [x] Accept
+    `20260419-s10-s21-inspector-office-document-storage-fileprovider` as the
+    current S10 inspector -> S21 office-technician document/storage seam. It
+    passed with UI-triggered Sync Dashboard sync only, remote `documents` row
+    proof, authorized `entry-documents` storage proof, unauthorized storage
+    denial proof, S21 pull/open/local cached-file proof, ledger-owned cleanup,
+    storage absence proof, provider/local project equality, drained queues,
+    zero runtime/logging gaps, app-specific raw log scan clean, and no direct
+    driver sync endpoint use.
+  - [x] Add and accept `quantity-cross-device-only`:
+    `20260419-s10-s21-inspector-office-quantity-cross-device` created
+    `entry_quantities/f2efafa7-6987-4854-9e79-4a775f6b610a` through the S10
+    inspector UI, synced through Sync Dashboard, proved the remote row with
+    `created_by_user_id=6fc4e6cb-9b63-43d0-ab11-32dca39eb6ff`, pulled it on
+    S21 office technician through Sync Dashboard, proved local visibility with
+    the same project, entry, bid item, quantity, notes, and creator, then
+    soft-deleted the row and pulled the deletion on S21. Final queues and raw
+    undismissed conflicts were clean, app-specific raw log scan was clean, and
+    `directDriverSyncEndpointUsed=false`.
+  - [x] Preserve failed photo proof runs as defects, not accepted evidence:
+    `20260419-s10-s21-inspector-office-photo-cross-device` exposed missing
+    `/driver/local-file-head` support for `photos`, and
+    `20260419-s10-s21-inspector-office-photo-cross-device-local-file-head-photos`
+    exposed that S21 could pull/open a remote-backed photo while leaving
+    `photos.file_path` null.
+  - [x] Patch photo local-file proof and local-cache plumbing:
+    `/driver/local-file-head` supports `photos`, `PhotoService.ensureLocalPhoto`
+    downloads from `entry-photos`, `PhotoRepository.cacheLocalFilePath` updates
+    `photos.file_path` with triggers suppressed, and `PhotoThumbnail` lazily
+    caches remote-backed photos before rendering.
+  - [x] Preserve the first rebuilt byte-proof pass
+    `20260419-s10-s21-inspector-office-photo-cross-device-local-cache-forward-retry`
+    as rejected visual evidence: S21 cached bytes matched storage, but screenshot
+    review still showed `Image unavailable`.
+  - [x] Harden the harness so lost ADB forwards are restored from cached
+    device-state and retried once, and visible `photo_missing_image_*` /
+    `Image unavailable` widget-tree states count as runtime/UI defects.
+  - [x] Accept the S10 inspector -> S21 office-technician photo seam:
+    `20260419-s10-s21-inspector-office-photo-cross-device-real-jpeg-visual-gate`
+    proved remote row/object write, unauthorized storage denial, S21 UI
+    pull/open, rendered thumbnail screenshot, S21 local cached-file SHA-256
+    match, cleanup, raw log cleanliness, clean queues/conflicts, and
+    `directDriverSyncEndpointUsed=false`.
+  - [x] Preserve
+    `20260419-s10-s21-inspector-office-mdot0582b-cross-device-form` as a
+    rejected form-seam artifact. It drained queues and used UI-triggered sync,
+    but S10 logged five undismissed source-side `form_responses` conflicts
+    after pushing one insert plus five updates for the same record.
+  - [x] Harden duplicate local write bursts before accepting forms: push
+    planning now coalesces superseded `change_log` rows for the same
+    table/record into one remote write, and form creation through
+    `InspectorFormProvider` stamps local `created_by_user_id` from the real
+    current session.
+  - [x] Preserve
+    `20260419-s10-s21-inspector-office-mdot0582b-cross-device-form-after-coalescing`
+    as rejected harness-contract evidence, not accepted role proof. The
+    duplicate-change fix held: source UI sync drained the six form rows to
+    zero with zero undismissed conflicts, S21 pulled local MDOT 0582B content,
+    and the reviewed screenshot showed `mdot_hub_screen`; the run failed
+    because the flow asserted stale `/form-fill/<responseId>` instead of the
+    app route `/form/<responseId>`.
+  - [x] Patch the MDOT 0582B open-form state sentinel to expect
+    `/form/<responseId>` and keep requiring `mdot_hub_screen`; add a harness
+    wiring check so the route contract cannot silently drift back.
+  - [x] Accept S10 inspector -> S21 office-technician MDOT 0582B form seam:
+    `20260419-s10-s21-inspector-office-mdot0582b-cross-device-form-route-sentinel`
+    proved source local/remote MDOT 0582B markers, S21 pull/local UI-open
+    proof on `/form/<responseId>` with `mdot_hub_screen`, normal cleanup,
+    S21 cleanup pull, zero raw undismissed conflicts, reviewed clean
+    screenshots/logs, and `directDriverSyncEndpointUsed=false`.
+  - [ ] Expand role hardening beyond the accepted daily-entry/review-comment
+    quantity, document/storage, and photo seams: forms, denied role UI
+    actions, RLS denial probes, admin/engineer visibility, and no
+    cross-account/project/provider bleed-through.
+    - [x] Accepted non-destructive real anon RLS denial probes in
+      `.claude/test-results/2026-04-19/rls-denial-probes-20260419T0935Z/summary.json`.
+      Inspector, office technician, and engineer were denied by admin-only
+      member/app-config/join-request RPCs; inspector was also denied by the
+      project-assignment mutation RPC before mutation.
+
 ### P2 - 15-20 Actor Scale Model
 
 Target shape:
@@ -814,13 +1246,149 @@ Scale todo:
 
 - [ ] Expand deterministic fixture to 15 projects.
 - [ ] Provision 10-20 active users with realistic role/project assignments.
+  - [x] Beta four-account topology: do not require 10-20 email-backed
+    Supabase identities before the first scale soak. Four real role accounts
+    can produce 10-20 isolated app actors by running multiple local stores per
+    account. Track unique-identity/RLS scale as a separate staging/local
+    fixture gate.
 - [ ] Include realistic records and binary/export artifacts.
-- [ ] Add headless app-sync actors using the actual sync engine, local store,
+- [x] Add headless app-sync actors using the actual sync engine, local store,
   auth/session binding, and storage paths.
-- [ ] Ensure each headless actor has an isolated local database/store.
+- [x] Ensure each headless actor has an isolated local database/store.
+  - [x] Accepted local Supabase smoke on 2026-04-19 with four concurrent,
+    role-balanced actors: admin, engineer, office technician, inspector.
+    Evidence: `build/soak/headless-app-sync-summary.json` and
+    `build/soak/headless-app-sync-2026-04-19T123748507173Z/actors.json`.
+  - [x] Fixed the discovered role-visible sync enrollment bug: admin,
+    engineer, and office technician now enroll locally visible projects for
+    child-table pulls; inspector remains assignment-scoped.
+  - [x] Accepted repaired 12-actor local app-sync scale proof on 2026-04-19:
+    12 virtual users, 6 concurrent workers, four role personas fanned across
+    isolated local SQLite stores, real sessions, real `SyncEngine`, 174/174
+    actions, zero failures/errors/RLS denials. Evidence:
+    `build/soak/headless-app-sync-summary.json` and
+    `build/soak/headless-app-sync-2026-04-19T124822914052Z/actors.json`.
+  - [x] Preserve the rejected first 12-actor attempt as a harness-quality
+    defect, not accepted proof: it exposed invalid seeded-child coverage for
+    extra inspector personas and concurrent shared-record proof collisions.
+  - [x] Add deterministic mutable-fixture repair for seeded photo soft-delete
+    residue. The repair uses a real authenticated admin session, not service
+    role or mock auth, and writes `fixture_repair.json` beside the actor
+    manifest.
 - [ ] Run S21 and S10 concurrently with headless app-sync actors.
 - [ ] Add emulator only after it is stable and artifact-producing.
+  - [x] One emulator actor (`emulator-5556`) booted from AVD
+    `Pixel_7_API_36` and reached the app driver via host port `4971`; a
+    second read-only instance did not survive boot.
+  - [x] Four real approved role accounts were resolved from `.env.secret`
+    without printing secrets.
+  - [x] Preserve
+    `20260419-emulator-admin-role-account-switch-sweep` as rejected evidence:
+    admin UI login and allowed route/control checks worked, but fresh-device
+    UI sync produced 360 unprocessed pull-echo `change_log` inserts. This is
+    a fresh-store sync blocker before admin/engineer/four-account acceptance.
+  - [x] Patch fresh-store pull/apply trigger suppression and role-account
+    wrapper failure reporting.
+  - [x] Reinstall or clear the emulator and rerun the admin emulator role
+    sweep cleanly through UI sync:
+    `20260419-emulator-admin-role-account-switch-accepted`.
+  - [x] Reinstall or clear the emulator and rerun the engineer emulator role
+    sweep cleanly through UI sync:
+    `20260419-emulator-engineer-role-account-switch`.
+  - [x] Add a soak-harness operational cleanup/fail-loud gate for stale
+    `sync_hint_subscriptions` after the accepted admin emulator lane exposed
+    live active-subscription cap exhaustion. The role-account preflight now
+    queries each real role account's own RLS-visible rows, deletes only stale
+    own rows, writes redacted proof artifacts, and fails the run before UI
+    automation when a role remains stale or near cap.
+  - [x] Accept the currently reachable three-actor UI role-account gate with
+    sync-hint preflight:
+    `20260419-three-actor-role-account-switch-sync-hint-preflight-after-reauth-fix`.
+    This covers S10 inspector, S21 office technician, and emulator engineer
+    together with clean UI sync, clean queues/conflicts/logs, and
+    `directDriverSyncEndpointUsed=false`.
+  - [x] Re-prove admin sequentially on the stable emulator with the new
+    sync-hint preflight:
+    `20260419-emulator-admin-role-account-switch-with-sync-hint-preflight`.
+  - [ ] Keep true simultaneous four-role UI proof open. A second read-only
+    `Pixel_7_API_36` on `emulator-5558` did not become ADB-visible after five
+    minutes, so admin still has to share the single stable emulator unless a
+    second AVD/device is added.
+  - [ ] Latest capacity re-check: `emulator-5554` is usable on driver port
+    `4972`, but the second `emulator-5556` read-only instance was rejected
+    because the first instance was not launched with `-read-only`. Artifact:
+    `.claude/test-results/2026-04-19/emulator-capacity-attempt-20260419T080603Z/summary.json`.
+    Next clean retry must launch both same-AVD emulator instances read-only
+    from the start.
+  - [x] Clean two-emulator retry reached four ADB-visible UI actors: S10
+    `4949`, S21 `4968`, `emulator-5554` `4972`, and `emulator-5556` `4973`.
+    The first four-role run is rejected because the harness still asserted
+    stale non-admin Trash denial. The harness is patched to require
+    user-scoped Trash access for all approved roles and to capture/fail-loud on
+    Android notification or permission overlays through `system_overlay_blocked`.
+  - [x] Preserve the first rerun after the Trash/surface patch,
+    `20260419-four-role-ui-endpoint-wiring-after-trash-surface-fix`, as
+    rejected red-screen evidence. It proved the stale Trash assertion and
+    Android overlay blockers were gone, then failed loudly on GoRouter
+    `Duplicate GlobalKey` / `InheritedGoRouter` assertions during
+    account-switch/auth teardown.
+  - [x] Patch and lint-lock the router red-screen class: shell container and
+    shell child pages use stable local `ValueKey` values instead of
+    `state.pageKey`, sign-out waits for dialog pop teardown before auth
+    mutation, and `no_go_router_state_page_key_in_shell_routes` now covers the
+    whole production `lib/core/router/` surface.
+  - [x] Local verification for the router hardening passed: focused
+    `dart analyze`, focused router/settings Flutter tests, focused
+    architecture lint tests, sync-soak harness self-tests, and
+    `git diff --check`.
+  - [x] Preserve
+    `20260419-four-role-ui-endpoint-wiring-after-router-key-fix` as rejected
+    follow-up evidence: the run still failed loudly on GoRouter
+    `Duplicate GlobalKey` / `InheritedGoRouter` assertions, with queues
+    drained and Android surface evidence clean.
+  - [x] Patch and lint-lock the remaining root-wrapper class discovered from
+    that run: `AppLockGate` now keeps a stable `Stack` shape around the router
+    child, and `no_conditional_root_shell_child_wrapper` covers
+    `app_lock_gate.dart` as well as `app_widget.dart` and `main.dart`.
+  - [x] Preserve
+    `20260419-four-role-ui-endpoint-wiring-after-shell-key-blank-surface-fix`
+    as a fourth fail-loud UI-runtime rejection. It proved the blank-surface
+    sentinel works, exposed real emulator black screens, and exposed a harness
+    evidence gap where benign UIAutomator `AndroidRuntime` logcat lines were
+    being counted as step runtime failures.
+  - [x] Move responsive density out of `MaterialApp.router.builder` and into
+    app-level `ThemeData` above the router. The builder is now limited to the
+    stable `AppLockGate` overlay slot.
+  - [x] Add `no_material_app_router_builder_theme_wrapper` so future edits
+    cannot wrap GoRouter's child in `Theme` or a responsive inherited theme
+    shell inside `MaterialApp.router.builder`.
+  - [x] Harden evidence attribution: preflight and each step now clear ADB
+    logcat before evidence windows, and runtime scanning ignores benign
+    UIAutomator `D/I AndroidRuntime` launcher noise while still catching fatal
+    Android runtime lines.
+  - [x] Local root-theme/logcat hardening evidence:
+    focused `dart analyze` passed; focused architecture lint tests passed 16
+    tests; focused app/router/settings Flutter tests passed 47 tests; and
+    `pwsh -NoProfile -File tools\test-sync-soak-harness.ps1` passed 14 test
+    files.
+  - [ ] Rebuild/restart all four UI actors and rerun the simultaneous
+    four-role gate after the root-theme/logcat attribution patch.
+  - [ ] PAUSED HANDOFF 2026-04-19: local patch is verified, but no device
+    rebuild/rerun has happened yet. Resume at the four-device rebuild and
+    simultaneous role gate; latest device artifact remains rejected.
+  - [ ] Add a backend/staging scheduled alert or dashboard for stale
+    `sync_hint_subscriptions`; harness preflight is not enough for production
+    beta observability.
 - [ ] Add backend/RLS actors concurrently as pressure, not as device-sync proof.
+- [ ] Keep evidence layers explicit:
+  - UI/device actors prove app UI, auth/session scope, local SQLite,
+    `change_log`, Sync Dashboard sync, logs, screenshots, and storage previews.
+  - Headless app-sync actors must prove real sync-engine/local-store behavior
+    with isolated databases before they count toward sync scale.
+  - Backend/RLS actors prove server pressure and authorization only; they do
+    not count as device-sync actors.
+  - SQLite is not a shared Docker backend. Docker may host Supabase or isolate
+    multiple app actors, but each app actor still owns its own SQLite file.
 - [ ] Require final checker output for all 15-20 users:
   - no lost acknowledged writes;
   - no unauthorized reads;
@@ -828,6 +1396,31 @@ Scale todo:
   - storage row/object consistency;
   - empty queues;
   - no stale auth/project scope.
+
+### 2026-04-19 Active UI Stability Gate
+
+- [x] Router shell pages use stable local keys instead of `state.pageKey`.
+- [x] `AppLockGate` keeps a stable root wrapper shape around the router child.
+- [x] Production `ShellRoute` no longer uses an app-owned `navigatorKey`; only
+  the root navigator key is app-owned for full-screen parent routes.
+- [x] Architecture lints now guard all three red-screen families:
+  `state.pageKey` in router files, conditional root-shell child wrappers, and
+  explicit `ShellRoute(navigatorKey: ...)`.
+- [x] Responsive density is computed above `MaterialApp.router`; the router
+  builder no longer wraps GoRouter's child in `Theme` / responsive inherited
+  theme shells.
+- [x] Architecture lints now also guard against
+  `MaterialApp.router.builder` theme wrappers:
+  `no_material_app_router_builder_theme_wrapper`.
+- [x] Android surface evidence now fails loudly on both blocking system
+  overlays and blank app surfaces (`android_app_blank_surface` /
+  `blank_app_surface`).
+- [x] ADB logcat evidence is time-bounded per preflight/step and ignores
+  benign UIAutomator AndroidRuntime launcher noise.
+- [ ] Rebuild all four UI actors and rerun the four-role account/role gate
+  before accepting any role-seam evidence.
+- [ ] PAUSED HANDOFF 2026-04-19: resume with the four-device rebuild/rerun; do
+  not advance to Trash/RLS or scale soak until this UI stability gate passes.
 
 ### P2 - Operational Diagnostics And Alerts
 
@@ -899,7 +1492,7 @@ Scale todo:
   - characterization tests;
   - device-soak mutation or explicit exemption;
   - reconciliation probe membership.
-- [ ] Write `docs/sync-scale-hardening-playbook.md`:
+- [x] Write `docs/sync-scale-hardening-playbook.md`:
   - actor model;
   - seedable workloads;
   - fault families;
@@ -908,6 +1501,9 @@ Scale todo:
   - diagnostics;
   - release thresholds;
   - mapping from PowerSync/Jepsen/WatermelonDB/RxDB patterns to Field Guide.
+  - [x] Draft created at `docs/sync-scale-hardening-playbook.md` with the
+    current actor/account/evidence-layer model. Expand as soak checkers and
+    fault gates are implemented.
 
 ### P3 - Optional PowerSync Evaluation After Release Gates
 
