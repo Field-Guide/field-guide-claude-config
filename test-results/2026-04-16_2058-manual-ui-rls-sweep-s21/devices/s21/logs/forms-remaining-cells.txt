@@ -1,8 +1,0 @@
-flow=forms.remaining_spec_cells
-result=FAIL
-cells:
-- deep_link_entry: FAIL, linked S21-009, /form/harness-response-001 renders form_viewer_screen not mdot_hub_screen
-- nav_bar_switch_mid_flow: FAIL, linked S21-009, mdot_hub_save_button absent
-- tab_switch_mid_edit: FAIL, linked S21-009, mdot_hub_save_button absent
-- orientation_change: FAIL, linked S21-009, mdot_hub_screen absent before orientation
-- form_completeness: FAIL, linked S21-009, target MDOT hub/completeness surface absent

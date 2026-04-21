@@ -1,7 +1,0 @@
-flow=pay_applications.backward_traversal
-result=PASS
-steps:
-- from contractor_comparison_screen, press back: navigatedBack true
-- find pay_app_detail_screen: exists true
-- route: /pay-app/harness-pay-app-001
-- debug errors since back window: OK: 0 errors

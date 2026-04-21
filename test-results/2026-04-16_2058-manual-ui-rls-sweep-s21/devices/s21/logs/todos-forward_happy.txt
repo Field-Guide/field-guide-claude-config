@@ -1,8 +1,0 @@
-flow=todos.forward_happy
-result=FAIL
-steps:
-- navigate /todos
-- wait todos_screen: found true
-- tap todos_add_button: dialog opens
-visual:
-- New To-Do dialog bottom is clipped; priority row/action area not fully visible

@@ -1,7 +1,0 @@
-flow=pay_applications.remaining_cells
-results:
-- deep_link_entry: PASS, pay_app_detail_screen was found on /pay-app/harness-pay-app-001
-- nav_bar_switch_mid_flow: FAIL, comparison path opens with PathNotFound error; linked S21-017
-- orientation_change: PASS, pay_app_detail_screen sentinel visible before orientation; no new debug errors in checked window
-- export_verification: FAIL, missing XLSX file blocks comparison/export path; linked S21-017
-- role_restriction: BLOCKED, inspector account/role switch deferred to role-boundary/RLS section

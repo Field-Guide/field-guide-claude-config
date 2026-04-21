@@ -1,7 +1,0 @@
-flow=gallery.backward_traversal
-result=FAIL
-steps:
-- back from filter sheet: navigatedBack true
-- back at gallery root: navigatedBack false
-state:
-- route /gallery hasBottomNav false

@@ -1,5 +1,0 @@
-flow=calculator
-results:
-- root/deep link PASS: calculator_screen and tabs visible
-- tab switch PASS: HMA/concrete tab taps succeeded, no debug errors
-- back_at_root FAIL: back returned navigatedBack false, route /calculator, hasBottomNav false

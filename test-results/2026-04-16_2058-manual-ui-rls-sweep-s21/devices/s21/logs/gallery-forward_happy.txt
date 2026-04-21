@@ -1,9 +1,0 @@
-flow=gallery.forward_happy
-result=FAIL
-steps:
-- navigate /gallery
-- wait gallery_screen: found true
-- tap gallery_filter_button: filter sheet opens
-observations:
-- gallery root shows 4 photos but each tile displays placeholder image icon instead of thumbnail content
-- filter sheet opens without debug errors
