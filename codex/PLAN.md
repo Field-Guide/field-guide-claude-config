@@ -2,6 +2,41 @@
 
 ## Active Codex Plans In `.codex/plans/`
 
+- `2026-04-21-testing-results-and-ui-flow-standardization-spec.md`:
+  Current testing-surface standardization spec. It makes
+  `tools/testing/test-results/` the canonical runtime result root, replaces the
+  mirror-tree output model with the compact `report.md` / `summary.json` /
+  `artifacts.json` contract, documents `.claude` as the single maintained
+  AI-agent reference system with `.codex` as alias-only, and promotes
+  `ui-flow` to the primary verification lane while keeping `sync-flow` as the
+  specialized multi-device stress lane.
+- `2026-04-20-unified-routing-state-auth-live-testing-reset-plan.md`:
+  Current controlling reset spec for routing, auth, state-machine, driver, and
+  four-device live testing. It preserves the original unified routing/state
+  direction, locks the decision to stay on Provider and Supabase Auth for this
+  cutover, adds the auth research findings, and defines the first canonical
+  auth-runtime-state implementation lane.
+- `2026-04-20-unified-routing-state-sync-soak-driver-spec.md`:
+  Current controlling integration spec for the routing/state/driver/sync-soak
+  lane. It consolidates the AutoRoute migration, app-owned route contracts,
+  sentinel-key state machine, driver interaction readiness, four-device startup
+  proof, and backend-pressure acceptance model. It also defines the
+  deprecation path for legacy GoRouter-bound driver assumptions, host-side
+  posture derivation, `/driver/ready`-only readiness, and legacy soak
+  entrypoints.
+- `2026-04-20-autoroute-routing-provider-refactor-todo-spec.md`:
+  Child routing/red-screen recovery spec under the unified
+  routing/state/sync-soak driver lane. It records the AutoRoute migration
+  decision, app-owned navigation boundary, route-access snapshot refactor, and
+  vertical-slice work, but device acceptance now follows the unified
+  route/state/sentinel contract above.
+- `2026-04-19-four-role-sync-hardening-scale-up-spec.md`:
+  Scale-up input under the unified routing/state/sync-soak driver lane. It
+  remains the source for enterprise sync goals such as concurrent role traffic,
+  headless app-sync scale, backend/device overlap, operation-history/checker,
+  fault/liveness, staging/performance, operational diagnostics, and the
+  consistency contract, but four-device acceptance now requires the unified
+  route/state/sentinel startup and interaction gates first.
 - `2026-04-08-lint-first-enforcement-plan.md`:
   Lint-first implementation queue for the current beta hardening wave,
   covering route-intent ownership, sync repair scaffolding, integrity
@@ -112,7 +147,7 @@
   loop. Current evidence: fresh original-four replay reproduced the Berrien
   `16` mismatch baseline, fresh full-corpus replay reproduced `427` asserted
   mismatches plus `2` trace-contract failures, compact replay audit output now
-  lands under `.claude/test-results/2026-04-15/`, and the most upstream
+  lands under `tools/testing/test-results/<date>/`, and the most upstream
   confirmed first-bad stage is `text_recognition` via `ocr_source_error`.
   Priority 0 is now source/provider/rendering: prove a Vision table-region OCR
   route against the current full-page Vision cache before adding more
@@ -297,8 +332,9 @@
   Full raw test-results audit before pruning. The index covers 165 runs, 76
   passes, 89 failures, and records every distinct failure class that must stay
   on the regression checklist. After this index was written, duplicate ignored
-  raw `.claude/test-results/2026-04-18` output, local build caches, debug APKs,
-  and exact generated S21 Download artifacts were cleaned. Tracked historical
+  raw output under the former `.claude/test-results/2026-04-18/` tree, local
+  build caches, debug APKs, and exact generated S21 Download artifacts were
+  cleaned. Tracked historical
   evidence remains; S10 app data/Downloads were not bulk-cleared.
 - `2026-04-18-mdot-1126-typed-signature-sync-soak-plan.md`:
   Active implementation plan for the MDOT 1126 typed-signature sync-soak lane.
@@ -340,6 +376,12 @@
 
 ## Active Codex Research In `.codex/research/`
 
+- `2026-04-19-router-red-screen-architecture-research.md`:
+  Durable routing-architecture memo for the duplicate-`GlobalKey` / red-screen
+  investigation. It captures the failure matrix, rejected partial fixes,
+  root-cause hypothesis, current app-wide `go_router` rules, upstream
+  `go_router` versus `auto_route` package research, upgrade rationale, and the
+  threshold for opening a real `auto_route` migration spike.
 - `2026-04-17-sync-soak-gap-research.md`:
   Research and code-audit memo explaining why the clean 12,368-action
   backend/RLS soak does not prove device sync. It records external references
@@ -349,6 +391,10 @@
 
 ## Active Codex Checkpoints In `.codex/checkpoints/`
 
+- `2026-04-19-four-role-sync-hardening-scale-up-checkpoint.md`:
+  Active checkpoint for the consolidated four-role sync hardening scale-up
+  lane. Use this going forward instead of appending remaining-work notes to the
+  older unified live task list or 5,000-line implementation log.
 - `2026-04-17-sync-soak-implementation-checkpoints.md`:
   Append-only checkpoint log for the enterprise sync soak and UI/RLS closeout
   implementation. Use this for slice-by-slice notes about what was found, what

@@ -7,14 +7,21 @@
 
 ## Goal
 
-Run the shared HTTP-driver test workflow and write artifacts to the shared
-test-results root without inventing wave agents or fixer agents.
+Run the shared HTTP-driver testing workflow through the canonical testing
+surface without inventing wave agents or fixer agents.
+
+## Canonical Families
+
+- `ui-flow`: navigation, route/sentinel, screenshot, visible-layout, auth/routing, form fidelity, preview, and export checks.
+- `sync-flow`: real UI mutation plus UI-triggered sync against live Supabase, including multi-device contention and concurrency stress.
+- `Live Soak`: prolonged overlapped backend/headless/device testing.
+- `Local Driver`: deterministic driver or launcher drills and endpoint checks.
 
 ## Output Root
 
-- `.claude/test-results/YYYY-MM-DD_HHmm_codex_<descriptor>/`
+- `tools/testing/test-results/YYYY-MM-DD/<run-id>/`
 - PDF extraction replay audits must write compact outputs under
-  `.claude/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-<time>-<run_id>/`
+  `tools/testing/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-<time>-<run_id>/`
   by running `scripts/audit_pdf_extraction_replay.ps1`.
 
 ## Core Rules
@@ -41,10 +48,11 @@ test-results root without inventing wave agents or fixer agents.
 ## Workflow
 
 1. resolve the requested scope
-2. run driver preflight
-3. load the required tier or sync docs
-4. execute flows in order
-5. write checkpoint and report artifacts under `.claude/test-results/`
+2. map the request to `ui-flow`, `sync-flow`, `Live Soak`, or `Local Driver`
+3. run driver preflight when the chosen family needs it
+4. load the required testing docs
+5. execute flows in order
+6. write artifacts under `tools/testing/test-results/`
 6. summarize failures in chat
 
 ## Shared References
@@ -52,10 +60,13 @@ test-results root without inventing wave agents or fixer agents.
 - `.claude/skills/test/SKILL.md`
 - `.claude/test-flows/flow-dependencies.md`
 - `.claude/test-flows/sync/framework.md`
+- `tools/testing/docs/testing-glossary.md`
+- `tools/testing/docs/flow-selection-guide.md`
 
 ## Notes
 
 - use `tools/start-driver.ps1` and `tools/stop-driver.ps1`
 - save screenshots for every UI cell, but manually inspect only failures,
   warnings, and small feature/device samples
-- keep artifacts shared so either tool can resume the run
+- "stress test sync" maps to `sync-flow`
+- navigation/layout requests map to `ui-flow`

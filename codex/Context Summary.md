@@ -68,8 +68,9 @@
   (`20260418-s21-mdot1174r-redscreen-residue-recovery-sync-only`) and the live
   `/driver/change-log` was empty afterward. Post-debug cleanup is complete:
   compact `.codex/reports/*result-index.*` reports preserved the failure
-  audit, duplicate ignored `.claude/test-results/2026-04-18` raw output was
-  pruned, local generated build/debug caches were removed, and only exact
+  audit, duplicate ignored legacy raw output under the former
+  `.claude/test-results/2026-04-18/` tree was pruned, local generated
+  build/debug caches were removed, and only exact
   generated S21 Download artifacts (`device-ci.db` plus `conflict_*` DB files)
   were deleted. Next work is to fix MDOT 1174R row-section key/state ownership
   before another S21 acceptance attempt. After 1174R acceptance, move

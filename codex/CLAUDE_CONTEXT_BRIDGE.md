@@ -1,7 +1,8 @@
 # Claude Context Bridge
 
-This file maps the existing `.claude/` library into targeted, low-noise loads
-for Codex. Open only the files needed for the current task.
+This file maps the maintained `.claude/` library into targeted, low-noise loads
+for Codex. `.codex/` is only the compatibility alias path into
+`.claude/codex`. Open only the files needed for the current task.
 
 ## Session Handoff
 
@@ -100,7 +101,7 @@ Persona notes live in:
 - `.claude/CLAUDE.md`
 - `.claude/doc-drift-map.json` for audit-only path/reference drift work
 - `.claude/outputs/`
-- `.claude/test-results/`
+- `tools/testing/test-results/`
 - `.claude/code-reviews/`
 - `.claude/agent-memory/` only when a matching review persona needs durable
   context

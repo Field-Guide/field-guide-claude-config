@@ -1,8 +1,9 @@
-# Codex Context Layer
+# Codex Compatibility Alias
 
-This directory is the Codex-facing bridge for the project. It is intentionally
-small: use it to find the right context, not to duplicate the entire
-`.claude/` knowledge base.
+`.claude/` is the single maintained AI-agent reference system for this repo.
+`.codex/` exists only as a compatibility alias to `.claude/codex`, and this
+directory stays intentionally small: use it to find the right context, not to
+duplicate the `.claude/` knowledge base.
 
 ## Default Startup Flow
 
@@ -50,7 +51,7 @@ library:
   - `.claude/agents/**`
 - test orchestration:
   - `.claude/test-flows/**`
-  - `.claude/test-results/**`
+  - `tools/testing/test-results/**`
 - audit-only references:
   - `.claude/doc-drift-map.json`
   - `.claude/outputs/**`
