@@ -1,7 +1,23 @@
 # Plan Index
 
 ## Active Codex Plans In `.codex/plans/`
-
+- `2026-04-23-focused-forms-payapp-verification-plan.md`:
+  Focused next-step verification spec for UI responsiveness, Daily Entry/IDR,
+  MDOT 0582B, MDOT 1174R, MDOT 1126, and pay-app export/artifact proof. It
+  freezes broad prerelease reruns, puts all-device UI/UX responsiveness first,
+  requires full UI-triggered sync responsiveness timing, full UI fillability
+  plus all-cell mapping proof across saved state/preview/export/reopen, and
+  narrows the next execution lane to targeted forms, pay-app, sync, and
+  saved-export flows only. Phase 0 also requires full `flutter analyze` back
+  to zero issues and focused architecture guardrails where structure needs to
+  be locked down.
+- `2026-04-23-preupdate-full-app-bindings-plan.md`:
+  Current pre-update verification completion spec. It upgrades the prerelease
+  suite from route-smoke confidence to full app verification by requiring
+  top-level forward/backward feature bindings, complete form fixture/mapping
+  proof across saved state/PDF preview/export, positive-earned pay-app export
+  proof, expanded action probes, fail-closed coverage reporting, and S21 plus
+  tablet emulator acceptance evidence.
 - `2026-04-21-testing-results-and-ui-flow-standardization-spec.md`:
   Current testing-surface standardization spec. It makes
   `tools/testing/test-results/` the canonical runtime result root, replaces the
