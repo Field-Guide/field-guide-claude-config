@@ -109,7 +109,7 @@ Field Guide App (Flutter, offline-first, construction inspectors) is at `0.2.0+1
 - `lib/features/pay_applications/presentation/screens/pay_application_detail_screen.dart`, `contractor_comparison_screen.dart` — Section 7 screens
 - `lib/features/pay_applications/presentation/dialogs/contractor_import_source_dialog.dart` — confirms the 3 accepted upload types (`.xlsx`, `.csv`, `.pdf`) with the user-facing subtitles
 - `lib/features/pay_applications/data/services/pay_app_excel_exporter.dart`, `contractor_comparison_pdf_exporter.dart` — export mechanics (for accurate Section 7 wording)
-- `test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_manifest.json` — supported PDF sources (thumbnail references for Section 9)
+- `test/features/pdf/extraction/fixtures/pdf_extraction_corpus_manifest.json` — supported PDF sources (thumbnail references for Section 9)
 - `lib/features/pdf/services/pdf_import_limits.dart` — 100 MB cap
 - `lib/features/pdf/services/extraction/models/document_profile.dart` — confirms `ocr_only` strategy
 - `pubspec.yaml` — app version for cover

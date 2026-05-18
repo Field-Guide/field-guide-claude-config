@@ -20,9 +20,9 @@
     `test/features/pdf/extraction/fixtures/mdot_public_pdf_corpus_manifest.json`.
   - [x] Added table-stress tags for schedule and bid-tab inputs so each stress
     document has an explicit extraction reason.
-  - [x] Added `scripts/download_mdot_public_pdf_corpus.ps1` for repeatable
+  - [x] Added `tools/pdf-extraction/download_mdot_public_pdf_corpus.ps1` for repeatable
     download from MDOT public URLs.
-  - [x] Added `scripts/generate_mdot_companion_mp_pdfs.py` to generate a
+  - [x] Added `tools/pdf-extraction/generate_mdot_companion_mp_pdfs.py` to generate a
     similar-style `01 22 00` Measurement and Payment companion for each MDOT
     source PDF under `.tmp/public_mdot_pdf_corpus/bid_item_stress`.
   - [x] Added `mdot_public_pdf_corpus_manifest_test.dart` so the generated
@@ -67,7 +67,7 @@ Current replay status: the harness can now replay cached Google OCR through the
 production `OcrEngineV2` seam, so element validation, structure detection, row
 parsing, post-processing, and quality validation still run through the same
 pipeline graph. That avoids Google/device calls but still pays PDF rendering and
-OCR-preparation cost. The faster no-render replay seam now starts after OCR with
+OCR-preparation cost. The faster deleted cached-stage replay seam now starts after OCR with
 cached full-page normalized `OcrElement` pages, runs the downstream extraction
 stages, writes summary/failure output through
 `gocr_downstream_replay_test.dart`, and reports that it does not exercise
@@ -331,16 +331,16 @@ This is useful, but it should not block the immediate OCR gate.
   - the seven-document cached pay-item batch was interrupted after about eight
     minutes while the Windows test executable was still running,
   - this is not a viable inner loop for OCR/table-rule iteration.
-- [x] Confirmed the no-render downstream replay runner is much faster:
+- [x] Confirmed the deleted cached-stage replay runner is much faster:
   - seven cached pay-item PDFs ran in about 31 seconds wall time,
   - the actual test body completed in about 4 seconds after Flutter test
     load/compile,
   - artifacts are contained under `.tmp/google_ocr_research/`.
-- [ ] Bring the no-render replay runner into parity with the Windows replay
+- [ ] Bring the deleted cached-stage replay runner into parity with the Windows replay
   before treating it as the main acceptance gate:
-  - 2026-04-13 no-render replay produced different MDOT schedule results than
+  - 2026-04-13 deleted cached-stage replay produced different MDOT schedule results than
     the Windows replay path after the same header change,
-  - likely cause: no-render replay bypasses page rendering/grid-line detection
+  - likely cause: deleted cached-stage replay bypasses page rendering/grid-line detection
     and page-analysis context used by the Windows pipeline,
   - next step is to compare stage summaries for Windows replay vs no-render
     replay on the same combined cache and either align the no-render seam or

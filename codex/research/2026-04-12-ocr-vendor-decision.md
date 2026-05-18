@@ -37,7 +37,7 @@ at a time:
 
 - Springfield baseline goldens.
 - The six prerelease PDFs in
-  `test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_manifest.json`.
+  `test/features/pdf/extraction/fixtures/pdf_extraction_corpus_manifest.json`.
 - Compare item count, item-number ordering, total amount, M&P enrichment match
   rate, stage trace, elapsed time, and failure reason.
 

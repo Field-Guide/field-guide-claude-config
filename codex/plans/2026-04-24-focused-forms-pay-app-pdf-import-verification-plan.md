@@ -187,7 +187,7 @@ reliable.
 - [x] Add a durable guardrail against the recurring Android dual-build mistake:
   - `.codex/AGENTS.md` now says to reuse remote driver port `4948` across
     Android devices and vary only host-forwarded ports.
-  - `tools/start-driver.ps1` now defaults Android remote driver port to
+  - `tools/driver/start-driver.ps1` now defaults Android remote driver port to
     `4948` instead of mirroring the host port.
   - `tools/testing/tests/DriverLabStartup.Tests.ps1` now locks that contract.
 - [x] Re-establish a live S21 `flutter run` driver lane under active
@@ -219,7 +219,7 @@ reliable.
   wait caused by the app binding a fallback port in one run. The launcher now
   detects the actual bound port from stdout and rewires adb forwarding.
 - [ ] Re-run the harness/static verification after the latest
-  `tools/start-driver-flutter-run.ps1` edits. Last confirmed harness green was
+  `tools/driver/start-driver-flutter-run.ps1` edits. Last confirmed harness green was
   before the final flutter-run monitoring changes.
 
 ### Open Before Device Acceptance Work Resumes

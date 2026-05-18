@@ -21,7 +21,7 @@ Use these artifact roots as the baseline for post-decomposition heuristic work:
 - Full cached corpus run:
   `.tmp/google_ocr_research/full_corpus_replay_after_final_trace_lint_gate_01`
 - Expected manifest:
-  `test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_expected.json`
+  `test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json`
 - Ground-truth review status sidecar:
   `test/features/pdf/extraction/fixtures/gocr_ground_truth_review_status.json`
 
@@ -158,13 +158,13 @@ replay commands should stay structurally identical.
 Original-four gate:
 
 ```powershell
-flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache_original_four_20260415_decomp_01 --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/<run_id_original_four> --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_expected.json
+flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache_original_four_20260415_decomp_01 --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/<run_id_original_four> --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json
 ```
 
 Full cached corpus gate:
 
 ```powershell
-flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/<run_id_full_corpus> --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_expected.json
+flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/<run_id_full_corpus> --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json
 ```
 
 Trace contract and transport spot checks:

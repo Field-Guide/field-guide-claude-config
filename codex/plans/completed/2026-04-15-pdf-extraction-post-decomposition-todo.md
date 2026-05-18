@@ -22,7 +22,7 @@ failures, with honest ground-truth review status preserved.
   - Result: reproduced the benchmark with `427` asserted mismatches and `2`
     trace-contract failures.
 - [x] Added compact replay audit tooling:
-      `scripts/audit_pdf_extraction_replay.ps1`.
+      `tools/pdf-extraction/audit_pdf_extraction_replay.ps1`.
   - Default output root:
     `.claude/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-<time>-<run_id>/`.
   - Current original-four audit output:
@@ -204,7 +204,7 @@ spec is layout-aware extraction/OCR across all three reviewed layout families:
   - Any final field mutation still needs stable `rule_name`, `reason_code`,
     before/after values, mutation kind, and source provenance.
   - Added `layout_classification` stage trace and mirrored source-selection
-    fields into `text_recognition` snapshots for live and no-render replay.
+    fields into `text_recognition` snapshots for live and deleted cached-stage replay.
 
 ## Current Benchmark
 
@@ -374,7 +374,7 @@ spec is layout-aware extraction/OCR across all three reviewed layout families:
   - Audit:
     `.claude/test-results/2026-04-15/pdf-extraction-replay-audit-202957-full_corpus_after_final_ocr_context_repairs_20260415_01/`.
   - Result: `0` asserted mismatches, `0` trace-contract failures.
-- [x] Run `scripts/audit_pdf_extraction_replay.ps1` after each replay and
+- [x] Run `tools/pdf-extraction/audit_pdf_extraction_replay.ps1` after each replay and
       record the dated `.claude/test-results/` output path here.
 
 ## Trace-Contract Regression Queue

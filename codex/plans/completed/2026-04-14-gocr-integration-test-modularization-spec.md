@@ -47,7 +47,7 @@ intact.
 
 Google Assisted / GOCR tests:
 
-- [x] `integration_test/pre_release_pdf_corpus_test.dart`
+- [x] `integration_test/pdf_extraction_corpus_test.dart`
 - [x] `integration_test/springfield_report_test.dart`
 - [x] `test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart`
 - [x] `test/features/pdf/extraction/helpers/gocr_ocr_cache_test.dart`
@@ -55,7 +55,7 @@ Google Assisted / GOCR tests:
 - [x] `test/features/pdf/extraction/ocr/google_cloud_vision_edge_function_contract_test.dart`
 - [x] `test/features/pdf/extraction/ocr/google_document_ai_ocr_engine_test.dart`
 - [x] `test/features/pdf/extraction/ocr/google_document_ai_edge_function_contract_test.dart`
-- [x] `test/features/pdf/extraction/integration/pre_release_pdf_corpus_manifest_test.dart`
+- [x] `test/features/pdf/extraction/integration/pdf_extraction_corpus_manifest_test.dart`
 - [x] `test/features/pdf/extraction/integration/mdot_public_pdf_corpus_manifest_test.dart`
 
 Custom/local OCR tests:
@@ -300,15 +300,15 @@ Shared downstream extraction tests:
   - Verification:
     - [x] `flutter test test/features/pdf/extraction/stages/ocr_row_band_page_recognition_stage_test.dart`
 - [x] Extract shared Google Assisted integration runtime helpers from
-  `pre_release_pdf_corpus_test.dart` and `springfield_report_test.dart` only
+  `pdf_extraction_corpus_test.dart` and `springfield_report_test.dart` only
   after the current GOCR replay gates are stable.
   - Final layout keeps each integration test's main execution flow in the root
     file and moves private runtime, output, comparison, platform/file, upload,
     and gate helpers into harness-specific part folders under
-    `integration_test/pre_release_pdf_corpus/` and
+    `integration_test/pdf_extraction_corpus/` and
     `integration_test/springfield_report/`.
   - Verification:
-    - [x] `dart analyze integration_test/pre_release_pdf_corpus_test.dart integration_test/springfield_report_test.dart`
+    - [x] `dart analyze integration_test/pdf_extraction_corpus_test.dart integration_test/springfield_report_test.dart`
 
 ## Verification Gates
 
@@ -317,7 +317,7 @@ Shared downstream extraction tests:
   - `flutter test test/features/pdf/extraction/stages/row_splitter_test.dart`
   - `flutter test test/features/pdf/extraction/stages/post_processing`
   - `flutter test test/features/pdf/extraction/stages/column_detection`
-- [x] Before parser rule work resumes, run the fast GOCR downstream replay
+- [x] Before parser rule work resumes, run the fast GOCR deleted cached-stage replay
   corpus from the cached `.tmp/google_ocr_research` run root.
   - Latest run:
     `.tmp/google_ocr_research/codex_downstream_replay_20260414_054823`.
@@ -343,7 +343,7 @@ Shared downstream extraction tests:
       deeper classification/materialization work.
 - [ ] Before declaring the lane complete, run the connected S21 real-Google
   gate with no OCR fallback and no replay cache.
-  - Not run yet in this pass because the fast cached downstream replay still
+  - Not run yet in this pass because the fast cached deleted cached-stage replay still
     has known parser failures. Use S21 serial `RFCNC0Y975L` when this gate is
     ready.
 
@@ -352,7 +352,7 @@ Shared downstream extraction tests:
 - `test/features/pdf/extraction/helpers/report_generator.dart` drifted over
   the new 500-line PDF extraction lint limit at 503 lines. It was trimmed to
   494 lines without behavior changes.
-- Focused diagnostics were added to the GOCR downstream replay summary:
+- Focused diagnostics were added to the GOCR deleted cached-stage replay summary:
   row-rescue decisions, region span decisions, and compact local-sequence item
   windows.
 - Focused verification run:
@@ -373,9 +373,9 @@ Shared downstream extraction tests:
   - Berrien has a full six-column map and one region. Its dominant failure is
     numeric amount corruption: 18 rows where `quantity * unitPrice` differs
     from `bidAmount` account for `$813,635.50` of the `$821,827.50` checksum
-    gap. The current post-consistency path can backsolve unit price to match a
-    corrupted bid amount, so the next rule should prefer the stable
-    quantity/unit-price pair when raw bid text has dropped or displaced digits.
+    gap. That historical post-consistency path is superseded: row math is
+    validation-only and must not repair, infer, or overwrite extracted fields.
+    Fixes must come from direct OCR/text/geometry evidence before validation.
   - Grand Blanc has one region but only a five-column map with no explicit
     quantity column. Around items 24-31, `HOUR 30`, `EA 12`, and `FT 4,250`
     are collapsed into the unit column, then sequence rescue shifts later rows
@@ -395,7 +395,7 @@ Shared downstream extraction tests:
   1. Add a row-identity diagnostic gate to the replay summary: first raw leading
      item number, repaired item number, arithmetic status, and structured
      payload status for every local sequence item.
-  2. Fix Berrien's numeric root cause in post consistency/math repair: support
+  2. Fix Berrien's numeric root cause in post consistency validation-only triage: support
      missing-digit/displaced-separator bid amount repair from
      `quantity * unitPrice`, and stop blindly backsolving unit price when the
      bid amount is the lone corrupted field.
@@ -548,7 +548,7 @@ pipeline ownership or hide many unrelated stages behind one test fixture.
 - [ ] Fix the earliest general stage that causes the localized Grand/Huron
   drops. Prefer row identity and structured-payload preservation rules over
   post-processing bid synthesis.
-- [x] Re-run the cached GOCR downstream replay after the sequence-stub parser
+- [x] Re-run the cached GOCR deleted cached-stage replay after the sequence-stub parser
   rule.
 - [x] Run the focused row-parser stage suite after the sequence-stub parser
   rule.

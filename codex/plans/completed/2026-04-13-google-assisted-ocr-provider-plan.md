@@ -70,7 +70,7 @@ Current repo and test artifacts:
   Google first and Vision first, with Document AI as an escalation path.
 - `test/features/pdf/extraction/PDF_HARDENING.md` already defines the faster
   capture/replay loop and warns that device testing is the final gate.
-- `integration_test/pre_release_pdf_corpus_test.dart` and
+- `integration_test/pdf_extraction_corpus_test.dart` and
   `integration_test/springfield_report_test.dart` already support internal
   Google-assisted backend selection and cache capture/replay.
 - `scripts/verify_google_cloud_ocr_readiness.ps1` verifies the two Google Edge

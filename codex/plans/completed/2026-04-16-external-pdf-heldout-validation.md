@@ -36,7 +36,7 @@ First-seen OCR report:
 Command shape:
 
 ```powershell
-flutter test integration_test/pre_release_pdf_corpus_test.dart -d windows `
+flutter test integration_test/pdf_extraction_corpus_test.dart -d windows `
   --dart-define=PDF_CORPUS_MANIFEST=.tmp/external_pdf_validation_20260415/external_validation_manifest_holdout_latest.json `
   --dart-define=PDF_CORPUS_EXPECTED=.tmp/external_pdf_validation_20260415/external_validation_expected_03.json `
   --dart-define=PDF_CORPUS_BASELINE=.tmp/external_pdf_validation_20260415/external_validation_baseline_holdout_latest.json `
@@ -72,7 +72,7 @@ Artifacts:
 Command shape:
 
 ```powershell
-flutter test integration_test/pre_release_pdf_corpus_test.dart -d windows `
+flutter test integration_test/pdf_extraction_corpus_test.dart -d windows `
   --dart-define=PDF_CORPUS_MANIFEST=.tmp/external_pdf_validation_20260415/external_validation_manifest_holdout_latest.json `
   --dart-define=PDF_CORPUS_EXPECTED=.tmp/external_pdf_validation_20260415/external_validation_expected_03.json `
   --dart-define=PDF_CORPUS_BASELINE=.tmp/external_pdf_validation_20260415/external_validation_baseline_holdout_latest.json `

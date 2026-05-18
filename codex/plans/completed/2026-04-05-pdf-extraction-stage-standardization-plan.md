@@ -177,7 +177,7 @@ Archived report compatibility is intentionally preserved in read/fallback paths
 only:
 
 - `test/features/pdf/extraction/helpers/report_generator.dart`
-- `tools/pipeline_comparator.dart`
+- `tools/pdf-extraction/pipeline_comparator.dart`
 
 Those shims exist only so older generated reports can still be compared or
 read. New runtime/test output uses canonical stage ids.

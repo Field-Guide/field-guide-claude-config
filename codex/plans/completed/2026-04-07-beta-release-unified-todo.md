@@ -167,7 +167,7 @@ User note:
 
 Current verified slice:
 - `test/services/pdf_field_mapping_test.dart` now passes against the live template and current `PdfService` field map
-- `tools/verify_idr_mapping.py` was updated to the current equipment field names used by `PdfService`
+- `tools/pdf-tools/verify_idr_mapping.py` was updated to the current equipment field names used by `PdfService`
 - exported PDF now proves live UI-entered header / contractor / personnel / equipment / narrative placement against the shipped template via `test/features/forms/services/form_export_mapping_matrix_test.dart`
 
 [x] Audit MDOT 1126 export end-to-end against UI-entered data -> PDF field mapping

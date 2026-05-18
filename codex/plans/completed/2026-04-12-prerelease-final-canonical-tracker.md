@@ -38,9 +38,9 @@ status surface so we do not lose our place.
 4. [ ] Strengthen PDF extraction/post-processing with new pay-item and M&P
    fixture/golden tests, then refactor
    `lib/features/pdf/services/extraction/shared/post_process_utils.dart`.
-   - Standard harness/pointer: `integration_test/pre_release_pdf_corpus_test.dart`
+   - Standard harness/pointer: `integration_test/pdf_extraction_corpus_test.dart`
      and `test/features/pdf/extraction/PDF_HARDENING.md`.
-   - Manifest contract: `test/features/pdf/extraction/integration/pre_release_pdf_corpus_manifest_test.dart`.
+   - Manifest contract: `test/features/pdf/extraction/integration/pdf_extraction_corpus_manifest_test.dart`.
    - S21 corpus result on 2026-04-12: Berrien pay items/M&P passes; Huron
      Valley and Grand Blanc pay-item PDFs extract zero items, and their paired
      M&P PDFs parse zero entries. Treat as general OCR/table extraction

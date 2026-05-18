@@ -117,13 +117,13 @@ traceable through inputs, outputs, decisions, mutations, and provenance.
 - [x] `flutter test test/features/pdf/extraction/stages/post_processing/repair_log_test.dart test/features/pdf/extraction/stages/item_deduplicator_test.dart -d windows`
       passed `11/11` after adding source-provenance assertions.
 - [x] Original-four replay:
-      `flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache_original_four_20260415_decomp_01 --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/original_four_after_post100_decomposition_trace_refactor_20260416_01 --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_expected.json`
+      `flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache_original_four_20260415_decomp_01 --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/original_four_after_post100_decomposition_trace_refactor_20260416_01 --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json`
       passed.
   - Audit:
     `.claude/test-results/2026-04-15/pdf-extraction-replay-audit-205253-original_four_after_post100_decomposition_trace_refactor_20260416_01/audit-summary.md`.
   - Result: `0` asserted mismatches, `0` trace-contract failures.
 - [x] Full cached-corpus replay:
-      `flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/full_corpus_after_post100_decomposition_trace_refactor_20260416_01 --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pre_release_pdf_corpus_expected.json`
+      `flutter test test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart -d windows --dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true --dart-define=PDF_CORPUS_OCR_CACHE_DIR=.tmp/gocr_ocr_cache --dart-define=GOOGLE_OCR_RESEARCH_RUN_DIR=.tmp/google_ocr_research/full_corpus_after_post100_decomposition_trace_refactor_20260416_01 --dart-define=PDF_CORPUS_EXPECTED=test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json`
       passed.
   - Audit:
     `.claude/test-results/2026-04-15/pdf-extraction-replay-audit-205724-full_corpus_after_post100_decomposition_trace_refactor_20260416_01/audit-summary.md`.
