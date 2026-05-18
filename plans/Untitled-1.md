@@ -1,42 +1,42 @@
 We need a sync button at the top of the app to sync quickly/easily
 
-we have several layers of audits post refactor and post large implementations, as well as pre production and code hygiene audits done. We're trying to confirm these audits and brainstorm specs and create implementation plans to get our codebase to 100 clean and functional code. Use Opus level agents to explore and gather context. We are looking to use the brainstorming skill to create a spec for the audit in an attempt to get closer to production/beta. We will /tailor the spec and then use the writing plans skill on it. Please analyze the attached audit, then review codebase's layer that matches the audit and verify the errors that were found.  
+we have several layers of audits post refactor and post large implementations, as well as pre production and code hygiene audits done. We're trying to confirm these audits and brainstorm specs and create implementation plans to get our codebase to 100 clean and functional code. Use Opus level agents to explore and gather context. We are looking to use the brainstorming skill to create a spec for the audit in an attempt to get closer to production/beta. We will /tailor the spec and then use the writing plans skill on it. Please analyze the attached audit, then review codebase's layer that matches the audit and verify the errors that were found.
 
-New documentation system idea - 
+New documentation system idea -
 
 Need to start documenting through github commits much more
  - standardize commit structure to tell a story
  - organize commits per our 8 layer structure
  - try to commit the phase if implementing a plan
  - create a phase map in a plan so when commit phases agents dont read the entire plan
- - 
+ -
 
-  CLAUDE - 
+  CLAUDE -
 
 
   ❯ Do NOT stop iterating until the specs intent has been fully and completely captured. Do not forget that we do not want any god class screens, widgets, methods, helpers, over 300 lines. We want all UI screen API  endpoints to be easily exposed for the sync engine coordinators and orchestrators.This has been a major pain point and it has made it hard to verify our sync system. Confirm that all lint rules have been applied and are fixed and that no ignore rules or  other AI tricks have been applied to mitigate following the lint rules.
 
-  Please add to or update your TODO list with these new requirements. 
+  Please add to or update your TODO list with these new requirements.
 
-  DO NOT STOP until you have finished and the specs intent has been fully captured.  
+  DO NOT STOP until you have finished and the specs intent has been fully captured.
 
 
-  › Yes let's install docker and figure out how to get the remote work accessible to you unless you've already figured it out                 
-                                                                                                                                            
+  › Yes let's install docker and figure out how to get the remote work accessible to you unless you've already figured it out
+
 
 • Run these from an elevated PowerShell.
-                                                                                                                                            
-  Docker / Local Supabase                                                                                                                   
-                                                                                                                                            
-  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -All -NoRestart                                      
-  Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -All -NoRestart                                                 
-                                                                                                                                            
-  wsl --update                                                                                                                              
-                                                                                                                                            
-  winget install --id Docker.DockerDesktop --exact --accept-package-agreements --accept-source-agreements                                   
-                                                                                                                                            
-  Restart-Computer                                                                                                                          
-                                                                                                                                            
+
+  Docker / Local Supabase
+
+  Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux -All -NoRestart
+  Enable-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform -All -NoRestart
+
+  wsl --update
+
+  winget install --id Docker.DockerDesktop --exact --accept-package-agreements --accept-source-agreements
+
+  Restart-Computer
+
   & "$Env:ProgramFiles\Docker\Docker\Docker Desktop.exe"
 
   Then verify:
@@ -46,7 +46,7 @@ Need to start documenting through github commits much more
   supabase status
   supabase start
 
-  If docker version and supabase start work, I’ll be able to run the local Supabase stack, reset/apply migrations, and validate the DB side 
+  If docker version and supabase start work, I’ll be able to run the local Supabase stack, reset/apply migrations, and validate the DB side
   of the beta work from this repo.
 
   Remote Supabase
@@ -67,38 +67,38 @@ Need to start documenting through github commits much more
   and I’ll continue with local-stack validation plus the refactor work.
 
 ───────────────────────────────────────────────────────────────────────────
-Please turn these testing notes into a comprehensive spec. I'm going to go to bed for the night and I'd like you to create a TODO out of all of these items and keep iterating until all of them are completed. 
+Please turn these testing notes into a comprehensive spec. I'm going to go to bed for the night and I'd like you to create a TODO out of all of these items and keep iterating until all of them are completed.
 
-Testing notes - 
+Testing notes -
 
-  - When deleting a project there is no-auto refresh, this needs to be fixed, make sure this doesn't happen in other areas of the app as well. 
+  - When deleting a project there is no-auto refresh, this needs to be fixed, make sure this doesn't happen in other areas of the app as well.
   - When editing the activities, when you click done, it doesn't show the data you've typed out, this must be fixed
   - When creating equipment in the create equipment popup there the equipment is listed and scrollable, this is fine but you can only see one piece of equipment at a time and its extremely unclear you can scroll. Needs to be fixed, the user would never know to scroll to find the equipment to delete/edit
   - When editing an entry by clicking continue todays entry in the dashboard, it says new entry. I know we use the new entry screen but can we make this a bit more honest / user friendly
   - If I submit the entry for the day I was working on and I click continue todays entry from the dashboard it starts a new entry. It should ask if you'd like to unsubmit as there is already an entry for this day
   - We need to have a way to intuitively make a report for a different date, I think the best way to do this is to allow the user to edit the date of a report in the new entry wizard
-  - entries can be backdated by selecting a calendar day prior in the calendar screen, this is good. 
+  - entries can be backdated by selecting a calendar day prior in the calendar screen, this is good.
   - the calendar screen has an overflow error, this tells me that this hasn't been properly tokenized/scaffolded as the sizing should be adaptive. Our responsive scaffolding should've handled this I believe
   - There are no forms in the Forms screen in the Toolbox, when clicking the + icon it brings up a scroll box on the bottom of the screen that stays down and you can't do anything with it
   - When loading into another project and on a different user/user role that another account is on, it shows their trash as mine, it just had 390 items in my  trash can on a different account
   - The double screen view for the windows version of the dashboard just shows two of the same screen, this is pointless. Better to just keep this screen as one for now until we redesign it better
-  
- Forms -  
-  - The station selection in the quick test section doesn't display a + sign, we display stations as xx+xx so we need to have a + 
-  - The items of work are wrong, there is a table on the 0582B at on the second page of the pdf that displays the different items of work, we want the actual item names in the app and then the exported item of work is the item corresponding item code, we need to have a way to display the Density Requirements 
+
+ Forms -
+  - The station selection in the quick test section doesn't display a + sign, we display stations as xx+xx so we need to have a +
+  - The items of work are wrong, there is a table on the 0582B at on the second page of the pdf that displays the different items of work, we want the actual item names in the app and then the exported item of work is the item corresponding item code, we need to have a way to display the Density Requirements
   -  when its the 'original' test we just want want it to be numbered chronologically, this should go in descending order per test, except when recheck has been checked, we display a recheck number subsequent to the original until the inspector gets a passing test, and then we continue back with the chronological numbering
   - It blocks me from exporting a 0582B without required fields, it shouldn't do this, we can always edit the form after its exported as well. forms aren't to be flattened on export
   - We only need to display to .0 accuracy on the 0582B. We are currently displaying as .00, this needs to be fixed.
   - After saving the 0582B it doesn't display in the 'saved responses' section of the 0582B tab in the forms gallery
   - When bringing the app to foreground after you've hit the home button the app loads in very slow, and also doesn't seem to assume state ownership because when i hit the back key it closes the app, this essentially locks the app until its killed and even then restarts to the same screen, so locks the user out of the app. When the app is completely closed and not just backgrounded you should be brought to the projects selection page if auth isn't needed. This is very important to get right, I'm thinking this could possibly be because we don't have proper nested screen routes but I'm not sure, this happens app wide too
   - Export didn't work, brought up multiple bottom screens, didn't let me select a file path for export, The other options are fine but need to be able to export to a dated folder. Should also prompt to ask if I'd like to attach this to a form or export as is
-  
 
 
 
 
 
-Lint Rules - 
+
+Lint Rules -
 
   - One state-ownership rule per screen: detail screens render the live provider/model source, not stale screen-local copies after mutation.
   - One mutation contract: every create/update/delete must either update the canonical provider state or trigger a required reload path immediately.
@@ -108,7 +108,7 @@ Lint Rules -
   - Contract tests for those behaviors: not just widget snapshots, but tests that assert “save updates visible state”, “delete removes item without manual refresh”, “continue today reopens today’s entry”, and “sheet never opens empty when action is enabled”.
 
 
-Testing Notes - 
+Testing Notes -
 
   - 0582B isn't writing to the preview, I click send to form after filling out the header, weights, and testing sections and then click pdf preview and it shows no data. You confirmed you fully verified all the mappings on the device as well as the exported forms, it appears this was never actually done or not completed.
   - 0582B has no way to enter in the density and moisture value ranges as well as the density and moisture reading. We need to fix this.
@@ -130,25 +130,25 @@ Testing Notes -
   - We need a second calculation for HMA; a weighback calculator. This will used an assumed yield (from the last calculated yield) or it can be manually entered, we will use this and the length/width left to finish and give an estimated yield.
   - The concrete calculator doesn't need to say concrete calculator, it just needs to say Calculator, it should be an interactive calculator for calculating area. it should have ways to switch from cft/cyd, syd/sft.
 
-Pay App Fixes - 
+Pay App Fixes -
 
 - When trying to create a new pay app, it doesn't allow us to overwrite. It lets us select the option to do so, but it doesn't actually begin the overwriting process. We don't need to overwrite the previous pay app; we need a way to export the previous pay apps we've already done, preserving their state while maintaining our current state. We also need to add a little more detail to the analytics page. Currently there is no way to view progress by item in a nicer list view, nor to view the pay applications one at a time. The project summary isn't very easy to see; it's a bit dense. Our top priority is getting the pay app to properly export to any state of the previous pay app. We need to be able to export copies of the previous pay apps and obviously keep appending the current one. Because this is a resource‑heavy thing, we should try to at least hang on to the previous pay app so we're not generating a new one for every subsequent pay app, if that makes sense. Please ask me any questions you need to make my intent unambiguous, but we really need to get this payapp thing verified end‑to‑end as fast as possible.
 
-Tablet layout fixes - 
+Tablet layout fixes -
 
   - In the daily entry wizard on the tablet view of our app, the activities card should be on the left-hand side beneath the header card. This creates a larger section, allowing the full report to be seen at once in the read‑only view. It would clean up the look and make better use of the space.
   - The quantity calculator should be wired to the toolbox calculator that calculates all the different shapes and square footages. We should be able to reuse that. I would like you to redo all of the calculator buttons to look a little bit nicer. I don't like the orange look; it doesn't fit with the rest of the app, and I'm not sure about the way the buttons look either.
   - In the tablet view of our app, when we are in the Pay Items and Quantities tab on the right-hand side, clicking a pay item does not update to the next pay item. It only brings up the bottom scroll card, which updates to the selected pay item but not the right-hand side. In tablet view we do not want this bottom scroll card to pop up because the information is already displayed on the right-hand side, but we do want it to appear in the phone view.
   - The projects view doesn't need to be a split screen. I don't think there's any utility in this; it's just wasting space. This is in our tablet view.
-  - Is there any logic we can add to our app to detect when a pen is being used on a tablet to write on the surface, so we can have palm detection and make writing easier? Or would that be too hard to tune quickly? 
+  - Is there any logic we can add to our app to detect when a pen is being used on a tablet to write on the surface, so we can have palm detection and make writing easier? Or would that be too hard to tune quickly?
 
 
 
-Testing Notes - 
+Testing Notes -
 
-- ALL user flows MUST be tested e2e forwards and backwards through UI navigation. There is a serious problem with how we handle UI navigation, its not standardized and it seems like we get into nested screens alot that can't be traversed backwards easily. This needs to be optimized on the phone, tablet, and Windows builds. We have to make sure that the UI navigation makes sense throughout all of the user flows. We need to devise some kind of a testing flow, broken down by feature, that tests all of the UI. We already have a separate sync flow, but we need something that just verifies the UI flows and the nested screens and the ability to navigate forwards and backwards through each screen on each type of device, like the phones or tablets or Windows. We need to add to our current end-to-end flows, but we need to redesign them with our new UI system in mind while also optimizing and breaking down our UI with our testing in mind. Making sure that everything is completely testable in our flows, that way we can be a little bit more sure and deterministic in our testing and our building. We need to start with phone and tablet views. We must test all user happy paths as well as edge cases and end-to-end flows. We're going to want to start with an audit of our current end-to-end flows and then brainstorm a spec with my intent in mind in a to-do list style format. That way we can have something to reference as we build out all of these different end-to-end flows with all of the different user roles. We can create a good system. 
+- ALL user flows MUST be tested e2e forwards and backwards through UI navigation. There is a serious problem with how we handle UI navigation, its not standardized and it seems like we get into nested screens alot that can't be traversed backwards easily. This needs to be optimized on the phone, tablet, and Windows builds. We have to make sure that the UI navigation makes sense throughout all of the user flows. We need to devise some kind of a testing flow, broken down by feature, that tests all of the UI. We already have a separate sync flow, but we need something that just verifies the UI flows and the nested screens and the ability to navigate forwards and backwards through each screen on each type of device, like the phones or tablets or Windows. We need to add to our current end-to-end flows, but we need to redesign them with our new UI system in mind while also optimizing and breaking down our UI with our testing in mind. Making sure that everything is completely testable in our flows, that way we can be a little bit more sure and deterministic in our testing and our building. We need to start with phone and tablet views. We must test all user happy paths as well as edge cases and end-to-end flows. We're going to want to start with an audit of our current end-to-end flows and then brainstorm a spec with my intent in mind in a to-do list style format. That way we can have something to reference as we build out all of these different end-to-end flows with all of the different user roles. We can create a good system.
 
-- All user account roles must be hardened in our sync system. Perform a full e2e audit of each user role on our sync and authentication system. These two systems need to along with the UI need to be seemlessly aligned. We've added a few more accounts to the database and created a few more projects, and metadata is being seen all over the place and having flashing effects. That tells me our state management is very poor. We need to devise a way to test our different roles and authentication extremely thoroughly and tighten everything significantly, in a lot more depth than we currently have. I don't know if we need to use our docker CLI, different docker containers, to fully test all of the different roles in a more in depth way, but we need a better way to harden all of the different roles on Supabase and SQLite. We have people testing the app now so I don't want to make the best practice testing and iterating on the live supabase database anymore, I'm not sure what should be done to standardize this, I was thinking the docker containers. It seems like were having alot of bleed through when creating new projects, if users have already been assigned a project and a new project was created it is flashing meta data of the new project to users. Were having trouble with new users being assigned to older projects. Were having issues with projects being downloaded. Were potentially having issues when multiple accounts with differing roles are signed into the same device. We need a complete and thorough e2e audit of the auth system, all screens, user roles and all of their permissions, and their user flows through the entire app e2e. This is of utmost important. We need to test data flows in all directions. But what is the best, most insightful, resourceful, bug-finding, way for us to build and iterative testing system that tests our sync system integrity and strength going forward, with benchmarks. Sometimes, when refreshing, I can see projects that I shouldn't. They pop up for a second and then disappear. This can be very confusing to inspectors that don't understand what's going on. They shouldn't be able to see other projects. This is part of our role hardening we need to do. 
+- All user account roles must be hardened in our sync system. Perform a full e2e audit of each user role on our sync and authentication system. These two systems need to along with the UI need to be seemlessly aligned. We've added a few more accounts to the database and created a few more projects, and metadata is being seen all over the place and having flashing effects. That tells me our state management is very poor. We need to devise a way to test our different roles and authentication extremely thoroughly and tighten everything significantly, in a lot more depth than we currently have. I don't know if we need to use our docker CLI, different docker containers, to fully test all of the different roles in a more in depth way, but we need a better way to harden all of the different roles on Supabase and SQLite. We have people testing the app now so I don't want to make the best practice testing and iterating on the live supabase database anymore, I'm not sure what should be done to standardize this, I was thinking the docker containers. It seems like were having alot of bleed through when creating new projects, if users have already been assigned a project and a new project was created it is flashing meta data of the new project to users. Were having trouble with new users being assigned to older projects. Were having issues with projects being downloaded. Were potentially having issues when multiple accounts with differing roles are signed into the same device. We need a complete and thorough e2e audit of the auth system, all screens, user roles and all of their permissions, and their user flows through the entire app e2e. This is of utmost important. We need to test data flows in all directions. But what is the best, most insightful, resourceful, bug-finding, way for us to build and iterative testing system that tests our sync system integrity and strength going forward, with benchmarks. Sometimes, when refreshing, I can see projects that I shouldn't. They pop up for a second and then disappear. This can be very confusing to inspectors that don't understand what's going on. They shouldn't be able to see other projects. This is part of our role hardening we need to do.
 
 - We need to set up the equivalent CI/CD for Android. We've already set up Codemagic and App Connect. I'm going to need you to help me walk through the Android equivalent to that. We want to use Codemagic as our comprehensive and singular CI/CD pipeline, but we want it to be a little bit more controlled and run through GitHub. That way we're not always pushing to the new builds, and we can decide when we want to push to the new ones. I know we're going to have to include Firebase to be able to push out updates, because we want the Android equivalent of TestFlight as well. It makes it extremely easy to push builds out to testers, etc. (completed - needs a check, waiting for the next build)
 
@@ -157,7 +157,7 @@ Testing Notes -
 
 Entry wizard/editor problems
 
-- In tablet view, in the activities tab, it should take up more of the left screen on the left side, just to take up some of that free space that's just sitting there. In the header tab, you want to move the location system out. We want to have locations be a way to format our activity tab, so that we can track different activities at different locations. When we export, they will export in a way that the location will be - the location tab, and then below that will be the activities for that location. So something kind of like this; 
+- In tablet view, in the activities tab, it should take up more of the left screen on the left side, just to take up some of that free space that's just sitting there. In the header tab, you want to move the location system out. We want to have locations be a way to format our activity tab, so that we can track different activities at different locations. When we export, they will export in a way that the location will be - the location tab, and then below that will be the activities for that location. So something kind of like this;
 
 '- Location 1
 
@@ -167,14 +167,90 @@ Entry wizard/editor problems
 
   This is the activities section for location 2. '
 
-- Every time you load into the entry wizard, whether it be a new entry or editing an entry or looking at an old entry, it reloads the weather and appends it. This should not happen. It should happen one time when creating an entry. 
+- Every time you load into the entry wizard, whether it be a new entry or editing an entry or looking at an old entry, it reloads the weather and appends it. This should not happen. It should happen one time when creating an entry.
 
 
 Project Creation problems
 
-- After import says it succeeds and you are on the confidence screen and you click import, the button doesn't do anything. 
+- After import says it succeeds and you are on the confidence screen and you click import, the button doesn't do anything.
 
 
 
-Soak Tests need to be hardened.... I highly highly highly doubt that 19000 actions were successful. I know this isn't representative of live data but we need to make this as close as possible to a live stress test as possible. And if 19,000 actions were successful, were they concurrent? Were they different roles? What happened? What did the test do? Just write 19,000 actions in a row and expected them all to pass. We need an actual soak test. We need to confirm what it's testing, and this needs to be realistic. 
+Soak Tests need to be hardened.... I highly highly highly doubt that 19000 actions were successful. I know this isn't representative of live data but we need to make this as close as possible to a live stress test as possible. And if 19,000 actions were successful, were they concurrent? Were they different roles? What happened? What did the test do? Just write 19,000 actions in a row and expected them all to pass. We need an actual soak test. We need to confirm what it's testing, and this needs to be realistic.
 
+Testing Notes -
+
+- On sign out theres an overflow error on the tablet view, possible the phone, needs confirmation.
+-
+
+
+
+
+For this next change, what I'd like to change is in the activities section of the daily entries tab. We currently have it broken down by locations, but my intent for having the locations be tied to activities is to have it selectable in the top bar in the header bar where it says activities. You would want to, if there are multiple locations on a job, select which locations you would write about instead of having all the locations in one tab. It would be up at the top; you would be switching through tabs in the activities card, so you'd have a Barberry tab and a Go Guac tab. When we export, they would all be put into the same activities tab, just with header sections like Barberry and then all of the activities that were done at Barberry, and then Go Guac and then all the activities that were done at Go Guac.
+
+FORMS -
+
+We need a way to go back to the previous state after we've sent off a test or a result or anything to any of our PDF forms, because we currently have no way of changing the result that we've sent off. We would have to either live with our result or export it and change it on the computer, which defeats the purpose of our entire app. We're going to need to thoroughly debug this and figure this out as well. This should also be part of our form verification flows
+
+- We need to remove the debug pdf from all release builds, this should not be in there.
+
+- During some of our app start up syncs, or when we return to the app after its been minimized, it seems like some of our changelog repair, or sync repair methods or functions are not working as intended. I can get a clean sync when i go into the sync dashboard and click sync but otherwise it says sync failure. this is fairly hard to reproduce as im not sure exactly when or what is causing it. I don't want users having to go into the sync dashboard to sync or get the errors to clear or a successful sync to happen.
+
+- Trash cleanup seems to be a major sync performance drain, excessively so. We should look into this further.
+
+
+
+
+
+Testing Notes -
+
+  - The weather refresh for daily entries appears broken. We don't want any type of auto refresh, as this has become too difficult to maintain, what we want is a small "Fetch Weather" button where the small refresh weather circle is at. We also want the hi/lo temp to be to the right of the weather dropdown, the spacing is bad in this top card as well, theres alot of space between the weather drop down and the next line down. Lets please clean up the way this top card is organized as far as spacing. It's all over the place.
+
+  - I don't really like how this dialog pop up looks for selecting forms, they all say 0 fields which is misleading, and they all say built in, which is redundant user information, where it says built in, it should have a clickable "Start Form" button.
+
+  - We need to disable the remove telemetry button, users don't need to see this, if they don't agree to consent they can't use the app.
+
+
+Testing Notes -
+
+Forms -
+
+- In the toolbox -> Forms -> Saved tab there is no way to delete forms/drafts, and when you start a form and back out, it doesn't prompt you to discard, attach to a daily entry, or save. The user should be prompted so forms don't keep stacking up in the saved tab.
+
+  - 1126 Issues
+
+    - The dropdowns are not collapsable when clicking the chevron, this needs to be fixed.
+    - When clicking on a new section, it jumps to the bottom of the page and not to the beginning of the new section that was opened, this needs to be fixed as well. makes it extremely unstreamlined and unprofessional.
+    - The report number for 1126 is always displayed as a 3 digit number starting from 001
+    - There is an X being displayed in the installation date, as if the next entry is defaulting to some value before there has been anything placed. We need to trace this. Its reproducable just by creating a report clicking pdf preview
+
+  - 0582 Issues
+
+    - The signature section is just a small section in the header, this is very confusing to an user, a signature usually happens when the form is done, this should be added to the end of the flow, as its own section. We need to standardize the signature/sign of all the forms, we should thoroughly plan this out. What are our options?
+    - Our values are reading out to the hundreths when they should only be reading out/reported to the nearest tenths. so 5.x or 125.x instead of 5.xx or 125.xx
+    - When clicking the edit button to edit already sent tests, it doesn't work, same for the proctor, there is no way to edit this either.
+
+
+  - 1174 Issues
+
+    - The dropdowns are not collapsable when clicking the chevron, this needs to be fixed.
+    - We need to make the sections two columns instead of single column list view, most of the data being entered is short, we don't need to have the list view so long.
+
+
+  - Profile Creation
+
+    - Needs more detail on start up, inform users this information is used to prefill forms. Distinguish between Density Certification Number and Stormwater Operator Certification Number, Density goes with the 0582B certification numbers, and the Stormwater Operator Number goes with the 1126 Certification Number. We don't need any of this to block the user from creating an account.
+
+
+  - Help/Support Settings
+
+    - Has two options of submitting a ticket. Through sentry and the old depracated way. We need to get rid of the depracated way and use Sentry only.
+
+  - State Issues
+
+    - Sometimes shows stale sync, or sync error when loading back into the app, fixed by doing a full sync, need to fix the sync state when sooner so the users aren't confused
+    - Sometimes when deleting, the delete doesn't fully populate until a full sync has been initiated. A deletion should initiate a full sync, right?
+
+  - Entry Reviews
+
+    - Daily entry draft reviews are able to be seen by other users. This should not be the case. Only submitted daily entries should be reviewable/commentable by office techs and engineers. Drafts should be visible to only the creator.
