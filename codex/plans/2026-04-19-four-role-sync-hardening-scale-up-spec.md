@@ -80,7 +80,7 @@ Structural and harness lock-in:
 - Latest local gates in the closeout audit passed:
   - `dart analyze lib integration_test test\harness test\core\driver`
   - `dart run custom_lint`
-  - `scripts/check_sync_soak_file_sizes.ps1 -FailOnBlocked`
+  - `tools/ci/check_sync_soak_file_sizes.ps1 -FailOnBlocked`
   - `tools/test-sync-soak-harness.ps1`
   - `tools/gen-keys/verify-idempotent.ps1`
   - targeted harness/driver/router/app Flutter tests
@@ -152,7 +152,7 @@ Open work is now scale and hardening, not structural decomposition:
   Supabase. It is not accepted as full coupled pressure yet because the UI
   actors failed before they could pull those markers into local SQLite.
   Same-backend setup plumbing exists in
-  `tools/start-local-harness-driver-lab.ps1`, `tools/env-utils.ps1`, and
+  `tools/start-local-harness-driver-lab.ps1`, `tools/driver/env-utils.ps1`, and
   `SOAK_ROLE_ACCOUNT_SOURCE=local_seed`; the remaining work is to rebuild/
   relaunch the devices after the restored router guardrail and rerun the
   four-lane marker smoke.
@@ -336,7 +336,7 @@ the S21/S10-specific mixed proof remains open until the S10 is visible.
 ### E9 - Performance, Staging, And Operational Gates
 
 - [ ] Capture p50/p95/p99 convergence timing and storage availability timing.
-- [ ] Compare local performance against `scripts/perf_baseline.json`.
+- [ ] Compare local performance against `tools/ci/perf_baseline.json`.
 - [ ] Run the same shape against staging or staging-equivalent credentials.
 - [ ] Collect three consecutive green full-system staging or
   staging-equivalent runs at the same commit.
@@ -537,7 +537,7 @@ Every accepted device or app-sync hardening artifact must prove:
 - [ ] Keep cold full sync <= 2000 ms on the seeded fixture.
 - [ ] Keep warm foreground unblock <= 500 ms.
 - [ ] Wire or verify performance regression gate against
-  `scripts/perf_baseline.json`.
+  `tools/ci/perf_baseline.json`.
 - [ ] Record p50/p95/p99 convergence and file-object availability where the
   harness can measure them.
 

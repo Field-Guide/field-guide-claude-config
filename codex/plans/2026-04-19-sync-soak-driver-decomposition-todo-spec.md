@@ -216,7 +216,7 @@ classification, artifact shape, and pass/fail policy.
 
 ## Size Goals
 
-Inherit 2026-04-18 size goals (`scripts/check_sync_soak_file_sizes.ps1` +
+Inherit 2026-04-18 size goals (`tools/ci/check_sync_soak_file_sizes.ps1` +
 `tools/sync-soak/size-budget-exceptions.json`). Follow-on additions:
 
 - [ ] Dart files in `integration_test/sync/soak/` stay under 400 lines
@@ -271,7 +271,7 @@ The decomposition lane is complete when every item below is checked:
   ramp-up.
 - [ ] `dart analyze integration_test test/harness` reports no issues.
 - [ ] `tools/test-sync-soak-harness.ps1` passes.
-- [ ] `pwsh scripts/check_sync_soak_file_sizes.ps1 -FailOnBlocked` exits 0.
+- [ ] `pwsh tools/ci/check_sync_soak_file_sizes.ps1 -FailOnBlocked` exits 0.
 - [ ] S21 smoke rerun on the converted soak path passes, or a written
   plumbing-only note exists per guardrail.
 
@@ -280,8 +280,8 @@ The decomposition lane is complete when every item below is checked:
 Extend the 2026-04-18 size-budget tooling rather than replacing it.
 
 - [ ] Add `lib/core/driver/**/*.dart` to the file-size report scope in
-  `scripts/check_sync_soak_file_sizes.ps1` (or create a sibling
-  `scripts/check_driver_file_sizes.ps1` if the scope feels foreign to
+  `tools/ci/check_sync_soak_file_sizes.ps1` (or create a sibling
+  `tools/ci/check_driver_file_sizes.ps1` if the scope feels foreign to
   the soak script).
 - [ ] Create `lib/core/driver/size-budget-exceptions.json` only when a
   driver file needs an intentional exception (do not pre-seed).
@@ -682,7 +682,7 @@ layer (protected by driver tests + S21 reruns), then deferred lanes.
   reports no issues after every slice.
 - [ ] `dart run custom_lint` reports no new warnings after every slice.
 - [ ] `tools/test-sync-soak-harness.ps1` passes after every slice.
-- [ ] `pwsh scripts/check_sync_soak_file_sizes.ps1 -FailOnBlocked` exits 0
+- [ ] `pwsh tools/ci/check_sync_soak_file_sizes.ps1 -FailOnBlocked` exits 0
   after every slice, with any new exceptions documented in the exception
   file and motivated in the slice's progress-log entry.
 - [ ] S21 smoke passes on the next device-sync slice that touches the

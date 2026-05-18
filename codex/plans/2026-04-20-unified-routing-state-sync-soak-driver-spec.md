@@ -564,7 +564,7 @@ the checklist to update going forward.
   expected denial windows, storage transient failures, stale sync locks,
   stale `pulling=1`, realtime hint loss/duplicate/fallback.
 - [ ] Capture p50/p95/p99 convergence and storage availability timings and
-  compare against `scripts/perf_baseline.json`.
+  compare against `tools/ci/perf_baseline.json`.
 - [ ] Complete `docs/sync-consistency-contract.md`.
 - [ ] Complete operational diagnostics/alerts, especially stale
   `sync_hint_subscriptions`, blocked queue rows, retry growth, stale locks,

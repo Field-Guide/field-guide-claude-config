@@ -312,7 +312,7 @@ Each timing artifact should label:
 - Iteration 8 completed the UI-cycle audit and corrected the measurement path:
   - `/driver/sync-status` now reports UI sync state separately from the shared
     sync gate
-  - `tools/measure-device-sync.ps1` now measures the UI state with a tighter
+  - `tools/sync/measure-device-sync.ps1` now measures the UI state with a tighter
     `100ms` poll interval
   - `SyncProvider` no longer extends `isSyncing` through the post-sync provider
     refresh callback

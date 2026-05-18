@@ -182,7 +182,7 @@ declaring the decomposition lane complete:
 Use soft enforcement first, then make it harder to regress once the initial
 split is done.
 
-- [ ] Add a `scripts/check_sync_soak_file_sizes.ps1` advisory script that
+- [ ] Add a `tools/ci/check_sync_soak_file_sizes.ps1` advisory script that
   reports line counts for:
   - `tools/*sync*soak*.ps1`;
   - `tools/sync-soak/**/*.ps1`;

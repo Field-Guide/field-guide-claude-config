@@ -106,8 +106,8 @@ eliminate duplicate GlobalKey / dirty build-scope / red-black screen failures.
 - [x] Preserve testing keys and driver screen contracts for the slice.
 - [x] Add route-build, tab-switch, guard, and reevaluation logs.
 - [x] Add driver/debug build switch for the AutoRoute slice:
-  `tools/start-driver.ps1 -UseAutoRouteVerticalSlice` and
-  `tools/build.ps1 -UseAutoRouteVerticalSlice`.
+  `tools/driver/start-driver.ps1 -UseAutoRouteVerticalSlice` and
+  `tools/build/build.ps1 -UseAutoRouteVerticalSlice`.
 - [x] Key Android driver reinstall freshness on `dartDefinesHash` so changing
   routing backends cannot reuse a stale APK on devices.
 - [ ] Run S21/S10/emulator repro against the slice.
