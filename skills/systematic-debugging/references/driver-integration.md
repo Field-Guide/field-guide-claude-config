@@ -210,12 +210,12 @@ The driver is a convenience, not a hard dependency. If it fails, fall back to ma
 ### App crash (connection refused after previously working)
 
 1. Inform user: "App appears to have crashed during reproduction"
-2. Offer to relaunch: `pwsh -File tools/start-driver.ps1 -Platform <platform>`
+2. Offer to relaunch: `pwsh -File tools/driver/start-driver.ps1 -Platform <platform>`
 3. After relaunch, re-login and resume from the last successful step
 
 ### Hot-restart failure (500 from /driver/hot-restart)
 
-1. Full relaunch via `pwsh -File tools/start-driver.ps1 -Platform <platform>`
+1. Full relaunch via `pwsh -File tools/driver/start-driver.ps1 -Platform <platform>`
 2. Re-login and re-execute repro steps from scratch
 
 ---
@@ -280,26 +280,26 @@ curl -s "http://127.0.0.1:4948/driver/tree?filter=entry_card"
 
 ## Platform Notes
 
-> **Note:** All manual launch/stop commands below are wrapped by `start-driver.ps1` and `stop-driver.ps1`. Prefer using the scripts rather than running these commands individually. The scripts handle debug server startup, ADB port forwarding, readiness polling, and teardown in one step.
+> **Note:** All manual launch/stop commands below are wrapped by `tools/driver/start-driver.ps1` and `tools/driver/stop-driver.ps1`. Prefer using the scripts rather than running these commands individually. The scripts handle debug server startup, ADB port forwarding, readiness polling, and teardown in one step.
 
 ### Windows
 
 - Driver and debug server both on localhost -- no port forwarding needed
-- Launch: `pwsh -File tools/start-driver.ps1 -Platform windows`
-- Second app instance for sync verification: `pwsh -File tools/start-driver.ps1 -Platform windows -DriverPort 4949`
-- Kill: `pwsh -File tools/stop-driver.ps1`
+- Launch: `pwsh -File tools/driver/start-driver.ps1 -Platform windows`
+- Second app instance for sync verification: `pwsh -File tools/driver/start-driver.ps1 -Platform windows -DriverPort 4949`
+- Kill: `pwsh -File tools/driver/stop-driver.ps1`
 
 ### Android
 
-- `start-driver.ps1` reuses the cached driver APK when tracked inputs are unchanged. Pass `-ForceRebuild` to force a rebuild.
+- `tools/driver/start-driver.ps1` reuses the cached driver APK when tracked inputs are unchanged. Pass `-ForceRebuild` to force a rebuild.
 - Android uses mixed port direction:
   ```bash
   adb reverse tcp:3947 tcp:3947
   adb forward tcp:4948 tcp:4948
   ```
-- `start-driver.ps1` handles this automatically
-- Launch: `pwsh -File tools/start-driver.ps1 -Platform android`
-- Kill: `pwsh -File tools/stop-driver.ps1`
+- `tools/driver/start-driver.ps1` handles this automatically
+- Launch: `pwsh -File tools/driver/start-driver.ps1 -Platform android`
+- Kill: `pwsh -File tools/driver/stop-driver.ps1`
 
 ### Verify Both Servers
 

@@ -132,11 +132,11 @@ Supported command shapes:
 
 - parse the requested scope
 - verify driver readiness
-- start or reuse the driver with `tools/start-driver.ps1`
+- start or reuse the driver with `tools/driver/start-driver.ps1`
 - read `.claude/test-credentials.secret`
 - create the run directory and required subfolders
 
-Prefer `tools/start-driver.ps1` over manual launch commands.
+Prefer `tools/driver/start-driver.ps1` over manual launch commands.
 
 ### 2. Execute Flows
 
@@ -259,7 +259,7 @@ possible. Service-role checks are verification-only and never the app actor.
 
 ## Driver And Platform Notes
 
-- use `tools/start-driver.ps1` and `tools/stop-driver.ps1`
+- use `tools/driver/start-driver.ps1` and `tools/driver/stop-driver.ps1`
 - use `POST /driver/hot-restart` only when a hot restart is actually safe
 - use `python` or `py -3` instead of assuming `python3` on Windows
 - use `pwsh -Command` for PowerShell invocations
@@ -276,7 +276,7 @@ possible. Service-role checks are verification-only and never the app actor.
 When the run is complete:
 
 ```text
-pwsh -File tools/stop-driver.ps1
+pwsh -File tools/driver/stop-driver.ps1
 ```
 
 Leave the debug server running only if the user wants to inspect logs.

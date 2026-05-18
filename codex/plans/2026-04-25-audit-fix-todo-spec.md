@@ -103,11 +103,12 @@ migration test coverage, then architecture/debt items.
 ### Verification
 
 - `flutter test test/features/pdf/extraction/stages/post_processing/artifact_cleaning_unit_rules_test.dart test/features/pdf/extraction/stages/ocr_page_recognition_worker_payload_test.dart`
-- `flutter test test/features/pdf/extraction/pipeline/extraction_pipeline_normalized_replay_test.dart test/features/pdf/extraction/integration/gocr_downstream_replay_test.dart`
+- `flutter test test/features/pdf/extraction/contracts/pdf_math_validation_only_guardrail_test.dart test/features/pdf/extraction/helpers/gocr_ocr_cache_test.dart -d windows`
+- `dart run tools/pdf-extraction/google_ocr_cache_inspector.dart --cache-dir .tmp/pdf_extraction_corpus_ocr_cache --out-dir .tmp/google_ocr_cache_inspection --expected test/features/pdf/extraction/fixtures/pdf_extraction_corpus_expected.json`
 - `flutter test test/features/pdf/extraction/pipeline/stage_trace_contract_test.dart test/features/pdf/extraction/pipeline/stage_trace_sink_test.dart test/features/pdf/extraction/pipeline/stage_trace_diagnostics_test.dart`
 - `flutter analyze`
 - `dart run custom_lint`
-- Full opt-in replay attempted with `--dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true`; blocked because `.tmp/gocr_ocr_cache` is absent in this workspace.
+- Full opt-in replay attempted with `--dart-define=RUN_GOCR_DOWNSTREAM_REPLAY=true`; blocked because `.tmp/pdf_extraction_corpus_ocr_cache` is absent in this workspace.
 
 ## 5. Migration Coverage
 
@@ -249,7 +250,7 @@ migration test coverage, then architecture/debt items.
   - pay-app/export/PDF extraction expectation drift: generated pay-app ID expectations, GOCR fixture-contract source assertions, `QualityReport.isValid`, and row parser duplicate-semantics behavior;
   - project/sync contract drift: project provider sync-mode tests, file-sync storage-path validation, pull conflict/change-log behavior, LWW conflict logging, and mutable seed photo fixture count.
   Focused tests listed above passed for the changed slices.
-- Full opt-in GOCR/PDF replay: still blocked by missing `.tmp/gocr_ocr_cache`. The cache-free PDF unit/smoke gates listed in section 4 passed again on 2026-04-25.
+- Full opt-in GOCR/PDF replay: still blocked by missing `.tmp/pdf_extraction_corpus_ocr_cache`. The cache-free PDF unit/smoke gates listed in section 4 passed again on 2026-04-25.
 - Nightly sync-soak harness pass: disabled as an acceptance blocker per user
   direction on 2026-04-25.
 

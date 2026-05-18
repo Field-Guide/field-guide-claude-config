@@ -22,7 +22,7 @@ surface without inventing wave agents or fixer agents.
 - `tools/testing/test-results/YYYY-MM-DD/<run-id>/`
 - PDF extraction replay audits must write compact outputs under
   `tools/testing/test-results/YYYY-MM-DD/pdf-extraction-replay-audit-<time>-<run_id>/`
-  by running `scripts/audit_pdf_extraction_replay.ps1`.
+  by running `tools/pdf-extraction/audit_pdf_extraction_replay.ps1`.
 
 ## Core Rules
 
@@ -65,7 +65,7 @@ surface without inventing wave agents or fixer agents.
 
 ## Notes
 
-- use `tools/start-driver.ps1` and `tools/stop-driver.ps1`
+- use `tools/driver/start-driver.ps1` and `tools/driver/stop-driver.ps1`
 - save screenshots for every UI cell, but manually inspect only failures,
   warnings, and small feature/device samples
 - "stress test sync" maps to `sync-flow`

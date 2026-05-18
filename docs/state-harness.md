@@ -37,8 +37,8 @@ Eventually semantics are:
 
 - `lib/core/driver/device_state_machine.dart`
 - `test/core/driver/device_state_machine_test.dart`
-- `tools/sync-soak/DevicePosture.ps1`
-- `tools/sync-soak/tests/DevicePosture.Tests.ps1`
+- `tools/testing/driver/DevicePosture.ps1`
+- `tools/testing/tests/DevicePosture.Tests.ps1`
 
 ## Typed Keys
 
@@ -53,12 +53,12 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\tools\gen-keys\verify-idempotent
 Generated outputs:
 
 - `lib/shared/testing_keys/generated/keys.g.dart`
-- `tools/sync-soak/generated/Keys.ps1`
-- `tools/sync-soak/generated/keys.json`
+- `tools/testing/catalog/generated/Keys.ps1`
+- `tools/testing/catalog/generated/keys.json`
 
 ## Log Assertions
 
-`tools/sync-soak/LogAssertions.ps1` evaluates evidence bundles with fatal rules:
+`tools/testing/driver/LogAssertions.ps1` evaluates evidence bundles with fatal rules:
 
 - `no_global_key_duplicate`
 - `no_flutter_error_widget`
@@ -71,14 +71,14 @@ documented reason in the flow.
 
 ## Orchestrator Invariants
 
-`tools/sync-soak/OrchestratorStateMachine.ps1` owns cross-device invariants.
+`tools/testing/driver/OrchestratorStateMachine.ps1` owns cross-device invariants.
 The first reference invariant is project convergence: after a project is
 created on one actor, every actor must observe the project locally within the
 convergence window.
 
 ## Timeline
 
-`tools/sync-soak/Timeline.ps1` merges actor transition JSON, orchestrator
+`tools/testing/driver/Timeline.ps1` merges actor transition JSON, orchestrator
 transition JSON, and evidence summaries into:
 
 - `timeline.json`

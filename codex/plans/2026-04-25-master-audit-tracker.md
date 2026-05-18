@@ -324,11 +324,11 @@ Audit said file was 475 lines (over 300-line cap). Current path is `lib/features
 #### `[~]` H11 — Orphan scripts/tools (16 files audit, 12 truly orphan in tree)
 
 Of the 16 audit-listed files, only 4 have any inbound reference:
-- `scripts/cleanup_google_ocr_research.ps1` — referenced by `test/features/pdf/extraction/PDF_HARDENING.md:198-199`.
-- `scripts/run_patrol.ps1` / `scripts/run_patrol_debug.ps1` — README + self-doc only.
-- `scripts/flutter_run_endpoint.ps1` — invoked by `tools/start-driver-flutter-run.ps1:341, 395`. **In use.**
-- `tools/build_golden_from_run.dart` — self-reference only.
-- `tools/create-defect-issue.ps1` — self-reference only; **also violates `.claude/CLAUDE.md` rule "Do not create `.claude/defects/*`".**
+- `tools/pdf-extraction/cleanup_google_ocr_research.ps1` — referenced by `test/features/pdf/extraction/PDF_HARDENING.md:198-199`.
+- `tools/driver/run_patrol.ps1` / `tools/driver/run_patrol_debug.ps1` — README + self-doc only.
+- `tools/driver/flutter_run_endpoint.ps1` — invoked by `tools/driver/start-driver-flutter-run.ps1:341, 395`. **In use.**
+- `tools/testing/build_golden_from_run.dart` — self-reference only.
+- `tools/testing/create-defect-issue.ps1` — self-reference only; **also violates `.claude/CLAUDE.md` rule "Do not create `.claude/defects/*`".**
 
 The other 11 (`bring_window`, `fix_taskbar`, `list_windows`, `check_virtual_desktop`, `view_pdf_logs`, `validate_feature_spec`, `validate_ui_structure`, `validate_retired_flow_ids`, `dump_inspect`, `gocr_trace_viewer`, plus `cleanup_google_ocr_research`) are orphans.
 
@@ -341,7 +341,7 @@ The other 11 (`bring_window`, `fix_taskbar`, `list_windows`, `check_virtual_desk
 | `integration_test/cell_crop_diagnostic_test.dart` | 172 | **209** | 1 |
 | `integration_test/grid_removal_diagnostic_test.dart` | 383 | **497** | 1 |
 | `integration_test/springfield_report_test.dart` | 469 | **604** | 1 |
-| `integration_test/pre_release_pdf_corpus_test.dart` | 245 | **347** | 1 |
+| `integration_test/pdf_extraction_corpus_test.dart` | 245 | **347** | 1 |
 
 **Fix:** split each `main()` body into `group(...) { test(...); test(...); }` blocks keyed on stage (cell crop, grid removal, comparison, regression). Single-`testWidgets` wrapping defeats per-stage failure localization.
 

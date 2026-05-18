@@ -34,9 +34,9 @@ Full HTTP server for external test automation, replacing the removed Patrol stac
 ### Lifecycle Scripts
 
 ```powershell
-pwsh -File tools/start-driver.ps1    # Launch app in driver mode
-pwsh -File tools/stop-driver.ps1     # Tear down driver process
-pwsh -File tools/wait-for-driver.ps1 # Block until server is ready
+pwsh -File tools/driver/start-driver.ps1       # Launch app in driver mode
+pwsh -File tools/driver/stop-driver.ps1        # Tear down driver process
+pwsh -File tools/testing/launch/Wait-DriverReady.ps1 # Block until server is ready
 ```
 
 ---
@@ -162,7 +162,7 @@ Visual regression tests comparing widget renders against baseline PNGs.
 
 - **Location:** `test/golden/` -- ~95 baseline PNGs in `test/golden/goldens/`
 - **PDF goldens:** `test/golden/pdf/` (failures dir; baselines pending)
-- **Helper:** `tools/build_golden_from_run.dart` -- rebuild baselines from CI artifacts
+- **Helper:** `tools/testing/build_golden_from_run.dart` -- rebuild baselines from CI artifacts
 
 ### Organization
 
@@ -253,7 +253,7 @@ Variants:
 
 CLI comparison (any two report folders):
 ```powershell
-pwsh -Command "dart run tools/pipeline_comparator.dart reports/latest-windows reports/latest-sm-s938u"
+pwsh -Command "dart run tools/pdf-extraction/pipeline_comparator.dart reports/latest-windows reports/latest-sm-s938u"
 ```
 
 ### Key Test Files
@@ -263,7 +263,7 @@ pwsh -Command "dart run tools/pipeline_comparator.dart reports/latest-windows re
 | `integration_test/springfield_report_test.dart` | Full pipeline report + regression gate |
 | `test/features/pdf/extraction/golden/pipeline_comparator.dart` | Comparison library (replaces 3 old tools) |
 | `test/features/pdf/extraction/golden/report_generator.dart` | JSON trace + MD scorecard generator |
-| `tools/pipeline_comparator.dart` | CLI entry point for cross-platform comparison |
+| `tools/pdf-extraction/pipeline_comparator.dart` | CLI entry point for cross-platform comparison |
 
 ### Report Output
 

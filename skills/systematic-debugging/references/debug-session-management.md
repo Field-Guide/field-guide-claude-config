@@ -45,7 +45,7 @@ Windows desktop:
 pwsh -Command "flutter run -d windows --dart-define=DEBUG_SERVER=true"
 ```
 
-**Security note**: `DEBUG_SERVER=true` is blocked in release builds by `tools/build.ps1`. Never add it to `.env`.
+**Security note**: `DEBUG_SERVER=true` is blocked in release builds by `tools/build/build.ps1`. Never add it to `.env`.
 
 ### Verify connection
 
@@ -56,11 +56,11 @@ curl http://127.0.0.1:3947/health
 
 ### Driver server (autonomous reproduction)
 
-The driver server (port 4948) enables Claude to tap widgets, enter text, and navigate the app without user intervention. It is started automatically by `start-driver.ps1`.
+The driver server (port 4948) enables Claude to tap widgets, enter text, and navigate the app without user intervention. It is started automatically by `tools/driver/start-driver.ps1`.
 
 **Launch both servers + app in one command:**
 ```bash
-pwsh -File tools/start-driver.ps1 -Platform windows   # or android
+pwsh -File tools/driver/start-driver.ps1 -Platform windows   # or android
 ```
 
 This script:
@@ -79,12 +79,12 @@ curl -s "http://127.0.0.1:4948/driver/ready"
 
 **Stop the app (keeps debug server):**
 ```bash
-pwsh -File tools/stop-driver.ps1
+pwsh -File tools/driver/stop-driver.ps1
 ```
 
 **Stop everything (app + debug server):**
 ```bash
-pwsh -File tools/stop-driver.ps1 -IncludeDebugServer
+pwsh -File tools/driver/stop-driver.ps1 -IncludeDebugServer
 ```
 
 See `driver-integration.md` for full API reference, login procedures, and repro-steps JSON format.
@@ -111,7 +111,7 @@ INSTRUMENT (Phase 3)
   └─> Fill permanent gaps
 
 LAUNCH DRIVER (Phase 3.5)
-  └─> pwsh -File tools/start-driver.ps1 (starts debug server + app + driver)
+  └─> pwsh -File tools/driver/start-driver.ps1 (starts debug server + app + driver)
   └─> Poll readiness (script handles this)
   └─> Login via test credentials from .claude/test-credentials.secret
   └─> Fallback: if driver unreachable after 3 retries, switch to manual
@@ -145,7 +145,7 @@ CLEANUP (Phase 9)
   └─> Global search — must return zero
   └─> Write session log
   └─> Prune 30-day retention
-  └─> Stop driver: pwsh -File tools/stop-driver.ps1
+  └─> Stop driver: pwsh -File tools/driver/stop-driver.ps1
 
 DEFECT LOG (GitHub Issues) (Phase 10)
   └─> Record new patterns to GitHub Issue
@@ -263,8 +263,8 @@ See `driver-integration.md` for the full driver API reference, login procedures,
 
 | Command | Purpose |
 |---------|---------|
-| `pwsh -File tools/start-driver.ps1 -Platform windows` | Start driver environment |
-| `pwsh -File tools/start-driver.ps1 -Platform windows -DriverPort 4949` | Start second desktop driver instance |
-| `pwsh -File tools/start-driver.ps1 -Platform android -ForceRebuild` | Force Android driver rebuild + reinstall |
-| `pwsh -File tools/stop-driver.ps1` | Stop app (keep debug server) |
-| `pwsh -File tools/stop-driver.ps1 -IncludeDebugServer` | Stop app + debug server |
+| `pwsh -File tools/driver/start-driver.ps1 -Platform windows` | Start driver environment |
+| `pwsh -File tools/driver/start-driver.ps1 -Platform windows -DriverPort 4949` | Start second desktop driver instance |
+| `pwsh -File tools/driver/start-driver.ps1 -Platform android -ForceRebuild` | Force Android driver rebuild + reinstall |
+| `pwsh -File tools/driver/stop-driver.ps1` | Stop app (keep debug server) |
+| `pwsh -File tools/driver/stop-driver.ps1 -IncludeDebugServer` | Stop app + debug server |
