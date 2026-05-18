@@ -4,7 +4,7 @@
 
 ## Layer Architecture
 
-The app follows a **Feature-First Clean Architecture** with clear separation. Clean architecture (domain layer, use cases, repository interfaces) is the norm across **nearly all 17 features** following the S676 refactor.
+The app follows a **Feature-First Clean Architecture** with clear separation. Clean architecture (domain layer, use cases, repository interfaces) is the norm across **nearly all 20 features** following the S676 refactor.
 
 ```
 lib/
@@ -12,9 +12,10 @@ lib/
 │   └── database/
 │       └── schema/  # Schema files organized by domain
 ├── shared/      # Base classes, common utilities
-├── features/    # 17 feature modules (auth, calculator, contractors, dashboard, entries,
-│   │            # forms, gallery, locations, pdf, photos, projects, quantities,
-│   │            # settings, sync, todos, toolbox, weather)
+├── features/    # 20 feature modules (analytics, auth, calculator, contractors,
+│   │            # dashboard, entries, forms, gallery, locations, pay_applications,
+│   │            # pdf, photos, projects, quantities, settings, signatures, sync,
+│   │            # todos, toolbox, weather)
 │   └── [feature]/
 │       ├── data/         # Models, repositories (impl), datasources
 │       │   ├── datasources/
@@ -59,7 +60,7 @@ Example from `lib/features/contractors/data/models/contractor.dart`:
 
 ## Database Pattern
 
-Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart` (schema version 50).
+Single SQLite database with foreign key relationships. Reference: `lib/core/database/database_service.dart` (schema version 65).
 
 ### Table Naming Convention
 
@@ -74,7 +75,7 @@ Indexes on:
 
 ## Navigation Pattern
 
-Uses **go_router** with shell routes for persistent bottom nav. Reference: `lib/core/router/app_router.dart`
+Uses **AutoRoute** behind the app-owned router host with shell routes for persistent bottom nav. Reference: `lib/core/router/app_router_host.dart` and `lib/core/router/autoroute/app_auto_router.dart`.
 
 ### Route Structure
 
@@ -226,7 +227,7 @@ Reference: `lib/features/contractors/data/models/contractor.dart`
 | Package | Purpose |
 |---------|---------|
 | `provider` | State management (ChangeNotifier) |
-| `go_router` | Navigation (shell routes, deep links) |
+| `auto_route` | Navigation (shell routes, guards, generated route pages) |
 | `supabase_flutter` | Backend / Auth |
 | `sqflite` | Local SQLite storage |
 | `syncfusion_flutter_pdf` | PDF generation (template filling) |
@@ -278,7 +279,7 @@ These patterns are enforced by `field_guide_lints` custom lint rules. Violations
 | Raw `showDialog(` in presentation | A19 | Use `AppDialog.show()` |
 | Raw `showModalBottomSheet(` in presentation | A20 | Use `AppBottomSheet.show()` |
 | Raw `Scaffold(` in screen files | A21 | Use `AppScaffold` |
-| Direct `ScaffoldMessenger`/`showSnackBar` in presentation | A22 | Use `SnackBarHelper.show*()` |
+| Direct `ScaffoldMessenger`/`showSnackBar` in presentation | A22 | Use `AppSnackbar.show*()` |
 | Inline `TextStyle(` in presentation | A23 | Use `AppText.*` or textTheme slots |
 
 > **Note:** Rules A10-A11 and additional data safety, sync integrity, and test quality rules are defined in `fg_lint_packages/field_guide_lints/`. The table above covers architecture-specific rules only.

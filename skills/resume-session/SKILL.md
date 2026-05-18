@@ -45,20 +45,20 @@ That's it. No questions. No context loading. The user's first message IS the int
 ### Step 3: Return Control
 
 Wait for the user to say what they want. Their message determines what happens next:
-- If they name a feature → agents load feature-specific context via their own frontmatter
-- If they ask about status → read `state/PROJECT-STATE.json` or `state/FEATURE-MATRIX.json`
-- If they want to debug → agents load GitHub Issues and constraints as needed
+- If they name a feature -> load the smallest relevant slice through `.codex/CLAUDE_CONTEXT_BRIDGE.md`, current `.claude/rules/`, active plans/specs, and repo code.
+- If they ask about status -> prefer `.codex/PLAN.md`, `.claude/autoload/_state.md`, and only then deeper state files if needed.
+- If they want to debug -> use the relevant rules, active plans/specs, GitHub Issues, and current code paths as needed.
 
 **Do NOT pre-load any feature context, rules, constraints, or docs.**
 
 ## Context Loading Reference (for agents, not this skill)
 
-When agents are invoked, they load their own context per their frontmatter:
-- **Rules**: `rules/architecture.md`, feature-specific rules
-- **Constraints**: `architecture-decisions/{feature}-constraints.md`
-- **Docs**: `docs/features/feature-{name}-overview.md`, `feature-{name}-architecture.md`
-- **State**: `state/feature-{name}.json`, `state/PROJECT-STATE.json`
-- **Defects**: GitHub Issues (gh issue list --label "{feature}")
+When agents are invoked, they load only the matching current surface:
+- **Bridge**: `.codex/CLAUDE_CONTEXT_BRIDGE.md`
+- **Rules**: `.claude/rules/**` by domain
+- **Plans/specs**: `.codex/PLAN.md`, matching `.codex/plans/`, `.claude/plans/`, `.claude/specs/`, or `.claude/tailor/`
+- **State**: `.claude/autoload/_state.md`, `.claude/memory/MEMORY.md`, and `.claude/state/PROJECT-STATE.json` only when status depth requires it
+- **Defects**: GitHub Issues or current code evidence when the task requires live triage
 
 ## Rules
 - **NO git commands** — not `git status`, not `git log`, not any git operation

@@ -33,6 +33,7 @@ Primary targets:
 - `.claude/agents/`
 - `.claude/memory/`
 - `.codex/`
+- selected repo `docs/` files referenced by `.claude/doc-drift-map.json`
 
 Treat historical directories as out of scope unless the user explicitly asks:
 
