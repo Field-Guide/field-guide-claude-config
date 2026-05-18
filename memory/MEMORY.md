@@ -55,12 +55,12 @@ loading on demand. Do not treat it as a session notebook.
 ## Build And Tooling Gotchas
 
 - Use PowerShell wrappers for Flutter and Dart commands.
-- Use `pwsh -File tools/build.ps1` for builds instead of raw `flutter build`.
+- Use `pwsh -File tools/build/build.ps1` for builds instead of raw `flutter build`.
 - Do not run `Stop-Process -Name 'dart'`; it can kill unrelated background Dart
   processes.
 - On Android API 36, use `db.rawQuery('PRAGMA ...')` instead of `db.execute()`
   for PRAGMA calls.
-- Use `tools/start-driver.ps1` and `tools/stop-driver.ps1` for driver-based
+- Use `tools/driver/start-driver.ps1` and `tools/driver/stop-driver.ps1` for driver-based
   testing.
 
 ## File Purpose

@@ -16,6 +16,7 @@ duplicate the `.claude/` knowledge base.
 ## Operating Rules
 
 - Keep startup context lean.
+- Codemagic API credentials live in `.env.secret`; load them before checking or starting builds.
 - Keep `apply_patch` batches small; do not attempt giant multi-file patches in
   one call.
 - Treat `.claude/CLAUDE.md` as a project manual, not default startup context.
@@ -72,12 +73,16 @@ library:
 - Keep E2E flows concise: seed feature preconditions through `/driver/seed`;
   auth/setup stays in auth flows only.
 - Keep S21 primary; prefer `flutter run` hot reload/restart for Dart/UI iteration.
+- Default live verification target is the office technician role on the Grand
+  Blanc Test project (`6936f810-ec15-494e-b4aa-280bf3bf15d3`, project number
+  `12344`). Do not use admin/Saugatuck as the default unless the user
+  explicitly asks for that coverage or the task is admin-only.
 - On Android labs, reuse remote driver port `4948` across devices; only vary local forwarded ports.
-- Prefer `scripts/flutter_run_endpoint.ps1` for S21 `flutter run`; use
+- Prefer `tools/driver/flutter_run_endpoint.ps1` for S21 `flutter run`; use
   `POST http://127.0.0.1:4950/reload` before restart/rebuild.
 - Use the debug/driver server for live S21 automation when available.
 - Avoid `flutter clean` unless stale-build evidence requires it.
-- Prefer live backend/device testing; Docker Desktop and the local Supabase stack are available as fallback tools when remote checks are risky or credentials are unstable.
+- Prefer live backend/device testing as the only maintained backend verification path.
 - Prefer real production seams over large mock stacks.
 - Do not add test-only hooks, methods, or lifecycle APIs to production code.
 - Mock only at lower-level boundaries after the real dependency chain and side
@@ -86,6 +91,15 @@ library:
   of inventing a test-only escape hatch.
 - Use `TestingKeys`; do not introduce fake test IDs or assert on placeholder
   widgets.
+- PDF extraction row math and checksum evidence is validation-only. Never use
+  it to change, infer, overwrite, derive, or normalize `quantity`,
+  `unitPrice`, `bidAmount`, expected fixtures, or ground truth.
+- Do not use PDF extraction row math or checksum evidence to trigger OCR
+  retries, cap quality scores, select extraction attempts, or route between
+  extraction methods. It may only report validation status, review blockers,
+  warnings, and diagnostics.
+- Before changing PDF extraction numeric parsing or post-processing, run
+  `flutter test test/features/pdf/extraction/contracts/pdf_math_validation_only_guardrail_test.dart -d windows`.
 
 ## Role Policy Non-Negotiables
 

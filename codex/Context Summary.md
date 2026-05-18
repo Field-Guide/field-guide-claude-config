@@ -82,7 +82,7 @@
 - PR status: PR #290 merged `sync-engine-refactor` into `main` at `d97066540c53d9ca97c0030aacf7fb7e21b9916f`
 - CodeMagic build status: `ios-testflight` build `69dc8febbe1c98fae68a2cc7` passed on commit `f2133ea248d10bb6824c9403ef40b5f2d19ae494`
 - Current verified pay-app export evidence: S21 `RFCNC0Y975L` exported saved Pay App #5 as a visible XLSX through Android DocumentsUI, repeated export created `/sdcard/Download/pay_app_5_2026-04-12_2026-04-18 (1).xlsx`, the pulled file was a valid XLSX with the `Quantities` sheet and expected Springfield/pay-item strings, and Microsoft Excel opened that second copy on-device
-- Environment handoff state: Supabase CLI, remote project access, Docker/Desktop, and local Supabase stack validation are working; `supabase start`, `supabase status`, `supabase migration list --local`, and `supabase db reset` now succeed from repo state
+- Environment handoff state: Supabase CLI and remote project access are working; live backend/device verification is the maintained path
 - Current verified refactor state:
   - `driver_server.dart` is reduced to dispatch plus remaining diagnostics/admin seams; interaction/navigation now lives in `lib/core/driver/driver_interaction_handler.dart`
   - `driver_server.dart` now also delegates ready/find/tree/screenshot/hot-restart endpoints to `lib/core/driver/driver_shell_handler.dart`, leaving the server as a thin lifecycle/dispatch shell
@@ -135,8 +135,8 @@
   - app lock is now live through settings with persisted PIN/biometric config, runtime gate enforcement in `AppWidget`, lifecycle auto-lock, and sync-startup suppression while locked
   - weather now has a durable offline cache path backed by `PreferencesService`, including fresh-cache hits, stale-cache fallback, and persisted refresh behavior
   - `daily_sync` hardening now exists on both client and server paths: the app coalesces broad pushes behind a persisted cooldown, and the edge function claims a server-side dispatch slot before FCM/realtime fan-out
-  - rollback coverage is now enforced in CI through `scripts/check_changed_migration_rollbacks.py` plus `scripts/validate_migration_rollbacks.py`, both wired into `.github/workflows/quality-gate.yml`
-  - local Supabase verification now includes `supabase db reset --local` applying `20260408173000_sync_push_rate_limit.sql` successfully
+  - rollback coverage is now enforced in CI through `tools/supabase/check_changed_migration_rollbacks.py` plus `tools/supabase/validate_migration_rollbacks.py`, both wired into `.github/workflows/quality-gate.yml`
+  - remote/live Supabase verification remains the maintained backend validation path
   - `flutter analyze`, `dart run custom_lint`, and the targeted contractor/app-lock/weather/sync-hardening plus earlier form-PDF/database/pipeline/PDF-output/soft-delete/realtime-hint/project-lifecycle/logging-Sentry/settings-export/responsive slices are clean after these changes
 - Highest-priority upstream plan: `.claude/plans/2026-02-28-password-reset-token-hash-fix.md`
 - Major open secondary plan: `.claude/plans/2026-02-22-testing-strategy-overhaul.md`
