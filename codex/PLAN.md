@@ -1,6 +1,98 @@
 # Plan Index
 
+## PDF Extraction Replay Authority
+
+The current PDF extraction replay authority is
+`2026-05-07-delete-normalized-pdf-replay-restore-ocr-call-cache-todo.md`
+together with `test/features/pdf/extraction/PDF_HARDENING.md`.
+
+Current closeout status: normalized/no-render replay remains deleted and
+forbidden; the only accepted fast replay path is live-equivalent cached Google
+Vision OCR-call replay. The 2026-05-09 full pay-item replay at
+`tools/testing/test-results/2026-05-09/pdf-extraction-corpus-233413/summary.json`
+reached `row_accuracy=0.9584` and `field_accuracy=0.9892` across 14/14
+pay-item PDFs, with no missing or unexpected documents. The matching audit at
+`tools/testing/test-results/2026-05-09/pdf-extraction-replay-audit-233436-vision_20260509_232313_full_pay_items_replay_final/audit-summary.md`
+reported zero asserted mismatches and zero trace-contract failures. This is
+still not a 99% per-PDF pass.
+
+Paw Paw S21 live app proof is now complete for the current extraction code:
+`tools/testing/test-results/2026-05-09/s21-pawpaw-live-verification-20260509-232037/S21/23-comparison.json`
+records a real S21 project import with 58/58 exact rows and 348/348 exact
+fields. The persisted app rows contain item numbers 1-58 only, item 24 quantity
+25, and no 60/61/800/66291 extras. Unit comparison is storage-equivalent,
+because the app persists `Dollars` as `DLR`.
+
+Older PDF corpus/replay plans from 2026-05-05 and 2026-05-06 are archived
+under `.codex/plans/completed/` as historical context only. They must not be
+used to re-authorize the deleted replay/cache bypass path, compatibility
+OCR-cache lookup, or acceptance evidence that skips live PDF
+rendering/preprocessing/OCR request construction.
+
 ## Active Codex Plans In `.codex/plans/`
+- `2026-05-12-sentry-only-support-reporting-todo.md`:
+  Active implementation checklist for making Sentry the only user-facing Help
+  & Support reporting path, preserving the app-owned form, adding scrubbed
+  structured diagnostics, extending Sentry report tags/contexts, and removing
+  the active legacy `support_tickets` system after S21 Sentry-to-GitHub
+  verification while preserving remote live data.
+- `2026-05-11-form-entry-flow-redesign-todo.md`:
+  Active planning/design todo for the MDOT 1174R and MDOT 1126 compact form
+  entry redesign plus the new Water Main Pressure Test Report built-in form.
+  It requires a reviewed static wireframe reference before implementation. The
+  matching reference is `2026-05-11-form-entry-flow-wireframes.md` and includes
+  S21 portrait plus tablet landscape layouts with current user-facing labels
+  and field order; S21 short-entry fields are explicitly two-column, with
+  full-width reserved for long text/signature surfaces. Pressure Test Report
+  scope includes the copied source PDF
+  `assets/templates/forms/water_main_pressure_test_report_source.pdf`, a
+  required new fillable AcroForm template, semantic field mapping, allowable
+  leakage calculations, result-row editing, and full built-in form
+  registration/testing. The plan keeps all entered data editable in-app,
+  separates user-facing labels from PDF field mapping, and limits MDOT 0582B
+  work to targeted `.0` formatting cleanup for chart and operating
+  density/moisture fields.
+- `2026-05-10-sync-root-cause-supabase-advisor-evidence-plan.md`:
+  Active evidence-first root-cause plan for GitHub issues #315, #316, #318,
+  #319, #321, and the 98 Supabase Security Advisor findings. It is the durable
+  append target before implementation: preserve S21 reproduction evidence,
+  local/remote sync-state snapshots, Supabase RLS/function ACL evidence,
+  high-level fix buckets, lint guardrail candidates, and the dirty-queue S21
+  full-sync acceptance target of under 2 seconds with real auth, real Supabase,
+  real SQLite, UI-triggered sync, clean queue state, and clean screenshots/logs.
+- `2026-05-07-delete-normalized-pdf-replay-restore-ocr-call-cache-todo.md`:
+  Current controlling PDF extraction hardening checklist. It deletes the
+  replay bypass lane, restores live-equivalent cached Google Vision OCR-call
+  replay as the only accepted fast replay path, requires exact request
+  fingerprints and raw OCR-call cache files, blocks cache files containing
+  cached OCR elements or extracted stage output, and sets the acceptance
+  target to `>= 0.99` exact row accuracy for every individual pay-item PDF
+  before S21 live app verification can claim device accuracy.
+- `2026-05-04-daily-entry-export-location-fix-plan.md`:
+  Current implementation checklist for Daily Entry export workflow and new-entry
+  project-location hydration. It locks export ownership to the three-dot Daily
+  Entry action, uses per-project Android document-tree folders remembered on
+  device, preserves the toolbar PDF button as preview-only, writes IDR-only and
+  dated bundle exports through the selected project folder, keeps Android share
+  sheet behavior for single and multi-file sharing, and fixes stale
+  project-scoped location provider loads so new entries show the correct
+  project locations without opening an existing entry first.
+- `2026-04-29-sync-state-premerge-review-fix-todo.md`:
+  Current premerge fix checklist for branch `sync-state`, created from the
+  multi-agent review. It tracks merge blockers across sync status settling,
+  Sentry-backed support reports, draft visibility/RLS, delete follow-up sync,
+  foreign draft file cleanup, bid-item unit testing keys, M&P/PDF extraction
+  regressions, stale lint guardrails, and the final targeted plus live
+  Supabase verification gate. It also records the completed hygiene extraction
+  of `maintenance_handler.dart` and `generic_local_datasource.dart`.
+- `2026-04-28-live-sync-pull-maintenance-performance-todo.md`:
+  Current live-only S21 sync performance spec for reducing Sync Dashboard
+  full-sync pull and maintenance time. It locks acceptance to live Supabase,
+  real auth, real SQLite, and UI-triggered evidence only; sets pull
+  `<= 2300ms` and maintenance `<= 3000ms` budgets; requires empty queues,
+  `errors=0`, `rlsDenials=0`, per-table pull timing, maintenance subphase
+  timing, run classification, storage orphan-scan details, screenshots, and
+  debug-log summaries.
 - `2026-04-23-focused-forms-payapp-verification-plan.md`:
   Focused next-step verification spec for UI responsiveness, Daily Entry/IDR,
   MDOT 0582B, MDOT 1174R, MDOT 1126, and pay-app export/artifact proof. It
@@ -209,44 +301,35 @@
   controlling spec.
 - `2026-04-17-sync-system-hardening-remaining-work.md`:
   Final handoff tracker for the sync hardening plan after implementation and
-  commit split, covering the remaining Phase 7 staging, nightly-soak,
-  auto-issue, observability, CI-history, and pre-alpha tag gates.
+  commit split, covering historical Phase 7 staging, observability,
+  CI-history, and pre-alpha tag gates. Nightly soak and backend/RLS soak
+  automation are retired.
 - `2026-04-17-sync-hardening-ui-rls-closeout-todo-spec.md`:
   Comprehensive to-do style closeout spec combining sync hardening remaining
   work with S21/S10 manual UI, role-boundary, RLS, sync-state, staging, and
   release-gate defects from the April 16-17 test artifacts.
 - `2026-04-17-gocr-integration-branch-verification-remaining-work.md`:
   Branch-level verification closeout tracker for `gocr-integration`, capturing
-  the hard blockers found after reviewing UI E2E, sync/auth hardening, Android
-  Codemagic/Firebase, local Docker soak, staging soak, and GitHub CI evidence.
-  Current state: workflow YAML parsing, Docker seed reset, staging harness
-  password wiring, branch-tracked UI flow validators, local matrix, and local
-  sync-engine performance are fixed/proven locally. Local Docker soak has been
-  hardened and proven only as a concurrent backend/RLS stress test
-  (`12368/12368` verified actions, 8 workers, 20 virtual users, 0 failures, 0
-  RLS denials). It does not prove device sync because it bypasses local SQLite
-  `change_log`, `SyncEngine`, storage bytes, app auth switching, and
-  multi-device behavior. A host-side driver-app soak wrapper now exists for
-  local SQLite/change-log evidence. Current S21/S10 one-device UI sync and the
+  historical hard blockers found after reviewing UI E2E, sync/auth hardening,
+  Android Codemagic/Firebase, staging, and GitHub CI evidence. Current policy
+  retires backend fixture shortcuts and backend/RLS soak as maintained tooling;
+  use live backend/device verification instead. Current S21/S10 one-device UI sync and the
   S21+S10 local device-lab wrapper passed on 2026-04-17 after fixing harness
   seed residue, fresh-backlog circuit breaker behavior, bounded full-sync push
   draining, and previous-user consent residue. Remaining work is GitHub run
-  proof after push, staging soak/perf proof, expanded UI-driven device
-  mutations, enterprise-scale actor/file/failure soak, and beta-tag
-  distribution proof.
+  proof after push, staging schema/perf proof, expanded UI-driven device
+  mutations, and beta-tag distribution proof.
 - `2026-04-17-enterprise-sync-soak-hardening-spec.md`:
-  To-do style implementation spec for replacing generic soak confidence with a
-  realistic multi-day sync testing system. It splits backend/RLS soak from
-  device-sync soak, starts with the current one-device blocked queue failure,
-  then builds toward S21/S10 multi-device actors, remote actors, real local
+  Historical implementation spec from the retired soak lane. Keep it only as
+  provenance for why backend-only pressure was rejected as device-sync proof.
+  Current work should use live backend/device verification, real local
   `change_log` writes, file/storage bytes, role revocation, auth switching,
   realtime dirty scopes, failure injection, and complete triage artifacts.
 - `2026-04-17-sync-soak-ui-rls-implementation-todo.md`:
-  Live implementation checklist for the two April 17 sync specs. Current state:
-  backend/RLS soak summaries and CI artifacts are explicitly labeled, the
-  backend/RLS soak now uses the enterprise weighted action taxonomy with
-  fixture version/hash, actor reports, and burst-window fields, the
-  device-lab runner captures per-device UI-sync artifacts without
+  Historical implementation checklist for the two April 17 sync specs. Current
+  policy retires its backend/RLS soak and nightly automation paths; retain the
+  device-facing findings only. The device-lab runner captures per-device
+  UI-sync artifacts without
   `POST /driver/sync`, best-effort debug-log snippets and actor context
   snapshots are captured for local device-lab actors, driver change-log
   diagnostics now group blocked rows by table/operation/retry
@@ -290,7 +373,7 @@
   and Dart soak/harness models. The scale-up model is S21 + S10 real-device
   proof, optional emulator if stable, headless app-sync actors for 10-20 app
   users, and backend/RLS virtual actors for remote pressure. Latest progress:
-  the module split is live under `tools/sync-soak/`; the S21 `sync-only`,
+  the module split is live under `tools/testing/flows/sync/`; the S21 `sync-only`,
   `daily-entry-only`, `quantity-only`, and `photo-only` state-machine paths are
   green as isolated single-flow gates; quantity and photo both use
   ledger-owned cleanup with UI-triggered cleanup sync; and photo now proves
@@ -384,7 +467,7 @@
 - `2026-04-18-sync-soak-decomposition-todo-spec.md`:
   Structural debt companion for the sync-soak hardening lane. It audits the
   full soak/device-lab surface, including the 1,922-line
-  `tools/enterprise-sync-soak-lab.ps1`, the largest `tools/sync-soak/Flow.*`
+  the legacy device-lab flow surface, the largest `tools/testing/flows/sync/Flow.*`
   modules, and the 998-line Dart `soak_driver.dart`, then orders
   behavior-preserving extraction into device-lab dispatch, shared flow runtime,
   mutation targets, cleanup/ledger helpers, storage proof, form-flow helpers,
