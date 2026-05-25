@@ -30,6 +30,98 @@ OCR-cache lookup, or acceptance evidence that skips live PDF
 rendering/preprocessing/OCR request construction.
 
 ## Active Codex Plans In `.codex/plans/`
+- `2026-05-24-sync-repair-dead-letter-architecture-todo.md`:
+  Active implementation tracker for GitHub `#337` / Sentry `FLUTTER-1R`.
+  It covers review-status ownership fixes, the daily-entry review-reset residue
+  repair, permanent sync rejection repair evidence, custom lint guardrails, and
+  S21 Grand Blanc real-auth verification/closeout gates.
+- `2026-05-23-aashtoware-document-verification-audit-plan.md`:
+  Active one-document-at-a-time verification controller for the AASHTOWare
+  research package. It tracks each audit wave, requires focused agent research
+  for the active document, and keeps edits owned by Codex after checking
+  public AASHTOWare/OpenAPI sources, MDOT APCM sources, and current Field Guide
+  code.
+- `2026-05-23-aashtoware-openapi-integration-readiness-plan.md`:
+  Current controlling research/readiness plan for MDOT AASHTOWare Project
+  Construction & Materials through AASHTOWare OpenAPI. It supersedes the older
+  Claude backlog plan for current work, keeps real API client implementation
+  blocked until authenticated Developer Portal/API catalog and MDOT sandbox
+  access exist, and orders future work through access, spec intake,
+  auth/connectivity, read-only pull, schema-backed data gaps, draft DWR writes,
+  item/material/attachment writes, submit/lock awareness, and MDOT-accepted
+  pilot proof.
+  Companion package docs live in `docs/integrations/aashtoware/`, with source
+  inventory and link-only archive policy under
+  `docs/integrations/aashtoware/source-documents/`.
+- `2026-05-22-non-project-daily-entry-quantities-materials-todo.md`:
+  Active to-do spec for restoring `Pay Items Used` / quantities to
+  non-project Daily Entries, making non-project manual pay items entry-owned
+  through `bid_items.source_entry_id`, keeping project pay-item behavior
+  reusable/project-scoped, and ensuring Plain Text IDR `Materials` uses the
+  same scoped quantity data as the Company/PDF IDR.
+- `2026-05-22-non-project-contractor-location-leakage-todo.md`:
+  Active to-do spec for fixing non-project Daily Entry contractor/equipment
+  leakage and Activities location leakage. It scopes non-project
+  contractor/equipment rows to their owning `sourceEntryId`, keeps project
+  contractors reusable with duplicate-name blocking, hides prior non-project
+  rows from fresh IDRs without deleting S21 residue, removes non-project
+  Activities location UI in both compact and wide/tablet layouts, and requires
+  focused repository/editor/widget tests plus S21 real-auth verification.
+- `2026-05-21-non-project-plain-text-idr-export-todo.md`:
+  Active to-do spec for adding a non-project-only Plain Text IDR export
+  option. It keeps project Daily Entry exports on the existing PDF-only flow,
+  prompts non-project Daily Entry exports for PDF IDR versus Plain Text IDR,
+  builds text output from `IdrPdfData`, substitutes only the IDR artifact in
+  bundle/share actions, records `text/plain` history, and requires focused
+  formatter/workflow tests plus S21 Grand Blanc office-technician verification.
+- `2026-05-21-non-project-idr-selection-preview-location-todo.md`:
+  Active follow-up to move non-project IDR format selection from export time to
+  Start New Entry, make the editor Preview action render the selected
+  Company/PDF or Plain Text output, and strip stale activity location metadata
+  from non-project UI/preview/export because non-project entries have no
+  location setup path. Requires focused tests plus live S21 verification of
+  Plain Text Dated Bundle, Plain Text IDR Only, Company IDR preview, project
+  PDF-only behavior, and clean sync/log state.
+- `2026-05-21-calculator-ux-redesign-todo.md`:
+  Active to-do spec for the calculator UX redesign. It requires a Calculator
+  Hub with HMA, Area, Trench Layer, and Regular Calculator families; HMA yield
+  and weighback modes using the shared shape engine; a multi-shape Area
+  Calculator with SF/SY/CF/CY outputs and diagrams; a Trench Layer Calculator
+  with depth validation; a Regular Calculator with history and pay-item result
+  handoff; a selected-pay-item-first Daily Entry quantity flow with
+  user-authored notes only; low-fidelity wireframes, approved colored mockups,
+  Flutter implementation, focused tests, and S21/tablet visual verification.
+- `2026-05-21-review-comment-legacy-removal-plan.md`:
+  Active implementation checklist for removing the legacy Review Comment
+  <-> To-Do bridge. It deletes product access to generated review To-Dos,
+  removes `legacy_todo_id` schema/sync coupling, adds self-repair for blocked
+  review-comment residue caused by immutable legacy todo links, and preserves
+  normal manual To-Do behavior.
+- `2026-05-21-review-workflow-redesign-todo.md`:
+  Active full-stack to-do spec for the project review workflow redesign. It
+  separates inspector draft completion from reviewer review, keeps non-project
+  completion outside the review enum, replaces the crowded Review Hub action
+  cards with tabbed list rows, moves reviewer comments into read-only
+  entry/form section headers, removes the redundant Request Changes action,
+  defines project workflow states `draft`, `project_completed`,
+  `needs_action`, and `approved`, hardens duplicate approval/comment actions,
+  and requires Flutter, SQLite, Supabase/RLS, sync, tests, and S21 Grand Blanc
+  verification. No wireframes are part of this spec.
+- `2026-05-20-non-project-daily-entry-completion-flow-plan.md`:
+  Active implementation checklist for the non-project Daily Entry completion
+  flow. It adds a non-project action hub, a `completed` status that stays
+  owner-editable and is not reviewable/submitted, fresh-start non-project
+  drafts that bypass draft reuse, completed status presentation, full focused
+  test coverage, and S21 Grand Blanc office-technician verification. Task/test
+  checklist copy belongs in Codex planning/evidence only, not product UI.
+- `2026-05-20-sync-status-noise-reduction-todo.md`:
+  Active implementation checklist for quieting sync status UI by separating
+  background sync states from true user-action-required failures. It reserves
+  red UI for repair-required or confirmed persistent failure, normalizes overlap
+  and deferred auth as non-failures, treats offline and retryable queue work as
+  background states, centralizes sync severity projection, fixes stale refresh
+  paths and project-card catalog freshness, and requires focused sync/provider/
+  widget tests plus S21 Grand Blanc Test verification only.
 - `2026-05-12-sentry-only-support-reporting-todo.md`:
   Active implementation checklist for making Sentry the only user-facing Help
   & Support reporting path, preserving the app-owned form, adding scrubbed
@@ -475,6 +567,12 @@ rendering/preprocessing/OCR request construction.
 
 ## Active Codex Research In `.codex/research/`
 
+- `2026-05-23-aashtoware-openapi-research.md`:
+  Durable public-source research memo for MDOT AASHTOWare Project Construction
+  & Materials through AASHTOWare OpenAPI. It captures source inventory,
+  confirmed facts, inferred requirements, portal/API catalog limitations, auth
+  and URL/header conventions, repo readiness, access checklist, and blocked
+  questions requiring AASHTOWare/MDOT access.
 - `2026-04-19-router-red-screen-architecture-research.md`:
   Durable routing-architecture memo for the duplicate-`GlobalKey` / red-screen
   investigation. It captures the failure matrix, rejected partial fixes,
@@ -487,6 +585,52 @@ rendering/preprocessing/OCR request construction.
   from Microsoft load-testing docs, Android testing strategy, SQLite WAL,
   Supabase RLS, Supabase Storage RLS, and Supabase Realtime limits, then maps
   those expectations to the current app sync gaps.
+
+## Active Integration Docs
+
+- `docs/integrations/aashtoware/README.md`:
+  Navigation root for the AASHTOWare integration research package. It links the
+  research memo, readiness plan, requirements tracker, mapping notes, access
+  checklist, source-document metadata, and verification controller.
+- `docs/integrations/aashtoware/requirements.md`:
+  Living requirement tracker for access/licensing, auth, API client boundary,
+  data mapping, offline sync, permissions, attachments, auditability, tests, and
+  live verification. Requirements are marked `Confirmed`, `Inferred`, or
+  `Blocked on Portal/MDOT`.
+- `docs/integrations/aashtoware/mdot-mapping.md`:
+  Field Guide to MDOT/APCM concept map for contracts, DWRs, item postings,
+  materials, attachments, change orders, payment estimates, and current local
+  schema gaps.
+- `docs/integrations/aashtoware/access-checklist.md`:
+  External checklist for MDOT/AASHTO access, legal/storage guidance,
+  subscription/product access, sandbox/test data, auth/role/audit model,
+  endpoint schemas, and MDOT-approved live proof.
+- `docs/integrations/aashtoware/user-startup-checklist.md`:
+  Simplified user-facing kickoff checklist for accounts, subscriptions, MDOT
+  contacts, sandbox test data, API catalog access, auth/legal confirmations,
+  and the secure handoff package needed before implementation can start.
+- `docs/integrations/aashtoware/source-documents/README.md`:
+  Link-and-summary archive policy for public source metadata. It keeps copied
+  PDFs, portal snapshots, gated specs, screenshots, generated SDKs, secrets, and
+  raw API payloads out of git unless written storage terms allow them.
+- `docs/integrations/aashtoware/source-documents/2026-05-23-public-source-inventory.md`:
+  Public-source inventory with retrieval dates, link-only archive posture,
+  current/stale source notes, and local-code relevance.
+- `docs/integrations/aashtoware/source-documents/2026-05-23-aashtoware-openapi-infrastructure-summary.md`:
+  Public OpenAPI infrastructure summary covering gateway posture, Developer
+  Portal access, subscription-key samples, agency implementation routing,
+  catalog/standardization caveats, and local code-readiness gaps.
+- `docs/integrations/aashtoware/source-documents/2026-05-23-mdot-apcm-workflow-summary.md`:
+  Public MDOT APCM workflow summary for roles, contracts, DWRs, daily diaries,
+  materials, payment estimates, change orders, attachments, links, and audit
+  controls. It is workflow evidence, not API endpoint/schema proof.
+
+## Supporting Historical Codex Research In `.codex/research/`
+
+- `2026-04-13-aashtoware-pay-item-alignment.md`:
+  Historical supporting research for aligning Field Guide pay-item concepts
+  with AASHTOWare terminology. Use it only as background; the 2026-05-23
+  research/readiness package is the current source for integration planning.
 
 ## Active Codex Checkpoints In `.codex/checkpoints/`
 
@@ -533,6 +677,13 @@ tracker plus its supporting research artifact.
 
 ## Historical Noise To Avoid
 
+- `.claude/backlogged-plans/AASHTOWARE_Implementation_Plan.md`
+  is historical-only background for AASHTOWare. Current research/readiness work
+  is in `.codex/research/2026-05-23-aashtoware-openapi-research.md`,
+  `.codex/plans/2026-05-23-aashtoware-openapi-integration-readiness-plan.md`,
+  `.codex/plans/2026-05-23-aashtoware-document-verification-audit-plan.md`,
+  `docs/integrations/aashtoware/README.md`, and
+  `docs/integrations/aashtoware/source-documents/README.md`.
 - `.claude/plans/completed/*`
 - `.claude/backlogged-plans/*`
 
